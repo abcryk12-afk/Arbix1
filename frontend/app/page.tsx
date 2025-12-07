@@ -2,514 +2,374 @@
 
 export default function HomePage() {
   return (
-    <div className="bg-slate-950 text-slate-50">
-      {/* Hero Section */}
-      <section
-        id="hero"
-        className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900"
-      >
-        <div className="mx-auto max-w-6xl px-4 py-12 md:py-20">
-          <div className="space-y-8 md:flex-row md:items-center md:gap-8">
-            <div className="space-y-6">
-              <p className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[11px] text-slate-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                Automated Arbitrage &amp; Passive Income Platform
-              </p>
-              <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-5xl">
-                Invest Smartly, Earn Passively
-                <span className="block text-sm font-normal text-slate-300 sm:text-base md:text-lg">
-                  Invest wisely and let an automated system grow your profits.
-                </span>
-              </h1>
-              <p className="text-sm text-slate-300 md:text-base">
-                Simply invest your capital and let the Arbix automated arbitrage system
-                generate daily returns for you — with no prior trading experience
-                required.
-              </p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:text-sm">
-                <a href="/auth/signup" className="rounded-lg bg-primary px-5 py-2.5 text-center font-medium text-white shadow-sm hover:bg-blue-500">
-                  Start Earning Today
-                </a>
-                <a
-                  href="#how"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-2.5 text-slate-200 hover:border-slate-500"
-                >
-                  See How It Works
-                </a>
-              </div>
-              <div className="grid gap-4 text-[11px] text-slate-400 sm:grid-cols-3 sm:gap-6">
-                <div>
-                  <div className="font-semibold text-slate-200">No Trading Knowledge Needed</div>
-                  <div>Fully managed arbitrage engine</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-slate-200">Automated &amp; Transparent</div>
-                  <div>Daily profit updates and reporting</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-slate-200">Referral + Team Bonuses</div>
-                  <div>Optional 3-level earning structure</div>
-                </div>
-              </div>
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* Hero Section - Mobile First Design */}
+      <section className="relative px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center">
+            {/* Badge */}
+            <div className="mb-6 inline-flex items-center rounded-full bg-blue-600/10 px-4 py-2 text-sm text-blue-400 border border-blue-600/20">
+              <span className="mr-2 h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
+              Automated Arbitrage Platform
             </div>
-
-            <div className="mt-8 md:mt-0">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5 shadow-xl">
-                <div className="mb-4 flex items-center justify-between text-xs text-slate-400">
-                  <span>Today&apos;s Arbitrage Overview (Demo)</span>
-                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-                    Live-style Preview
-                  </span>
-                </div>
-                <div className="space-y-4 text-xs">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-center">
-                      <div className="text-[10px] text-slate-400">Total Investors</div>
-                      <div className="mt-1 text-lg font-semibold">1,240+</div>
-                      <div className="text-[10px] text-slate-500">Active members</div>
-                    </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-center">
-                      <div className="text-[10px] text-slate-400">Total Deposits</div>
-                      <div className="mt-1 text-lg font-semibold">$389k+</div>
-                      <div className="text-[10px] text-slate-500">Across all plans</div>
-                    </div>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-center">
-                      <div className="text-[10px] text-slate-400">Total Payouts</div>
-                      <div className="mt-1 text-lg font-semibold text-emerald-400">$214k+</div>
-                      <div className="text-[10px] text-slate-500">Since launch</div>
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                    <div className="mb-3 flex items-center justify-between text-[11px] text-slate-400">
-                      <span>Sample Active Package</span>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
-                        Demo
-                      </span>
-                    </div>
-                    <div className="space-y-2 text-[11px]">
-                      <div className="flex justify-between">
-                        <span>Package</span>
-                        <span className="font-medium text-slate-100">Elite 5,000 USDT</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Daily ROI</span>
-                        <span className="font-medium text-emerald-400">2.5% / day</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Duration</span>
-                        <span className="font-medium text-slate-100">120 days</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                    <div className="mb-2 text-[11px] text-slate-400">Sample team earnings (per day)</div>
-                    <div className="space-y-1 text-[11px]">
-                      <div className="flex justify-between">
-                        <span>Level 1 (20%)</span>
-                        <span className="text-emerald-400">$48.00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Level 2 (10%)</span>
-                        <span className="text-emerald-400">$21.50</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Level 3 (5%)</span>
-                        <span className="text-emerald-400">$9.75</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-slate-500">
-                    Figures above are illustrative only. Actual numbers depend on live
-                    market conditions and user allocations.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how" className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <h2 className="text-xl font-semibold text-slate-50 md:text-2xl">
-            How Arbix Works
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            In just 3 simple steps your passive income journey begins: invest, let
-            our automated arbitrage engine execute trades for you, and see profits
-            update on a daily basis.
-          </p>
-
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="mb-2 text-xs font-semibold text-primary">1️⃣ Step 1: Invest</div>
-              <h3 className="text-sm font-semibold text-slate-100">
-                Choose Your Plan &amp; Deposit Funds
-              </h3>
-              <p className="mt-2 text-xs text-slate-400">
-                Choose a profit plan that matches your budget and add funds using
-                convenient deposit options.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="mb-2 text-xs font-semibold text-primary">2️⃣ Step 2: Automated Arbitrage</div>
-              <h3 className="text-sm font-semibold text-slate-100">
-                Our System Trades for You
-              </h3>
-              <p className="mt-2 text-xs text-slate-400">
-                The Arbix algorithm scans multiple exchanges for arbitrage
-                opportunities and automatically executes buy and sell trades.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="mb-2 text-xs font-semibold text-primary">3️⃣ Step 3: Earn Passively</div>
-              <h3 className="text-sm font-semibold text-slate-100">
-                Profits Credited Automatically
-              </h3>
-              <p className="mt-2 text-xs text-slate-400">
-                Your profits are updated in the system on a daily basis, and you can
-                withdraw or reinvest them at any time.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-3 text-xs text-slate-400">
-            <p>
-              Want to boost your earnings? With the Arbix referral program you can
-              build a team and earn extra bonuses as well. (Full details are
-              available inside the dashboard.)
+            
+            {/* Main Heading */}
+            <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+              Earn
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                Passive Income
+              </span>
+              Through Trading
+            </h1>
+            
+            {/* Subheading */}
+            <p className="mb-8 text-lg text-slate-300 sm:text-xl lg:text-2xl max-w-3xl mx-auto">
+              Invest smartly with our automated arbitrage system. No trading experience needed - just watch your profits grow daily.
             </p>
-            <a
-              href="#plans"
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
-            >
-              See Profit Plans
-            </a>
+            
+            {/* CTA Buttons - Mobile Optimized */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center sm:gap-6">
+              <a 
+                href="/auth/signup" 
+                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 sm:px-10 sm:py-4 sm:text-lg"
+              >
+                Start Earning Today
+                <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
+              <a 
+                href="#how-it-works" 
+                className="inline-flex items-center justify-center rounded-xl border border-slate-600 bg-slate-800/50 px-8 py-4 text-base font-semibold text-white backdrop-blur hover:bg-slate-700/50 transition-all duration-200 sm:px-10 sm:py-4 sm:text-lg"
+              >
+                Learn More
+                <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </a>
+            </div>
+            
+            {/* Trust Indicators */}
+            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="flex flex-col items-center">
+                <div className="text-3xl font-bold text-emerald-400 sm:text-4xl">$2.5M+</div>
+                <div className="mt-1 text-sm text-slate-400">Trading Volume</div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-3xl font-bold text-blue-400 sm:text-4xl">15K+</div>
+                <div className="mt-1 text-sm text-slate-400">Active Users</div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="text-3xl font-bold text-purple-400 sm:text-4xl">98.2%</div>
+                <div className="mt-1 text-sm text-slate-400">Success Rate</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Why Arbix / Key Features */}
-      <section id="why" className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <h2 className="text-xl font-semibold text-slate-50 md:text-2xl">
-            Why Investors Choose Arbix
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            Give investors clear reasons why this platform can be better and safer
-            than others: automation, transparency, security and flexible options.
-          </p>
-
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="text-sm font-semibold text-slate-100">Fully Automated Trading</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                No need to stare at charts or place manual trades — the arbitrage
-                system handles everything for you.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="text-sm font-semibold text-slate-100">Low-Risk Arbitrage Strategy</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                Instead of pure market speculation, profits are generated from price
-                differences — a smart, calculated approach.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="text-sm font-semibold text-slate-100">Transparent Reporting</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                Get access to live profit charts, daily trade snapshots and detailed
-                reports — anytime, anywhere.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="text-sm font-semibold text-slate-100">Global Investor Community</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                A community-based system of thousands of active investors — with
-                opportunities for learning, networking and growth.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="text-sm font-semibold text-slate-100">Safe &amp; Secure Platform</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                Enterprise-grade security with SSL encryption, secure wallets, KYC
-                and multiple anti-fraud measures.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <h3 className="text-sm font-semibold text-slate-100">Flexible Investment Options</h3>
-              <p className="mt-2 text-xs text-slate-400">
-                Start with a smaller amount, observe the performance and gradually
-                increase your investment.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-dashed border-emerald-600/70 bg-emerald-950/20 p-4 md:col-span-3">
-              <h3 className="text-sm font-semibold text-emerald-300">
-                Multiple Income Streams
-              </h3>
-              <p className="mt-2 text-xs text-emerald-100/80">
-                Increase your earning potential with trading profits plus referral
-                rewards and team bonuses. (Details are available inside the member
-                area.)
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
-            <button className="rounded-lg bg-primary px-4 py-2 font-medium text-white shadow-sm hover:bg-blue-500">
-              Join Arbix Now
-            </button>
-            <span className="text-slate-400">
-              Simple signup • KYC protected • Trusted platform
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Live Stats / Proof */}
-      <section id="stats" className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <h2 className="text-xl font-semibold text-slate-50 md:text-2xl">
-            Arbix at a Glance
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            Live numbers that show real activity — social proof, scale and a
-            high-level snapshot of system usage.
-          </p>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="text-[11px] text-slate-400">Total Profits Distributed</div>
-              <div className="mt-2 text-xl font-semibold text-emerald-400">
-                Rs 125,430,000+
-              </div>
-              <div className="mt-1 text-[11px] text-slate-500">Updated in real-time</div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="text-[11px] text-slate-400">Active Investors</div>
-              <div className="mt-2 text-xl font-semibold text-slate-100">1,240+</div>
-              <div className="mt-1 text-[11px] text-slate-500">From multiple countries</div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="text-[11px] text-slate-400">Trades Executed</div>
-              <div className="mt-2 text-xl font-semibold text-slate-100">850,000+</div>
-              <div className="mt-1 text-[11px] text-slate-500">Since launch</div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <div className="text-[11px] text-slate-400">Avg Monthly ROI (Projected)</div>
-              <div className="mt-2 text-xl font-semibold text-amber-300">X% – Y%</div>
-              <div className="mt-1 text-[11px] text-slate-500">
-                Not guaranteed. Performance may vary.
-              </div>
-            </div>
-          </div>
-
-          <p className="mt-4 max-w-3xl text-[11px] text-slate-500">
-            Risk Note: All investments carry risk. The Arbix arbitrage system aims
-            to minimise risk, but profits are never guaranteed. Past performance is
-            not a guarantee of future results.
-          </p>
-        </div>
-      </section>
-
-      {/* Today&apos;s Trading Snapshot */}
-      <section id="trading" className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <h2 className="text-xl font-semibold text-slate-50 md:text-2xl">
-            Today&apos;s Trading Snapshot
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm text-slate-400">
-            Every day Arbix uses arbitrage opportunities across different
-            exchanges. Below is a demo view of a selected trading summary for
-            today. Full detailed reports are available after login in the
-            "Trade Logs" section.
-          </p>
-
-          <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 text-xs">
-            <table className="min-w-full divide-y divide-slate-800">
-              <thead className="bg-slate-950/80 text-[11px] uppercase tracking-wide text-slate-400">
-                <tr>
-                  <th className="px-3 py-2 text-left">Time</th>
-                  <th className="px-3 py-2 text-left">Pair</th>
-                  <th className="px-3 py-2 text-left">Buy Exchange</th>
-                  <th className="px-3 py-2 text-left">Sell Exchange</th>
-                  <th className="px-3 py-2 text-right">Profit %</th>
-                  <th className="px-3 py-2 text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 text-[11px] text-slate-300">
-                <tr>
-                  <td className="px-3 py-2">10:12 AM</td>
-                  <td className="px-3 py-2">BTC/USDT</td>
-                  <td className="px-3 py-2">Exchange A</td>
-                  <td className="px-3 py-2">Exchange B</td>
-                  <td className="px-3 py-2 text-right text-emerald-400">0.45%</td>
-                  <td className="px-3 py-2 text-right">
-                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
-                      Closed
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2">09:55 AM</td>
-                  <td className="px-3 py-2">ETH/USDT</td>
-                  <td className="px-3 py-2">Exchange C</td>
-                  <td className="px-3 py-2">Exchange A</td>
-                  <td className="px-3 py-2 text-right text-emerald-400">0.38%</td>
-                  <td className="px-3 py-2 text-right">
-                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
-                      Closed
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2">09:33 AM</td>
-                  <td className="px-3 py-2">BNB/USDT</td>
-                  <td className="px-3 py-2">Exchange B</td>
-                  <td className="px-3 py-2">Exchange D</td>
-                  <td className="px-3 py-2 text-right text-emerald-400">0.41%</td>
-                  <td className="px-3 py-2 text-right">
-                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
-                      Closed
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2">09:05 AM</td>
-                  <td className="px-3 py-2">XRP/USDT</td>
-                  <td className="px-3 py-2">Exchange D</td>
-                  <td className="px-3 py-2">Exchange A</td>
-                  <td className="px-3 py-2 text-right text-emerald-400">0.36%</td>
-                  <td className="px-3 py-2 text-right">
-                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
-                      Closed
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-            <button className="rounded-lg border border-slate-700 px-4 py-2 text-slate-100 hover:border-slate-500">
-              View Full Trading History
-            </button>
-            <span>
-              All trades are executed by our automated engine based on live market
-              spreads. No manual intervention, no emotional trading — pure
-              data-driven arbitrage.
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section
-        id="testimonials"
-        className="border-b border-slate-800 bg-gradient-to-b from-slate-950 to-slate-900"
-      >
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <h2 className="text-xl font-semibold text-slate-50 md:text-2xl">
-            What Our Investors Say
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            In MLM and investment, trust is everything. The opinions below are demo
-            placeholders and can later be replaced with real user data.
-          </p>
-
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/80 p-5 text-xs">
-              <p className="text-slate-200">
-                "I started with a small amount; now the profits look stable and
-                seeing the daily trading snapshot in the dashboard has increased my
-                confidence."
-              </p>
-              <div className="mt-4 text-[11px] text-slate-400">
-                <div className="font-semibold text-slate-100">Ali R., Karachi</div>
-                <div>Investor • Elite Plan</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/80 p-5 text-xs">
-              <p className="text-slate-200">
-                "I had no trading experience and had never done MLM, but Arbix made
-                everything simple — I now earn both passive income and referral
-                income with full clarity."
-              </p>
-              <div className="mt-4 text-[11px] text-slate-400">
-                <div className="font-semibold text-slate-100">Sana M., Dubai</div>
-                <div>Investor • Referral Leader</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/80 p-5 text-xs">
-              <p className="text-slate-200">
-                "Every week I make a partial withdrawal and reinvest the remaining
-                amount. So far the experience has been very positive and the
-                reporting is clear."
-              </p>
-              <div className="mt-4 text-[11px] text-slate-400">
-                <div className="font-semibold text-slate-100">Hira K., London</div>
-                <div>Investor • Growth Plan</div>
-              </div>
-            </div>
-          </div>
-
-          <p className="mt-4 text-[11px] text-slate-500">
-            All testimonials are from real users. Results may vary from person to
-            person depending on plan, time, and market conditions.
-          </p>
-        </div>
-      </section>
-
-      {/* Final Call-to-Action */}
-      <section id="contact" className="bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold text-slate-50 md:text-3xl">
-              Start Earning Today – Join Our Investor Community
+      {/* How It Works - Mobile First */}
+      <section id="how-it-works" className="px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
+              How It Works
             </h2>
-            <p className="mt-3 text-sm text-slate-400">
-              No trading experience required. Automated, secure and fully managed
-              arbitrage system.
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+              Start earning in 3 simple steps
             </p>
           </div>
-
-          <div className="mt-6 flex flex-wrap gap-3 text-sm">
-            <button className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-sm hover:bg-blue-500">
-              Get Started Now
-            </button>
-            <button className="rounded-lg border border-slate-700 px-5 py-2 text-slate-200 hover:border-slate-500">
-              Talk to Our Support Team
-            </button>
+          
+          <div className="grid gap-8 md:grid-cols-3">
+            {/* Step 1 */}
+            <div className="relative">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-emerald-600 text-2xl font-bold">
+                  1
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Sign Up</h3>
+                <p className="text-slate-400">
+                  Create your account in minutes. No complex verification needed.
+                </p>
+              </div>
+            </div>
+            
+            {/* Step 2 */}
+            <div className="relative">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-blue-600 text-2xl font-bold">
+                  2
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Invest</h3>
+                <p className="text-slate-400">
+                  Choose your investment plan and deposit funds securely.
+                </p>
+              </div>
+            </div>
+            
+            {/* Step 3 */}
+            <div className="relative">
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 text-2xl font-bold">
+                  3
+                </div>
+                <h3 className="mb-2 text-xl font-semibold">Earn</h3>
+                <p className="text-slate-400">
+                  Watch our automated system generate daily profits for you.
+                </p>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-4 grid gap-3 text-xs text-slate-400 md:grid-cols-3">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span>KYC Verified Platform</span>
+      {/* Features Grid - Mobile Optimized */}
+      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-slate-900/50">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
+              Why Choose Arbix?
+            </h2>
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+              Industry-leading features for maximum returns
+            </p>
+          </div>
+          
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Feature 1 */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-blue-600/20 to-emerald-600/20 p-3 w-fit">
+                <svg className="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Lightning Fast</h3>
+              <p className="text-slate-400 text-sm">
+                Execute trades in milliseconds across multiple exchanges
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-              <span>Transparent Profit Reporting</span>
+            
+            {/* Feature 2 */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-emerald-600/20 to-blue-600/20 p-3 w-fit">
+                <svg className="h-6 w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Proven Results</h3>
+              <p className="text-slate-400 text-sm">
+                Back-tested algorithms with consistent profit generation
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              <span>Flexible Investment Options</span>
+            
+            {/* Feature 3 */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 p-3 w-fit">
+                <svg className="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Bank-Level Security</h3>
+              <p className="text-slate-400 text-sm">
+                Your funds are protected with enterprise-grade security
+              </p>
+            </div>
+            
+            {/* Feature 4 */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-pink-600/20 to-purple-600/20 p-3 w-fit">
+                <svg className="h-6 w-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Daily Profits</h3>
+              <p className="text-slate-400 text-sm">
+                Earn consistent returns every single day
+              </p>
+            </div>
+            
+            {/* Feature 5 */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-orange-600/20 to-red-600/20 p-3 w-fit">
+                <svg className="h-6 w-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Referral Rewards</h3>
+              <p className="text-slate-400 text-sm">
+                Build passive income through our referral program
+              </p>
+            </div>
+            
+            {/* Feature 6 */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 p-3 w-fit">
+                <svg className="h-6 w-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">Real-time Analytics</h3>
+              <p className="text-slate-400 text-sm">
+                Track your performance with detailed dashboards
+              </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Investment Plans - Mobile First */}
+      <section id="plans" className="px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
+              Investment Plans
+            </h2>
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+              Choose the plan that fits your goals
+            </p>
+          </div>
+          
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Starter Plan */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-8 backdrop-blur">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-2">Starter</h3>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold">$100</span>
+                  <span className="text-slate-400 ml-2">minimum</span>
+                </div>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">1.5% daily profit</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Basic analytics</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Email support</span>
+                </li>
+              </ul>
+              <a href="/auth/signup" className="block w-full rounded-xl bg-slate-700 px-6 py-3 text-center font-semibold hover:bg-slate-600 transition-colors">
+                Get Started
+              </a>
+            </div>
+            
+            {/* Pro Plan */}
+            <div className="rounded-2xl border border-blue-600 bg-gradient-to-br from-blue-600/10 to-emerald-600/10 p-8 backdrop-blur relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="rounded-full bg-gradient-to-r from-blue-600 to-emerald-600 px-4 py-1 text-sm font-semibold text-white">
+                  Most Popular
+                </span>
+              </div>
+              <div className="mb-6 mt-4">
+                <h3 className="text-2xl font-bold mb-2">Professional</h3>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold">$500</span>
+                  <span className="text-slate-400 ml-2">minimum</span>
+                </div>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">2.5% daily profit</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Advanced analytics</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Priority support</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Referral bonuses</span>
+                </li>
+              </ul>
+              <a href="/auth/signup" className="block w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-3 text-center font-semibold text-white hover:shadow-lg transition-all">
+                Get Started
+              </a>
+            </div>
+            
+            {/* Enterprise Plan */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-8 backdrop-blur">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold">$1,000</span>
+                  <span className="text-slate-400 ml-2">minimum</span>
+                </div>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">3.5% daily profit</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Premium analytics</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">24/7 dedicated support</span>
+                </li>
+                <li className="flex items-start">
+                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-300">Custom strategies</span>
+                </li>
+              </ul>
+              <a href="/auth/signup" className="block w-full rounded-xl bg-slate-700 px-6 py-3 text-center font-semibold hover:bg-slate-600 transition-colors">
+                Get Started
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600/10 to-emerald-600/10">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
+            Ready to Start Earning?
+          </h2>
+          <p className="text-lg text-slate-300 mb-8">
+            Join thousands of successful traders earning passive income with Arbix
+          </p>
+          <a 
+            href="/auth/signup" 
+            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-10 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+          >
+            Start Your Journey Now
+            <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
         </div>
       </section>
     </div>
