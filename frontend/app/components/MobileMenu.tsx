@@ -22,7 +22,8 @@ export default function MobileMenu() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 right-4 z-50 rounded-lg bg-slate-800 p-3 text-white shadow-lg"
+        data-mobile-menu-toggle
+        className="fixed top-4 right-4 z-50 rounded-lg bg-primary p-3 text-white shadow-lg hover:bg-blue-500 md:hidden"
       >
         <svg
           className="h-6 w-6"
