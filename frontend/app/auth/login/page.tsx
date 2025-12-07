@@ -20,11 +20,7 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      const apiUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5000/api/auth/login'
-        : '/api/auth/login';
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

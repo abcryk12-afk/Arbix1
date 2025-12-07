@@ -35,11 +35,7 @@ export default function SignupPage() {
     setMessage('');
 
     try {
-      const apiUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5000/api/auth/register'
-        : '/api/auth/register';
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
