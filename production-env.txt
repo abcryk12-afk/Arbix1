@@ -1,0 +1,9 @@
+NODE_ENV=production
+PORT=5000
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_SECURE=true
+EMAIL_USER=wanum01234@gmail.com
+EMAIL_PASS=sxat uuht hngw vfwc
+JWT_SECRET=arbix_jwt_secret_key_2024_secure_production
+FRONTEND_URL=https://www.arbix.space
