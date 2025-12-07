@@ -21,29 +21,28 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Generate email verification token
-    const emailVerificationToken = generateSecureToken(32);
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    // Create user
+    // Create user with automatic verification (OTP temporarily disabled)
     const user = await User.create({
       name,
       email,
       password,
       phone,
       referredBy,
-      emailVerificationToken,
-      emailVerificationExpires,
+      emailVerified: true, // Auto-verify email
+      accountStatus: 'active', // Set account as active
+      emailVerificationToken: null, // No OTP needed
+      emailVerificationExpires: null,
     });
 
-    // Generate OTP for email verification
-    const otp = generateOTP();
-    user.emailVerificationToken = otp;
-    user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-    await user.save();
+    // Skip OTP generation and email sending for now
+    // const otp = generateOTP();
+    // user.emailVerificationToken = otp;
+    // user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+    // await user.save();
+    // await sendOTPEmail(email, otp, name);
 
-    // Send verification email with OTP
-    await sendOTPEmail(email, otp, name);
+    // Send welcome email since account is auto-verified
+    await sendWelcomeEmail(user.email, user.name, user.referralCode);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -62,7 +61,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful. Please verify your email.',
+      message: 'Registration successful. Your account is now active.',
       token,
       user: userData,
     });
