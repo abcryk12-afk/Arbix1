@@ -6,7 +6,7 @@ export async function POST(request) {
     const { email, password } = body;
 
     // Forward the request to the backend
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch('http://216.219.95.100:5000/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
