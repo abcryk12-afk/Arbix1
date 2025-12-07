@@ -18,12 +18,12 @@ export default function SignupPage() {
     if (/[A-Z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
-    if (score <= 1) return { text: 'Weak', color: 'text-red-400' };
-    if (score === 2 || score === 3) return { text: 'Medium', color: 'text-yellow-400' };
-    return { text: 'Strong', color: 'text-emerald-400' };
+    if (score <= 1) return 'Weak';
+    if (score === 2 || score === 3) return 'Medium';
+    return 'Strong';
   }, [password]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
@@ -67,58 +67,49 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Mobile-First Header */}
-      <div className="px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-emerald-600 text-white font-bold">
-              AX
-            </div>
-            <div>
-              <div className="text-lg font-bold text-white">Arbix</div>
-              <div className="text-xs text-slate-400">Automated Trading Platform</div>
-            </div>
-          </div>
-          <a 
-            href="/auth/login" 
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            Already have account?
-          </a>
+    <div className="bg-slate-950 text-slate-50">
+      {/* Hero / Intro */}
+      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+        <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+            SIGN UP
+          </p>
+          <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+            Create Your Arbix Account
+          </h1>
+          <p className="mt-3 text-sm text-slate-300 md:text-base">
+            Create your account in one simple step. No OTP verification required.
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* Main Content */}
-      <div className="px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-md">
-          {/* Welcome Section */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-3 sm:text-4xl">
-              Create Account
-            </h1>
-            <p className="text-slate-300 text-base">
-              Start your journey to passive income with automated arbitrage trading
-            </p>
-          </div>
+      {/* Signup Form */}
+      <section className="border-b border-slate-800 bg-slate-950">
+        <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
+          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
+            Create Account
+          </h2>
+          <p className="mt-2 text-sm text-slate-400">
+            Fill in your details to create your Arbix account.
+          </p>
 
-          {/* Alert Message */}
           {message && (
-            <div className={`mb-6 rounded-xl p-4 text-sm ${
+            <div className={`mt-4 rounded-lg p-3 text-xs ${
               message.includes('successfully') 
-                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' 
-                : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                ? 'bg-emerald-950/20 border border-emerald-600/60 text-emerald-400' 
+                : 'bg-red-950/20 border border-red-600/60 text-red-400'
             }`}>
               {message}
             </div>
           )}
 
-          {/* Signup Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
+          <form
+            className="mt-6 space-y-4 text-xs text-slate-300"
+            onSubmit={handleSubmit}
+          >
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
-                Full Name
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="name">
+                Full Name *
               </label>
               <input
                 id="name"
@@ -126,15 +117,14 @@ export default function SignupPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="John Doe"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                placeholder="Enter your full name"
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                Email Address
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="email">
+                Email Address *
               </label>
               <input
                 id="email"
@@ -142,15 +132,14 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="john@example.com"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                placeholder="you@example.com"
               />
             </div>
 
-            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                Password
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="password">
+                Password *
               </label>
               <input
                 id="password"
@@ -158,25 +147,18 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
                 placeholder="Create a strong password"
               />
-              {password && (
-                <div className="mt-2 flex items-center justify-between">
-                  <span className={`text-sm ${passwordStrength.color}`}>
-                    Password strength: {passwordStrength.text}
-                  </span>
-                </div>
-              )}
-              <div className="mt-2 text-xs text-slate-400">
-                Use 8+ characters with uppercase, lowercase, numbers & symbols
+              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Password strength: {passwordStrength}</span>
+                <span>Min 8 chars, 1 uppercase, 1 number, 1 symbol</span>
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
-                Confirm Password
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="confirmPassword">
+                Confirm Password *
               </label>
               <input
                 id="confirmPassword"
@@ -184,105 +166,73 @@ export default function SignupPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
                 placeholder="Confirm your password"
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="mt-2 text-sm text-red-400">Passwords do not match!</p>
+                <p className="mt-1 text-[10px] text-red-400">Passwords do not match!</p>
               )}
             </div>
 
-            {/* Phone (Optional) */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
-                Mobile Number <span className="text-slate-500">(Optional)</span>
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="phone">
+                Mobile Number (Optional)
               </label>
               <input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="+1 234 567 8900"
+                className="w-full rounded-lg border border-slate-800 bg-slate-9地狱-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                placeholder="e.g. +971500000000"
               />
+              <p className="mt-权和 text-[ text-slate-500">
+                Used for alerts and backup communication (international format).
+              </p>
             </div>
 
-            {/* Referral Code (Optional) */}
             <div>
-              <label htmlFor="referral" className="block text-sm font-medium text-slate-300 mb-2">
-                Referral Code <span className="text-slate-500">(Optional)</span>
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="referral">
+                Referral Code (Optional)
               </label>
               <input
                 id="referral"
                 type="text"
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="Enter referral code"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                placeholder="Enter referral code if you have one"
               />
+              <p className="mt- attach text-[10px] text-slate-500">
+                If you do not have a referral code, simply leave this field blank.
+              </p>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting || password !== confirmPassword || !fullName || !email || !password}
-              className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-4 text-base font-semibold text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating Account...
-                </span>
-              ) : (
-                'Create Account'
-              )}
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
 
-            {/* Benefits */}
-            <div className="grid grid-cols-1 gap-3 pt-4">
-              <div className="flex items-center text-sm text-slate-300">
-                <svg className="h-5 w-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                No OTP verification required
-              </div>
-              <div className="flex items-center text-sm text-slate-300">
-                <svg className="h-5 w-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Instant account activation
-              </div>
-              <div className="flex items-center text-sm text-slate-300">
-                <svg className="h-5 w-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Start earning immediately
-              </div>
+            <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-500">
+              <span>✔ No OTP required</span>
+              <span>✔ Instant activation</span>
+              <span>✔ Takes only 1 minute</span>
             </div>
           </form>
 
-          {/* Login Link */}
-          <div className="mt-8 text-center">
-            <p className="text-slate-400">
+          <div className="mt-6 text-center">
+            <p className="text-xs text-slate-400">
               Already have an account?{' '}
-              <a 
-                href="/auth/login" 
-                className="font-medium text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Sign in here
+              <a href="/auth/login" className="text-primary hover:text-blue-500 underline">
+                Login here
               </a>
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-6 text-center text-xs text-slate-500 sm:px-6 lg:px-8">
-        <p>By creating an account, you agree to our Terms of Service and Privacy Policy</p>
-      </div>
+      </section>
     </div>
   );
 }

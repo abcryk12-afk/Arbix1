@@ -5,7 +5,7 @@ export async function POST(request) {
     const body = await request.json();
     const { email, password } = body;
 
-    // Forward the request to the backend
+    // Forward the request to the VPS backend
     const response = await fetch('http://216.219.95.100:5000/api/auth/login', {
       method: 'POST',
       headers: {

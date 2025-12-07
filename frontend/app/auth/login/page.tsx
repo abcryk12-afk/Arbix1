@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -50,48 +50,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-emerald-600 text-white font-bold">
-              AX
-            </div>
-            <div>
-              <div className="text-lg font-bold text-white">Arbix</div>
-              <div className="text-xs text-slate-400">Automated Trading Platform</div>
-            </div>
-          </div>
-          <a href="/auth/signup" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-            New to Arbix?
-          </a>
+    <div className="bg-slate-950 text-slate-50">
+      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+        <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+            LOGIN
+          </p>
+          <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
+            Login to Your Account
+          </h1>
+          <p className="mt-3 text-sm text-slate-300 md:text-base">
+            Enter your credentials to securely access your Arbix dashboard.
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div className="px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-3 sm:text-4xl">
-              Welcome Back
-            </h1>
-            <p className="text-slate-300 text-base">
-              Sign in to access your dashboard and track your earnings
-            </p>
-          </div>
-
+      <section className="bg-slate-950">
+        <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
           {message && (
-            <div className={`mb-6 rounded-xl p-4 text-sm ${
+            <div className={`mb-4 rounded-lg p-3 text-xs ${
               message.includes('successful') 
-                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' 
-                : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                ? 'bg-emerald-950/20 border border-emerald-600/60 text-emerald-400' 
+                : 'bg-red-950/20 border border-red-600/60 text-red-400'
             }`}>
               {message}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form
+            className="space-y-4 text-xs text-slate-300"
+            onSubmit={handleSubmit}
+          >
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="email">
                 Email Address
               </label>
               <input
@@ -100,13 +91,13 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                placeholder="john@example.com"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="password">
                 Password
               </label>
               <input
@@ -115,71 +106,39 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
                 placeholder="Enter your password"
               />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <label htmlFor="remember" className="ml-2 block text-sm text-slate-300">
-                  Remember me
-                </label>
-              </div>
-              <a href="/auth/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                Forgot password?
-              </a>
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting || !email || !password}
-              className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-4 text-base font-semibold text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? 'Logging in...' : 'Login Securely'}
             </button>
 
-            <div className="grid grid-cols-1 gap-3 pt-4">
-              <div className="flex items-center text-sm text-slate-300">
-                <svg className="h-5 w-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                SSL encrypted connection
-              </div>
-              <div className="flex items-center text-sm text-slate-300">
-                <svg className="h-5 w-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Bank-level security
-              </div>
-              <div className="flex items-center text-sm text-slate-300">
-                <svg className="h-5 w-5 text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                24/7 monitoring
-              </div>
+            <div className="mt-3 flex flex-col gap-1 text-[11px] text-slate-400">
+              <a href="/auth/forgot-password" className="hover:text-slate-200">
+                Forgot Password?
+              </a>
+              <p>
+                New here?{' '}
+                <a href="/auth/signup" className="text-primary hover:text-blue-400">
+                  Create an account
+                </a>
+              </p>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3 text-[10px] text-slate-500">
+              <span>✔ SSL Protected</span>
+              <span>✔ Encrypted Login</span>
+              <span>✔ 2FA Ready (optional)</span>
             </div>
           </form>
-
-          <div className="mt-8 text-center">
-            <p className="text-slate-400">
-              Don't have an account?{' '}
-              <a href="/auth/signup" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                Create one here
-              </a>
-            </p>
-          </div>
         </div>
-      </div>
-
-      <div className="px-4 py-6 text-center text-xs text-slate-500 sm:px-6 lg:px-8">
-        <p>Secure login powered by enterprise-grade encryption</p>
-      </div>
+      </section>
     </div>
   );
 }
