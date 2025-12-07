@@ -8,119 +8,121 @@ export default function HomePage() {
         id="hero"
         className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900"
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-12 md:flex-row md:items-center md:py-20">
-          <div className="flex-1 space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[11px] text-slate-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Automated Arbitrage &amp; Passive Income Platform
-            </p>
-            <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl md:text-5xl">
-              Invest Smartly, Earn Passively
-              <span className="block text-sm font-normal text-slate-300 sm:text-base">
-                Invest wisely and let an automated system grow your profits.
-              </span>
-            </h1>
-            <p className="max-w-xl text-sm text-slate-300 md:text-base">
-              Simply invest your capital and let the Arbix automated arbitrage system
-              generate daily returns for you — with no prior trading experience
-              required.
-            </p>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <button className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-sm hover:bg-blue-500">
-                Start Earning Today
-              </button>
-              <a
-                href="#how"
-                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-2 text-slate-200 hover:border-slate-500"
-              >
-                See How It Works
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-6 text-[11px] text-slate-400">
-              <div>
-                <div className="font-semibold text-slate-200">No Trading Knowledge Needed</div>
-                <div>Fully managed arbitrage engine</div>
-              </div>
-              <div>
-                <div className="font-semibold text-slate-200">Automated &amp; Transparent</div>
-                <div>Daily profit updates and reporting</div>
-              </div>
-              <div>
-                <div className="font-semibold text-slate-200">Referral + Team Bonuses</div>
-                <div>Optional 3-level earning structure</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-xl">
-              <div className="mb-4 flex items-center justify-between text-xs text-slate-400">
-                <span>Today&apos;s Arbitrage Overview (Demo)</span>
-                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-                  Live-style Preview
+        <div className="mx-auto max-w-6xl px-4 py-12 md:py-20">
+          <div className="space-y-8 md:flex-row md:items-center md:gap-8">
+            <div className="space-y-6">
+              <p className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-[11px] text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                Automated Arbitrage &amp; Passive Income Platform
+              </p>
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-5xl">
+                Invest Smartly, Earn Passively
+                <span className="block text-sm font-normal text-slate-300 sm:text-base md:text-lg">
+                  Invest wisely and let an automated system grow your profits.
                 </span>
+              </h1>
+              <p className="text-sm text-slate-300 md:text-base">
+                Simply invest your capital and let the Arbix automated arbitrage system
+                generate daily returns for you — with no prior trading experience
+                required.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:text-sm">
+                <a href="/auth/signup" className="rounded-lg bg-primary px-5 py-2.5 text-center font-medium text-white shadow-sm hover:bg-blue-500">
+                  Start Earning Today
+                </a>
+                <a
+                  href="#how"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-2.5 text-slate-200 hover:border-slate-500"
+                >
+                  See How It Works
+                </a>
               </div>
-              <div className="space-y-4 text-xs">
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-                    <div className="text-[10px] text-slate-400">Total Investors</div>
-                    <div className="mt-1 text-lg font-semibold">1,240+</div>
-                    <div className="text-[10px] text-slate-500">Active members</div>
-                  </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-                    <div className="text-[10px] text-slate-400">Total Deposits</div>
-                    <div className="mt-1 text-lg font-semibold">$389k+</div>
-                    <div className="text-[10px] text-slate-500">Across all plans</div>
-                  </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
-                    <div className="text-[10px] text-slate-400">Total Payouts</div>
-                    <div className="mt-1 text-lg font-semibold text-emerald-400">$214k+</div>
-                    <div className="text-[10px] text-slate-500">Since launch</div>
-                  </div>
+              <div className="grid gap-4 text-[11px] text-slate-400 sm:grid-cols-3 sm:gap-6">
+                <div>
+                  <div className="font-semibold text-slate-200">No Trading Knowledge Needed</div>
+                  <div>Fully managed arbitrage engine</div>
                 </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                  <div className="mb-3 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Sample Active Package</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
-                      Demo
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-[11px]">
-                    <div className="flex justify-between">
-                      <span>Package</span>
-                      <span className="font-medium text-slate-100">Elite 5,000 USDT</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Daily ROI</span>
-                      <span className="font-medium text-emerald-400">2.5% / day</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Duration</span>
-                      <span className="font-medium text-slate-100">120 days</span>
-                    </div>
-                  </div>
+                <div>
+                  <div className="font-semibold text-slate-200">Automated &amp; Transparent</div>
+                  <div>Daily profit updates and reporting</div>
                 </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                  <div className="mb-2 text-[11px] text-slate-400">Sample team earnings (per day)</div>
-                  <div className="space-y-1 text-[11px]">
-                    <div className="flex justify-between">
-                      <span>Level 1 (20%)</span>
-                      <span className="text-emerald-400">$48.00</span>
+                <div>
+                  <div className="font-semibold text-slate-200">Referral + Team Bonuses</div>
+                  <div>Optional 3-level earning structure</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 md:mt-0">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5 shadow-xl">
+                <div className="mb-4 flex items-center justify-between text-xs text-slate-400">
+                  <span>Today&apos;s Arbitrage Overview (Demo)</span>
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                    Live-style Preview
+                  </span>
+                </div>
+                <div className="space-y-4 text-xs">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-center">
+                      <div className="text-[10px] text-slate-400">Total Investors</div>
+                      <div className="mt-1 text-lg font-semibold">1,240+</div>
+                      <div className="text-[10px] text-slate-500">Active members</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Level 2 (10%)</span>
-                      <span className="text-emerald-400">$21.50</span>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-center">
+                      <div className="text-[10px] text-slate-400">Total Deposits</div>
+                      <div className="mt-1 text-lg font-semibold">$389k+</div>
+                      <div className="text-[10px] text-slate-500">Across all plans</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Level 3 (5%)</span>
-                      <span className="text-emerald-400">$9.75</span>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-center">
+                      <div className="text-[10px] text-slate-400">Total Payouts</div>
+                      <div className="mt-1 text-lg font-semibold text-emerald-400">$214k+</div>
+                      <div className="text-[10px] text-slate-500">Since launch</div>
                     </div>
                   </div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                    <div className="mb-3 flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Sample Active Package</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+                        Demo
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-[11px]">
+                      <div className="flex justify-between">
+                        <span>Package</span>
+                        <span className="font-medium text-slate-100">Elite 5,000 USDT</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Daily ROI</span>
+                        <span className="font-medium text-emerald-400">2.5% / day</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Duration</span>
+                        <span className="font-medium text-slate-100">120 days</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                    <div className="mb-2 text-[11px] text-slate-400">Sample team earnings (per day)</div>
+                    <div className="space-y-1 text-[11px]">
+                      <div className="flex justify-between">
+                        <span>Level 1 (20%)</span>
+                        <span className="text-emerald-400">$48.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Level 2 (10%)</span>
+                        <span className="text-emerald-400">$21.50</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Level 3 (5%)</span>
+                        <span className="text-emerald-400">$9.75</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500">
+                    Figures above are illustrative only. Actual numbers depend on live
+                    market conditions and user allocations.
+                  </p>
                 </div>
-                <p className="text-[10px] text-slate-500">
-                  Figures above are illustrative only. Actual numbers depend on live
-                  market conditions and user allocations.
-                </p>
               </div>
             </div>
           </div>
