@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,6 +13,7 @@ export default function SignupPage() {
   const [referralCode, setReferralCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState(''); // 'success' or 'error'
 
   const passwordStrength = useMemo(() => {
     let score = 0;
@@ -18,16 +21,23 @@ export default function SignupPage() {
     if (/[A-Z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
-    if (score <= 1) return 'Weak';
-    if (score === 2 || score === 3) return 'Medium';
-    return 'Strong';
+    if (score <= 1) return { text: 'Weak', color: 'text-red-400' };
+    if (score === 2 || score === 3) return { text: 'Medium', color: 'text-yellow-400' };
+    return { text: 'Strong', color: 'text-green-400' };
   }, [password]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
       setMessage('Passwords do not match!');
+      setMessageType('error');
+      return;
+    }
+
+    if (password.length < 8) {
+      setMessage('Password must be at least 8 characters long');
+      setMessageType('error');
       return;
     }
 
@@ -52,187 +62,224 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage('Account created successfully! Redirecting to login...');
+        setMessage('Registration successful! Redirecting to login...');
+        setMessageType('success');
         setTimeout(() => {
-          window.location.href = '/auth/login';
+          router.push('/auth/login');
         }, 2000);
       } else {
         setMessage(data.message || 'Registration failed. Please try again.');
+        setMessageType('error');
       }
     } catch (error) {
       setMessage('An error occurred. Please try again.');
+      setMessageType('error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50">
-      {/* Hero / Intro */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
-        <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-            SIGN UP
-          </p>
-          <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-            Create Your Arbix Account
-          </h1>
-          <p className="mt-3 text-sm text-slate-300 md:text-base">
-            Create your account in one simple step. No OTP verification required.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
+      <div className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full filter blur-3xl"></div>
+
+      <div className="relative w-full max-w-md">
+        {/* Logo and Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl mb-4">
+            <span className="text-white font-bold text-2xl">A</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+          <p className="text-slate-400">Join Arbix and start earning passive income</p>
         </div>
-      </section>
 
-      {/* Signup Form */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
-            Create Account
-          </h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Fill in your details to create your Arbix account.
-          </p>
-
-          {message && (
-            <div className={`mt-4 rounded-lg p-3 text-xs ${
-              message.includes('successfully') 
-                ? 'bg-emerald-950/20 border border-emerald-600/60 text-emerald-400' 
-                : 'bg-red-950/20 border border-red-600/60 text-red-400'
-            }`}>
-              {message}
-            </div>
-          )}
-
-          <form
-            className="mt-6 space-y-4 text-xs text-slate-300"
-            onSubmit={handleSubmit}
-          >
+        {/* Signup Form */}
+        <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Full Name */}
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="name">
-                Full Name *
+              <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
+                Full Name
               </label>
               <input
-                id="name"
+                id="fullName"
                 type="text"
-                required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                required
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Enter your full name"
               />
             </div>
 
+            {/* Email */}
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="email">
-                Email Address *
+              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                Email Address
               </label>
               <input
                 id="email"
                 type="email"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="password">
-                Password *
-              </label>
-              <input
-                id="password"
-                type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                placeholder="Create a strong password"
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter your email"
               />
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Password strength: {passwordStrength}</span>
-                <span>Min 8 chars, 1 uppercase, 1 number, 1 symbol</span>
-              </div>
             </div>
 
+            {/* Phone */}
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="confirmPassword">
-                Confirm Password *
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                placeholder="Confirm your password"
-              />
-              {confirmPassword && password !== confirmPassword && (
-                <p className="mt-1 text-[10px] text-red-400">Passwords do not match!</p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="phone">
-                Mobile Number (Optional)
+              <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
+                Phone Number
               </label>
               <input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-9地狱-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                placeholder="e.g. +971500000000"
+                required
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter your phone number"
               />
-              <p className="mt-权和 text-[ text-slate-500">
-                Used for alerts and backup communication (international format).
-              </p>
             </div>
 
+            {/* Password */}
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="referral">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Create a strong password"
+                />
+              </div>
+              {password && (
+                <div className="mt-2 flex items-center justify-between">
+                  <span className={`text-xs ${passwordStrength.color}`}>
+                    Password strength: {passwordStrength.text}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Confirm your password"
+              />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="mt-1 text-xs text-red-400">Passwords do not match</p>
+              )}
+            </div>
+
+            {/* Referral Code (Optional) */}
+            <div>
+              <label htmlFor="referralCode" className="block text-sm font-medium text-slate-300 mb-2">
                 Referral Code (Optional)
               </label>
               <input
-                id="referral"
+                id="referralCode"
                 type="text"
                 value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                onChange={(e) => setReferralCode(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Enter referral code if you have one"
               />
-              <p className="mt- attach text-[10px] text-slate-500">
-                If you do not have a referral code, simply leave this field blank.
-              </p>
             </div>
 
+            {/* Terms and Conditions */}
+            <div className="flex items-start">
+              <input
+                id="terms"
+                type="checkbox"
+                required
+                className="mt-1 h-4 w-4 bg-slate-900/50 border-slate-600 rounded text-blue-500 focus:ring-blue-500 focus:ring-2"
+              />
+              <label htmlFor="terms" className="ml-2 text-sm text-slate-400">
+                I agree to the{' '}
+                <a href="/terms" className="text-blue-400 hover:text-blue-300 transition-colors">
+                  Terms and Conditions
+                </a>{' '}
+                and{' '}
+                <a href="/privacy" className="text-blue-400 hover:text-blue-300 transition-colors">
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
+
+            {/* Message */}
+            {message && (
+              <div className={`p-4 rounded-lg text-sm ${
+                messageType === 'success' 
+                  ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
+                  : 'bg-red-500/10 border border-red-500/30 text-red-400'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting || password !== confirmPassword || !fullName || !email || !password}
-              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-blue-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Creating Account...
+                </span>
+              ) : (
+                'Create Account'
+              )}
             </button>
-
-            <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-500">
-              <span>✔ No OTP required</span>
-              <span>✔ Instant activation</span>
-              <span>✔ Takes only 1 minute</span>
-            </div>
           </form>
 
+          {/* Login Link */}
           <div className="mt-6 text-center">
-            <p className="text-xs text-slate-400">
+            <p className="text-slate-400">
               Already have an account?{' '}
-              <a href="/auth/login" className="text-primary hover:text-blue-500 underline">
-                Login here
+              <a href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                Sign In
               </a>
             </p>
           </div>
         </div>
-      </section>
+
+        {/* Back to Home */}
+        <div className="mt-8 text-center">
+          <a 
+            href="/"
+            className="inline-flex items-center text-slate-400 hover:text-white transition-colors"
+          >
+            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,37 +1,121 @@
 'use client';
 
+import { useState } from 'react';
+
 export default function HomePage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* Hero Section - Mobile First Design */}
-      <section className="relative px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+      {/* Navigation Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-slate-950/80 border-b border-slate-800/50">
+        <nav className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">A</span>
+              </div>
+              <span className="text-xl font-bold">Arbix</span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
+              <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">How It Works</a>
+              <a href="#stats" className="text-slate-300 hover:text-white transition-colors">Statistics</a>
+              <a href="/contact" className="text-slate-300 hover:text-white transition-colors">Contact</a>
+              <div className="flex items-center space-x-4">
+                <a 
+                  href="/auth/login" 
+                  className="px-4 py-2 text-slate-300 hover:text-white border border-slate-600 rounded-lg hover:border-slate-500 transition-all"
+                >
+                  Login
+                </a>
+                <a 
+                  href="/auth/signup" 
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg"
+                >
+                  Sign Up
+                </a>
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-slate-800 pt-4">
+              <div className="flex flex-col space-y-4">
+                <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
+                <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">How It Works</a>
+                <a href="#stats" className="text-slate-300 hover:text-white transition-colors">Statistics</a>
+                <a href="/contact" className="text-slate-300 hover:text-white transition-colors">Contact</a>
+                <div className="flex flex-col space-y-2 pt-4 border-t border-slate-800">
+                  <a 
+                    href="/auth/login" 
+                    className="px-4 py-2 text-center text-slate-300 hover:text-white border border-slate-600 rounded-lg hover:border-slate-500 transition-all"
+                  >
+                    Login
+                  </a>
+                  <a 
+                    href="/auth/signup" 
+                    className="px-4 py-2 text-center bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg"
+                  >
+                    Sign Up
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-16 md:py-24">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full filter blur-3xl"></div>
+        
+        <div className="relative container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="mb-6 inline-flex items-center rounded-full bg-blue-600/10 px-4 py-2 text-sm text-blue-400 border border-blue-600/20">
-              <span className="mr-2 h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
-              Automated Arbitrage Platform
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600/10 border border-blue-600/20 mb-6">
+              <span className="h-2 w-2 bg-blue-400 rounded-full animate-pulse mr-2"></span>
+              <span className="text-blue-400 text-sm font-medium">Automated Arbitrage Platform</span>
             </div>
             
             {/* Main Heading */}
-            <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-              Earn
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+              <span className="block">Earn</span>
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
                 Passive Income
               </span>
-              Through Trading
+              <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 text-slate-300">
+                Through Smart Trading
+              </span>
             </h1>
             
             {/* Subheading */}
-            <p className="mb-8 text-lg text-slate-300 sm:text-xl lg:text-2xl max-w-3xl mx-auto">
-              Invest smartly with our automated arbitrage system. No trading experience needed - just watch your profits grow daily.
+            <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+              Invest wisely with our automated arbitrage system. No trading experience needed - just watch your profits grow daily.
             </p>
             
-            {/* CTA Buttons - Mobile Optimized */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center sm:gap-6">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <a 
                 href="/auth/signup" 
-                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 sm:px-10 sm:py-4 sm:text-lg"
+                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Start Earning Today
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +124,7 @@ export default function HomePage() {
               </a>
               <a 
                 href="#how-it-works" 
-                className="inline-flex items-center justify-center rounded-xl border border-slate-600 bg-slate-800/50 px-8 py-4 text-base font-semibold text-white backdrop-blur hover:bg-slate-700/50 transition-all duration-200 sm:px-10 sm:py-4 sm:text-lg"
+                className="inline-flex items-center justify-center px-8 py-4 bg-slate-800/50 text-white rounded-xl font-semibold border border-slate-600 hover:bg-slate-700/50 transition-all backdrop-blur"
               >
                 Learn More
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,330 +132,239 @@ export default function HomePage() {
                 </svg>
               </a>
             </div>
-            
+
             {/* Trust Indicators */}
-            <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-emerald-400 sm:text-4xl">$2.5M+</div>
-                <div className="mt-1 text-sm text-slate-400">Trading Volume</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+              <div className="p-4 bg-slate-800/30 rounded-lg backdrop-blur">
+                <div className="text-2xl font-bold text-blue-400 mb-1">No Experience Needed</div>
+                <div className="text-sm text-slate-400">Fully automated system</div>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-blue-400 sm:text-4xl">15K+</div>
-                <div className="mt-1 text-sm text-slate-400">Active Users</div>
+              <div className="p-4 bg-slate-800/30 rounded-lg backdrop-blur">
+                <div className="text-2xl font-bold text-emerald-400 mb-1">Daily Profits</div>
+                <div className="text-sm text-slate-400">Transparent earnings</div>
               </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-purple-400 sm:text-4xl">98.2%</div>
-                <div className="mt-1 text-sm text-slate-400">Success Rate</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works - Mobile First */}
-      <section id="how-it-works" className="px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
-              How It Works
-            </h2>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              Start earning in 3 simple steps
-            </p>
-          </div>
-          
-          <div className="grid gap-8 md:grid-cols-3">
-            {/* Step 1 */}
-            <div className="relative">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-emerald-600 text-2xl font-bold">
-                  1
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Sign Up</h3>
-                <p className="text-slate-400">
-                  Create your account in minutes. No complex verification needed.
-                </p>
-              </div>
-            </div>
-            
-            {/* Step 2 */}
-            <div className="relative">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-blue-600 text-2xl font-bold">
-                  2
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Invest</h3>
-                <p className="text-slate-400">
-                  Choose your investment plan and deposit funds securely.
-                </p>
-              </div>
-            </div>
-            
-            {/* Step 3 */}
-            <div className="relative">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 text-2xl font-bold">
-                  3
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Earn</h3>
-                <p className="text-slate-400">
-                  Watch our automated system generate daily profits for you.
-                </p>
+              <div className="p-4 bg-slate-800/30 rounded-lg backdrop-blur">
+                <div className="text-2xl font-bold text-purple-400 mb-1">Referral Rewards</div>
+                <div className="text-sm text-slate-400">Earn from referrals</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid - Mobile Optimized */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-slate-900/50">
-        <div className="mx-auto max-w-7xl">
+      {/* Features Section */}
+      <section id="features" className="py-16 md:py-24 border-t border-slate-800/50">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
-              Why Choose Arbix?
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Arbix</span>?
             </h2>
             <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              Industry-leading features for maximum returns
+              Professional arbitrage trading with proven results and cutting-edge technology
             </p>
           </div>
           
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Feature 1 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
-              <div className="mb-4 rounded-xl bg-gradient-to-br from-blue-600/20 to-emerald-600/20 p-3 w-fit">
-                <svg className="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ),
+                title: "Lightning Fast Trading",
+                description: "Execute trades in milliseconds across multiple exchanges for maximum profit",
+                color: "from-blue-500 to-blue-600"
+              },
+              {
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                title: "Proven Strategy",
+                description: "Back-tested algorithms with consistent profit generation and risk management",
+                color: "from-emerald-500 to-emerald-600"
+              },
+              {
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                ),
+                title: "Secure & Insured",
+                description: "Bank-level security measures to protect your investments and personal data",
+                color: "from-purple-500 to-purple-600"
+              },
+              {
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                title: "Multiple Income Streams",
+                description: "Diversify your portfolio with various trading pairs and investment strategies",
+                color: "from-yellow-500 to-yellow-600"
+              },
+              {
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                ),
+                title: "Real-time Analytics",
+                description: "Track your earnings and performance with comprehensive dashboard and reports",
+                color: "from-red-500 to-red-600"
+              },
+              {
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                ),
+                title: "24/7 Support",
+                description: "Dedicated support team available round the clock to assist with any queries",
+                color: "from-indigo-500 to-indigo-600"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="bg-slate-800/30 rounded-xl p-6 backdrop-blur border border-slate-700/50 hover:border-slate-600/50 transition-all hover:transform hover:scale-105">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} text-white mb-4`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-slate-400">{feature.description}</p>
               </div>
-              <h3 className="mb-2 text-lg font-semibold">Lightning Fast</h3>
-              <p className="text-slate-400 text-sm">
-                Execute trades in milliseconds across multiple exchanges
-              </p>
-            </div>
-            
-            {/* Feature 2 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
-              <div className="mb-4 rounded-xl bg-gradient-to-br from-emerald-600/20 to-blue-600/20 p-3 w-fit">
-                <svg className="h-6 w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-lg font-semibold">Proven Results</h3>
-              <p className="text-slate-400 text-sm">
-                Back-tested algorithms with consistent profit generation
-              </p>
-            </div>
-            
-            {/* Feature 3 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
-              <div className="mb-4 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 p-3 w-fit">
-                <svg className="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-lg font-semibold">Bank-Level Security</h3>
-              <p className="text-slate-400 text-sm">
-                Your funds are protected with enterprise-grade security
-              </p>
-            </div>
-            
-            {/* Feature 4 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
-              <div className="mb-4 rounded-xl bg-gradient-to-br from-pink-600/20 to-purple-600/20 p-3 w-fit">
-                <svg className="h-6 w-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-lg font-semibold">Daily Profits</h3>
-              <p className="text-slate-400 text-sm">
-                Earn consistent returns every single day
-              </p>
-            </div>
-            
-            {/* Feature 5 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
-              <div className="mb-4 rounded-xl bg-gradient-to-br from-orange-600/20 to-red-600/20 p-3 w-fit">
-                <svg className="h-6 w-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-lg font-semibold">Referral Rewards</h3>
-              <p className="text-slate-400 text-sm">
-                Build passive income through our referral program
-              </p>
-            </div>
-            
-            {/* Feature 6 */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-6 backdrop-blur hover:bg-slate-800/70 transition-all duration-200">
-              <div className="mb-4 rounded-xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 p-3 w-fit">
-                <svg className="h-6 w-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-lg font-semibold">Real-time Analytics</h3>
-              <p className="text-slate-400 text-sm">
-                Track your performance with detailed dashboards
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Investment Plans - Mobile First */}
-      <section id="plans" className="px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      {/* Stats Section */}
+      <section id="stats" className="py-16 md:py-24 bg-gradient-to-b from-transparent to-slate-900/50">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { value: "$2.5M+", label: "Total Trading Volume", color: "text-blue-400" },
+              { value: "15,000+", label: "Active Traders", color: "text-emerald-400" },
+              { value: "98.2%", label: "Success Rate", color: "text-purple-400" },
+              { value: "24/7", label: "Trading Support", color: "text-yellow-400" }
+            ].map((stat, index) => (
+              <div key={index} className="p-6 bg-slate-800/30 rounded-xl backdrop-blur border border-slate-700/50">
+                <div className={`text-3xl md:text-4xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
+                <div className="text-sm text-slate-400">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-16 md:py-24 border-t border-slate-800/50">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
-              Investment Plans
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Arbix</span> Works
             </h2>
             <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-              Choose the plan that fits your goals
+              Start earning passive income in just 3 simple steps
             </p>
           </div>
           
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Starter Plan */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-8 backdrop-blur">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2">Starter</h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">$100</span>
-                  <span className="text-slate-400 ml-2">minimum</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "01",
+                title: "Sign Up",
+                description: "Create your account in minutes with our simple registration process",
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                )
+              },
+              {
+                step: "02",
+                title: "Invest",
+                description: "Deposit funds and let our automated system start trading for you",
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )
+              },
+              {
+                step: "03",
+                title: "Earn",
+                description: "Watch your profits grow daily with automated arbitrage trading",
+                icon: (
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                  </svg>
+                )
+              }
+            ].map((item, index) => (
+              <div key={index} className="relative text-center">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-6xl font-bold text-slate-700/30">{item.step}</div>
+                <div className="bg-slate-800/30 rounded-xl p-8 backdrop-blur border border-slate-700/50 hover:border-slate-600/50 transition-all">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl text-white mb-4">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
+                  <p className="text-slate-400">{item.description}</p>
                 </div>
               </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">1.5% daily profit</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Basic analytics</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Email support</span>
-                </li>
-              </ul>
-              <a href="/auth/signup" className="block w-full rounded-xl bg-slate-700 px-6 py-3 text-center font-semibold hover:bg-slate-600 transition-colors">
-                Get Started
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 md:py-24 bg-gradient-to-b from-transparent to-slate-900/50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Ready to Start Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Journey</span>?
+            </h2>
+            <p className="text-lg text-slate-300 mb-8">
+              Join thousands of successful traders earning passive income with Arbix
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="/auth/signup" 
+                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                Get Started Now
+                <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
               </a>
-            </div>
-            
-            {/* Pro Plan */}
-            <div className="rounded-2xl border border-blue-600 bg-gradient-to-br from-blue-600/10 to-emerald-600/10 p-8 backdrop-blur relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="rounded-full bg-gradient-to-r from-blue-600 to-emerald-600 px-4 py-1 text-sm font-semibold text-white">
-                  Most Popular
-                </span>
-              </div>
-              <div className="mb-6 mt-4">
-                <h3 className="text-2xl font-bold mb-2">Professional</h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">$500</span>
-                  <span className="text-slate-400 ml-2">minimum</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">2.5% daily profit</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Advanced analytics</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Priority support</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Referral bonuses</span>
-                </li>
-              </ul>
-              <a href="/auth/signup" className="block w-full rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-3 text-center font-semibold text-white hover:shadow-lg transition-all">
-                Get Started
-              </a>
-            </div>
-            
-            {/* Enterprise Plan */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/50 p-8 backdrop-blur">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
-                <div className="flex items-baseline">
-                  <span className="text-4xl font-bold">$1,000</span>
-                  <span className="text-slate-400 ml-2">minimum</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">3.5% daily profit</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Premium analytics</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">24/7 dedicated support</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="h-5 w-5 text-emerald-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-300">Custom strategies</span>
-                </li>
-              </ul>
-              <a href="/auth/signup" className="block w-full rounded-xl bg-slate-700 px-6 py-3 text-center font-semibold hover:bg-slate-600 transition-colors">
-                Get Started
+              <a 
+                href="/auth/login" 
+                className="inline-flex items-center justify-center px-8 py-4 bg-slate-800/50 text-white rounded-xl font-semibold border border-slate-600 hover:bg-slate-700/50 transition-all backdrop-blur"
+              >
+                Login to Account
+                <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
               </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600/10 to-emerald-600/10">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl mb-4">
-            Ready to Start Earning?
-          </h2>
-          <p className="text-lg text-slate-300 mb-8">
-            Join thousands of successful traders earning passive income with Arbix
-          </p>
-          <a 
-            href="/auth/signup" 
-            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 px-10 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-          >
-            Start Your Journey Now
-            <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </a>
+      {/* Footer */}
+      <footer className="border-t border-slate-800/50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-slate-400">
+            <p>&copy; 2024 Arbix. All rights reserved.</p>
+            <div className="mt-4 flex justify-center space-x-6">
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
+              <a href="/contact" className="hover:text-white transition-colors">Contact</a>
+            </div>
+          </div>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }
