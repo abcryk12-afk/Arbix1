@@ -5,6 +5,53 @@ import { useState } from 'react';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      setMessage('Please fill in all fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage('');
+
+    try {
+      const apiUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5000/api/auth/login'
+        : '/api/auth/login';
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage('Login successful! Redirecting to dashboard...');
+        localStorage.setItem('token', data.token);
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
+      } else {
+        setMessage(data.message || 'Login failed. Please check your credentials.');
+      }
+    } catch (error) {
+      setMessage('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-slate-950 text-slate-50">
@@ -24,11 +71,19 @@ export default function LoginPage() {
 
       <section className="bg-slate-950">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
+          {message && (
+            <div className={`mb-4 rounded-lg p-3 text-xs ${
+              message.includes('successful') 
+                ? 'bg-emerald-950/20 border border-emerald-600/60 text-emerald-400' 
+                : 'bg-red-950/20 border border-red-600/60 text-red-400'
+            }`}>
+              {message}
+            </div>
+          )}
+
           <form
             className="space-y-4 text-xs text-slate-300"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
+            onSubmit={handleSubmit}
           >
             <div>
               <label className="mb-1 block text-[11px] text-slate-400" htmlFor="email">
@@ -62,9 +117,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+              disabled={isSubmitting || !email || !password}
+              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Login Securely
+              {isSubmitting ? 'Logging in...' : 'Login Securely'}
             </button>
 
             <div className="mt-3 flex flex-col gap-1 text-[11px] text-slate-400">
