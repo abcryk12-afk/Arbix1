@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import RequireAuth from '@/app/components/RequireAuth';
+import RequireAuth from '../components/RequireAuth';
 
 type PackageId =
   | 'starter'

@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import RequireAuth from '@/app/components/RequireAuth';
+import RequireAuth from '../components/RequireAuth';
 
-export default function DepositPage() {
+function DepositPage() {
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [copied, setCopied] = useState(false);

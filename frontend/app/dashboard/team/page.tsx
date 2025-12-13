@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import RequireAuth from '@/app/components/RequireAuth';
+import RequireAuth from '../components/RequireAuth';
 
 type Level = 1 | 2 | 3;
 
@@ -129,7 +129,7 @@ function calcReferralEarnings(member: Member) {
   };
 }
 
-export default function TeamEarningsPage() {
+function TeamEarningsPage() {
   const [activeTab, setActiveTab] = useState<'L1' | 'L2' | 'L3' | 'ALL'>('L1');
 
   const counts = useMemo(() => {

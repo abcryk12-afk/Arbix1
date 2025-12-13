@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import RequireAuth from '@/app/components/RequireAuth';
+import RequireAuth from '../components/RequireAuth';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
@@ -17,7 +17,7 @@ type Announcement = {
   text: string;
 };
 
-export default function DashboardPage() {
+function DashboardPage() {
   const [userName, setUserName] = useState('');
   const [kycStatus, setKycStatus] = useState<KycStatus>('pending');
   const [availableBalance, setAvailableBalance] = useState(0);

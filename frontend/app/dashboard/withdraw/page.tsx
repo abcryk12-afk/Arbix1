@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import RequireAuth from '@/app/components/RequireAuth';
+import RequireAuth from '../components/RequireAuth';
 
 type PendingWithdrawal = {
   id: string;
@@ -26,7 +26,7 @@ function shortHash(hash?: string) {
   return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
 }
 
-export default function WithdrawPage() {
+function WithdrawPage() {
   // Demo balances (later from backend)
   const [available, setAvailable] = useState(280.75);
   const [pendingTotal] = useState(50.0);
