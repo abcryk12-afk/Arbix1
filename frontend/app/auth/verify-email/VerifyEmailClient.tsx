@@ -11,6 +11,7 @@ export default function VerifyEmailClient() {
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
@@ -64,8 +65,44 @@ export default function VerifyEmailClient() {
     }
   };
 
+  const handleResend = async () => {
+    if (!email) {
+      setMessage('Please enter your email first.');
+      setMessageType('error');
+      return;
+    }
+
+    setIsResending(true);
+    setMessage('');
+    setMessageType('');
+
+    try {
+      const res = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        setMessage(data.message || 'A new verification code has been sent.');
+        setMessageType('success');
+      } else {
+        setMessage(data.message || 'Failed to resend OTP.');
+        setMessageType('error');
+      }
+    } catch {
+      setMessage('An error occurred. Please try again.');
+      setMessageType('error');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12 overflow-hidden">
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl mb-4">
@@ -128,9 +165,17 @@ export default function VerifyEmailClient() {
           <div className="mt-6 text-center text-sm text-slate-400">
             <p>
               Didn&apos;t receive the code?{' '}
-              <span className="text-blue-400">
-                Please check spam folder or wait a few minutes.
-              </span>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending}
+                className="text-blue-400 hover:text-blue-300 font-medium transition-colors disabled:opacity-60"
+              >
+                {isResending ? 'Sending...' : 'Resend OTP'}
+              </button>
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Tip: Also check your spam/junk folder.
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type WithdrawRequest = {
   id: string;
@@ -263,6 +264,7 @@ function shortAddr(addr: string) {
 }
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [withdrawFilter, setWithdrawFilter] = useState<'pending' | 'all'>('pending');
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
@@ -318,9 +320,47 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    loadAdminUsers();
+    let cancelled = false;
+
+    const init = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          router.push('/admin/login');
+          return;
+        }
+
+        const res = await fetch('/api/admin/check', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+
+        if (!data?.success) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          router.push('/admin/login');
+          return;
+        }
+
+        if (!cancelled) {
+          await loadAdminUsers();
+        }
+      } catch {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/admin/login');
+      }
+    };
+
+    init();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router]);
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -482,7 +522,15 @@ export default function AdminDashboardPage() {
               Super Admin
             </span>
             <span className="text-xs text-slate-300">Admin User</span>
-            <button className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500">
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/admin/login');
+              }}
+              className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+            >
               Logout
             </button>
           </div>

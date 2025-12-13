@@ -59,6 +59,53 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: 'If an account exists with this email, a verification code has been sent.',
+      });
+    }
+
+    if (user.emailVerified || user.accountStatus === 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'This account is already verified.',
+      });
+    }
+
+    const otp = generateOTP();
+    user.emailVerificationToken = otp;
+    user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    await sendOTPEmail(user.email, otp, user.name);
+
+    return res.status(200).json({
+      success: true,
+      message: 'A new verification code has been sent to your email.',
+    });
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error resending OTP',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 // @desc    Verify email with OTP
 // @route   POST /api/auth/verify-email
 // @access  Private

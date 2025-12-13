@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type WalletUser = {
   id: string;
@@ -18,6 +19,7 @@ function shortAddr(addr: string) {
 }
 
 export default function AdminUserWalletsPage() {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [users, setUsers] = useState<WalletUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,10 +43,22 @@ export default function AdminUserWalletsPage() {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          if (!cancelled) {
-            setUsers([]);
-            setIsLoading(false);
-          }
+          router.push('/admin/login');
+          return;
+        }
+
+        const checkRes = await fetch('/api/admin/check', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const checkData = await checkRes.json();
+
+        if (!checkData?.success) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          router.push('/admin/login');
           return;
         }
 
@@ -86,7 +100,7 @@ export default function AdminUserWalletsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   const handleCopy = async (value: string) => {
     try {

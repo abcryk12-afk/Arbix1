@@ -1,87 +1,9 @@
-'use client';
-
-import { useState } from 'react';
-
 export default function HomePage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-slate-950/80 border-b border-slate-800/50">
-        <nav className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
-              <span className="text-xl font-bold">Arbix</span>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
-              <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">How It Works</a>
-              <a href="#stats" className="text-slate-300 hover:text-white transition-colors">Statistics</a>
-              <a href="/contact" className="text-slate-300 hover:text-white transition-colors">Contact</a>
-              <div className="flex items-center space-x-4">
-                <a 
-                  href="/auth/login" 
-                  className="px-4 py-2 text-slate-300 hover:text-white border border-slate-600 rounded-lg hover:border-slate-500 transition-all"
-                >
-                  Login
-                </a>
-                <a 
-                  href="/auth/signup" 
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg"
-                >
-                  Sign Up
-                </a>
-              </div>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
-            >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 border-t border-slate-800 pt-4">
-              <div className="flex flex-col space-y-4">
-                <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
-                <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">How It Works</a>
-                <a href="#stats" className="text-slate-300 hover:text-white transition-colors">Statistics</a>
-                <a href="/contact" className="text-slate-300 hover:text-white transition-colors">Contact</a>
-                <div className="flex flex-col space-y-2 pt-4 border-t border-slate-800">
-                  <a 
-                    href="/auth/login" 
-                    className="px-4 py-2 text-center text-slate-300 hover:text-white border border-slate-600 rounded-lg hover:border-slate-500 transition-all"
-                  >
-                    Login
-                  </a>
-                  <a 
-                    href="/auth/signup" 
-                    className="px-4 py-2 text-center bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg"
-                  >
-                    Sign Up
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-        </nav>
-      </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-16 md:py-24">
+      <section className="relative overflow-hidden pt-10 pb-16 md:pt-14 md:pb-24">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
@@ -352,19 +274,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-slate-400">
-            <p>&copy; 2024 Arbix. All rights reserved.</p>
-            <div className="mt-4 flex justify-center space-x-6">
-              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="/contact" className="hover:text-white transition-colors">Contact</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
