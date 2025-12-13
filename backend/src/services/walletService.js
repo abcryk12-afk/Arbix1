@@ -8,24 +8,24 @@ async function ensureWalletForUser(user) {
   }
 
   // If user already has an address, just ensure wallet row exists
-  if (user.walletAddress) {
+  if (user.wallet_public_address) {
     await Wallet.findOrCreate({
-      where: { userId: user.id },
-      defaults: { userId: user.id, balance: 0 },
+      where: { user_id: user.id },
+      defaults: { user_id: user.id, balance: 0 },
     });
-    return user.walletAddress;
+    return user.wallet_public_address;
   }
 
   // Check if wallet key already exists
-  const existingKey = await WalletKey.findOne({ where: { userId: user.id } });
+  const existingKey = await WalletKey.findOne({ where: { user_id: user.id } });
   if (existingKey) {
-    if (!user.walletAddress) {
-      user.walletAddress = existingKey.address;
+    if (!user.wallet_public_address) {
+      user.wallet_public_address = existingKey.address;
       await user.save();
     }
     await Wallet.findOrCreate({
-      where: { userId: user.id },
-      defaults: { userId: user.id, balance: 0 },
+      where: { user_id: user.id },
+      defaults: { user_id: user.id, balance: 0 },
     });
     return existingKey.address;
   }
@@ -41,20 +41,20 @@ async function ensureWalletForUser(user) {
 
     // Ensure wallet row exists
     await Wallet.findOrCreate({
-      where: { userId: user.id },
-      defaults: { userId: user.id, balance: 0 },
+      where: { user_id: user.id },
+      defaults: { user_id: user.id, balance: 0 },
     });
 
     try {
       // Save wallet key
       await WalletKey.create({
-        userId: user.id,
+        user_id: user.id,
         pathIndex: nextIndex,
         address,
         privateKeyEncrypted,
       });
 
-      user.walletAddress = address;
+      user.wallet_public_address = address;
       await user.save();
 
       return address;
