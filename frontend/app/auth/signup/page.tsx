@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { ClipboardEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   type Step = 1 | 2 | 3;
   const [step, setStep] = useState<Step>(1);
@@ -26,12 +25,14 @@ export default function SignupPage() {
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
 
   useEffect(() => {
-    const ref = searchParams.get('ref') || '';
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref') || '';
     if (ref) {
       setReferralCode(ref);
       setReferralLocked(true);
     }
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
