@@ -4,85 +4,106 @@ const bcrypt = require('bcryptjs');
 
 const User = db.define('User', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true,
   },
   name: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: DataTypes.STRING(255),
+    allowNull: true,
   },
   email: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: DataTypes.STRING(255),
+    allowNull: true,
     unique: true,
     validate: {
       isEmail: true,
     },
   },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  password_hash: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'password_hash'
   },
   phone: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(50),
+    allowNull: true,
   },
-  referralCode: {
-    type: DataTypes.STRING,
+  referral_code: {
+    type: DataTypes.STRING(50),
     unique: true,
+    allowNull: true,
+    field: 'referral_code'
   },
-  referredBy: {
-    type: DataTypes.STRING,
+  referred_by_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'referred_by_id'
   },
-  emailVerified: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
+  role: {
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user',
+    field: 'role'
   },
-  emailVerificationToken: {
-    type: DataTypes.STRING,
+  cnic_passport: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'cnic_passport'
   },
-  emailVerificationExpires: {
-    type: DataTypes.DATE,
-  },
-  passwordResetToken: {
-    type: DataTypes.STRING,
-  },
-  passwordResetExpires: {
-    type: DataTypes.DATE,
-  },
-  accountStatus: {
-    type: DataTypes.ENUM('active', 'suspended', 'pending_verification'),
-    defaultValue: 'pending_verification',
-  },
-  kycStatus: {
+  kyc_status: {
     type: DataTypes.ENUM('pending', 'approved', 'rejected'),
     defaultValue: 'pending',
+    field: 'kyc_status'
   },
-  walletAddress: {
-    type: DataTypes.STRING,
+  account_status: {
+    type: DataTypes.ENUM('active', 'hold'),
+    defaultValue: 'active',
+    field: 'account_status'
   },
-  lastLogin: {
+  wallet_public_address: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'wallet_public_address'
+  },
+  wallet_private_key_encrypted: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'wallet_private_key_encrypted'
+  },
+  reset_token: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'reset_token'
+  },
+  reset_token_expires_at: {
     type: DataTypes.DATE,
-  },
-  twoFactorEnabled: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    allowNull: true,
+    field: 'reset_token_expires_at'
   },
 }, {
   tableName: 'users',
   freezeTableName: true,
   timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   hooks: {
     beforeCreate: async (user) => {
       // Hash password before saving
-      if (user.password) {
+      if (user.password_hash) {
         const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
+        user.password_hash = await bcrypt.hash(user.password_hash, salt);
       }
       
       // Generate referral code if not provided
-      if (!user.referralCode) {
-        user.referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      if (!user.referral_code) {
+        user.referral_code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      }
+    },
+    beforeUpdate: async (user) => {
+      // Hash password if it's being updated
+      if (user.changed('password_hash')) {
+        const salt = await bcrypt.genSalt(10);
+        user.password_hash = await bcrypt.hash(user.password_hash, salt);
       }
     },
   },
@@ -90,7 +111,7 @@ const User = db.define('User', {
 
 // Method to compare password
 User.prototype.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return await bcrypt.compare(candidatePassword, this.password_hash);
 };
 
 module.exports = User;

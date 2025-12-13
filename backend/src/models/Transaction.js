@@ -5,13 +5,14 @@ const Transaction = db.define(
   'Transaction',
   {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       primaryKey: true,
     },
-    userId: {
-      type: DataTypes.UUID,
+    user_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'user_id'
     },
     type: {
       type: DataTypes.ENUM('deposit', 'withdraw'),
@@ -21,12 +22,13 @@ const Transaction = db.define(
       type: DataTypes.DECIMAL(18, 8),
       allowNull: false,
     },
-    createdBy: {
-      type: DataTypes.STRING,
+    created_by: {
+      type: DataTypes.STRING(255),
       allowNull: true,
+      field: 'created_by'
     },
     note: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },
@@ -34,6 +36,8 @@ const Transaction = db.define(
     tableName: 'transactions',
     freezeTableName: true,
     timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   }
 );
 
