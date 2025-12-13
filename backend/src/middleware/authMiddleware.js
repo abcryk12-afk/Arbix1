@@ -16,11 +16,11 @@ exports.protect = async (req, res, next) => {
 
       // Get user from token
       req.user = await User.findByPk(decoded.id, {
-        attributes: { exclude: ['password', 'emailVerificationToken', 'passwordResetToken', 'passwordResetExpires'] },
+        attributes: { exclude: ['password_hash', 'reset_token', 'reset_token_expires_at'] },
       });
 
-      // Check if user exists and account is active
-      if (!req.user || req.user.accountStatus !== 'active') {
+      // Check if user exists and account is active or hold
+      if (!req.user || !['active', 'hold'].includes(req.user.account_status)) {
         return res.status(401).json({
           success: false,
           message: 'Not authorized, account not active or user not found',
