@@ -26,21 +26,21 @@ exports.register = async (req, res) => {
     const user = await User.create({
       name,
       email,
-      password,
+      password_hash: password, // Use password_hash field
       phone,
-      referredBy,
-      emailVerified: false,
-      accountStatus: 'pending_verification',
-      emailVerificationToken: null,
-      emailVerificationExpires: null,
+      referred_by_id: referredBy, // Use referred_by_id field
+      kyc_status: 'pending', // Use kyc_status field
+      account_status: 'pending_verification', // Use account_status field
+      reset_token: null, // Use reset_token field for verification
+      reset_token_expires_at: null, // Use reset_token_expires_at for expiry
     });
 
     await ensureWalletForUser(user);
 
     // Generate OTP and send verification email
     const otp = generateOTP();
-    user.emailVerificationToken = otp;
-    user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.reset_token = otp; // Use reset_token field
+    user.reset_token_expires_at = new Date(Date.now() + 10 * 60 * 1000); // Use reset_token_expires_at field
     await user.save();
     await sendOTPEmail(email, otp, name);
 
@@ -78,7 +78,7 @@ exports.resendOtp = async (req, res) => {
       });
     }
 
-    if (user.emailVerified || user.accountStatus === 'active') {
+    if (user.reset_token && user.account_status === 'active') {
       return res.status(400).json({
         success: false,
         message: 'This account is already verified.',
@@ -86,8 +86,8 @@ exports.resendOtp = async (req, res) => {
     }
 
     const otp = generateOTP();
-    user.emailVerificationToken = otp;
-    user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
+    user.reset_token = otp;
+    user.reset_token_expires_at = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
     await sendOTPEmail(user.email, otp, user.name);
@@ -117,7 +117,7 @@ exports.verifyEmail = async (req, res) => {
     const user = await User.findOne({
       where: {
         email,
-        emailVerificationExpires: { [Op.gt]: new Date() },
+        reset_token_expires_at: { [Op.gt]: new Date() },
       },
     });
 
@@ -129,7 +129,7 @@ exports.verifyEmail = async (req, res) => {
     }
 
     // Check if OTP matches
-    if (user.emailVerificationToken !== otp) {
+    if (user.reset_token !== otp) {
       return res.status(400).json({
         success: false,
         message: 'Invalid OTP',
@@ -137,14 +137,13 @@ exports.verifyEmail = async (req, res) => {
     }
 
     // Update user
-    user.emailVerified = true;
-    user.accountStatus = 'active';
-    user.emailVerificationToken = null;
-    user.emailVerificationExpires = null;
+    user.account_status = 'active';
+    user.reset_token = null;
+    user.reset_token_expires_at = null;
     await user.save();
 
     // Send welcome email
-    await sendWelcomeEmail(user.email, user.name, user.referralCode);
+    await sendWelcomeEmail(user.email, user.name, user.referral_code);
 
     // Generate new JWT token
     const token = jwt.sign(
@@ -155,11 +154,9 @@ exports.verifyEmail = async (req, res) => {
 
     // Remove sensitive data before sending response
     const userData = user.get();
-    delete userData.password;
-    delete userData.emailVerificationToken;
-    delete userData.emailVerificationExpires;
-    delete userData.passwordResetToken;
-    delete userData.passwordResetExpires;
+    delete userData.password_hash;
+    delete userData.reset_token;
+    delete userData.reset_token_expires_at;
 
     res.status(200).json({
       success: true,
@@ -194,7 +191,7 @@ exports.login = async (req, res) => {
     }
 
     // Check if account is active
-    if (user.accountStatus !== 'active') {
+    if (user.account_status !== 'active') {
       return res.status(401).json({
         success: false,
         message: 'Your account is not active. Please contact support.',
@@ -210,8 +207,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Update last login
-    user.lastLogin = new Date();
+    // Update last login (if field exists in your database)
+    // user.lastLogin = new Date(); // Commented out as this field doesn't exist in your schema
     await user.save();
 
     // Generate JWT token
@@ -223,11 +220,9 @@ exports.login = async (req, res) => {
 
     // Remove sensitive data before sending response
     const userData = user.get();
-    delete userData.password;
-    delete userData.emailVerificationToken;
-    delete userData.emailVerificationExpires;
-    delete userData.passwordResetToken;
-    delete userData.passwordResetExpires;
+    delete userData.password_hash;
+    delete userData.reset_token;
+    delete userData.reset_token_expires_at;
 
     res.status(200).json({
       success: true,
