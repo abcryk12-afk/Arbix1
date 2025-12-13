@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import RequireAuth from '../components/RequireAuth';
+import RequireAuth from '../../components/RequireAuth';
 
 type Level = 1 | 2 | 3;
 

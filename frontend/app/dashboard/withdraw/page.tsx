@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import RequireAuth from '../components/RequireAuth';
+import RequireAuth from '../../components/RequireAuth';
 
 type PendingWithdrawal = {
   id: string;
