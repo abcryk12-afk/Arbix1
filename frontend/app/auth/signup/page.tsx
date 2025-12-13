@@ -1,28 +1,31 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import type { ClipboardEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
   const router = useRouter();
 
   type Step = 1 | 2 | 3;
+
   const [step, setStep] = useState<Step>(1);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
+
   const [referralCode, setReferralCode] = useState('');
   const [referralLocked, setReferralLocked] = useState(false);
 
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const otpString = otp.join('');
+
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success' or 'error'
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -48,12 +51,13 @@ export default function SignupPage() {
     if (/[A-Z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
+
     if (score <= 1) return { text: 'Weak', color: 'text-red-400' };
     if (score === 2 || score === 3) return { text: 'Medium', color: 'text-yellow-400' };
     return { text: 'Strong', color: 'text-green-400' };
   }, [password]);
 
-  const handleRegister = async (e: any) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -96,12 +100,11 @@ export default function SignupPage() {
         setStep(2);
         setResendCooldown(30);
       } else {
-        const fallback = data?.message || `Registration failed (HTTP ${response.status}).`;
-        setMessage(fallback);
+        setMessage(data?.message || `Registration failed (HTTP ${response.status}).`);
         setMessageType('error');
       }
-    } catch (error: any) {
-      setMessage(`Network error. Please try again.`);
+    } catch {
+      setMessage('Network error. Please try again.');
       setMessageType('error');
     } finally {
       setIsSubmitting(false);
@@ -111,9 +114,11 @@ export default function SignupPage() {
   const handleOtpChange = (index: number, value: string) => {
     const clean = value.replace(/[^0-9]/g, '');
     if (clean.length > 1) return;
+
     const next = [...otp];
     next[index] = clean;
     setOtp(next);
+
     if (clean && index < 5) {
       const nextInput = document.getElementById(`signup-otp-${index + 1}`);
       if (nextInput) (nextInput as HTMLInputElement).focus();
@@ -123,16 +128,19 @@ export default function SignupPage() {
   const handleOtpPaste = (e: ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!text) return;
-    const next = ['','','','','',''];
+
+    const next = ['', '', '', '', '', ''];
     for (let i = 0; i < text.length; i++) next[i] = text[i];
     setOtp(next);
+
     const last = document.getElementById(`signup-otp-${Math.min(text.length, 6) - 1}`);
     if (last) (last as HTMLInputElement).focus();
     e.preventDefault();
   };
 
-  const handleVerifyOtp = async (e: any) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!email || otpString.length !== 6) {
       setMessage('Please enter the 6-digit verification code.');
       setMessageType('error');
@@ -159,8 +167,7 @@ export default function SignupPage() {
         setMessageType('success');
         setStep(3);
       } else {
-        const fallback = data?.message || `Invalid OTP (HTTP ${response.status}).`;
-        setMessage(fallback);
+        setMessage(data?.message || `Invalid OTP (HTTP ${response.status}).`);
         setMessageType('error');
       }
     } catch {
@@ -193,8 +200,7 @@ export default function SignupPage() {
         setMessageType('success');
         setResendCooldown(30);
       } else {
-        const fallback = data?.message || `Failed to resend OTP (HTTP ${response.status}).`;
-        setMessage(fallback);
+        setMessage(data?.message || `Failed to resend OTP (HTTP ${response.status}).`);
         setMessageType('error');
       }
     } catch {
@@ -207,13 +213,11 @@ export default function SignupPage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12 overflow-hidden">
-      {/* Background Effects */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
       <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
       <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full filter blur-3xl"></div>
 
       <div className="relative w-full max-w-md">
-        {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl mb-4">
             <span className="text-white font-bold text-2xl">A</span>
@@ -222,20 +226,16 @@ export default function SignupPage() {
           <p className="text-slate-400">صرف چند آسان steps میں سائن اپ کریں، اپنی email verify کریں اور arbitrage trading سے earning شروع کریں۔</p>
         </div>
 
-        {/* Signup Form */}
         <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">
           {step === 1 && (
             <form onSubmit={handleRegister} className="space-y-6">
-              {/* Full Name */}
               <div>
                 <div className="text-sm font-semibold text-white">Sign Up — Step 1</div>
                 <p className="mt-1 text-xs text-slate-400">Smooth registration. Takes only 1 minute.</p>
               </div>
 
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
-                  Full Name
-                </label>
+                <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
                 <input
                   id="fullName"
                   type="text"
@@ -247,11 +247,8 @@ export default function SignupPage() {
                 />
               </div>
 
-              {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                  Email Address
-                </label>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
                 <input
                   id="email"
                   type="email"
@@ -263,37 +260,27 @@ export default function SignupPage() {
                 />
               </div>
 
-              {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Create a strong password"
-                  />
-                </div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Create a strong password"
+                />
                 {password && (
                   <div className="mt-2 flex items-center justify-between">
-                    <span className={`text-xs ${passwordStrength.color}`}>
-                      Password strength: {passwordStrength.text}
-                    </span>
+                    <span className={`text-xs ${passwordStrength.color}`}>Password strength: {passwordStrength.text}</span>
                     <span className="text-[10px] text-slate-500">8+ chars, 1 uppercase, 1 number, 1 symbol</span>
                   </div>
                 )}
               </div>
 
-              {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
-                  Confirm Password
-                </label>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
                 <input
                   id="confirmPassword"
                   type="password"
@@ -308,11 +295,8 @@ export default function SignupPage() {
                 )}
               </div>
 
-              {/* Phone */}
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
-                  Mobile Number (Optional)
-                </label>
+                <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">Mobile Number (Optional)</label>
                 <input
                   id="phone"
                   type="tel"
@@ -323,11 +307,8 @@ export default function SignupPage() {
                 />
               </div>
 
-              {/* Referral Code (Optional) */}
               <div>
-                <label htmlFor="referralCode" className="block text-sm font-medium text-slate-300 mb-2">
-                  Referral Code (Optional)
-                </label>
+                <label htmlFor="referralCode" className="block text-sm font-medium text-slate-300 mb-2">Referral Code (Optional)</label>
                 <input
                   id="referralCode"
                   type="text"
@@ -342,7 +323,6 @@ export default function SignupPage() {
                 </p>
               </div>
 
-              {/* Terms and Conditions */}
               <div className="flex items-start">
                 <input
                   id="terms"
@@ -352,28 +332,24 @@ export default function SignupPage() {
                 />
                 <label htmlFor="terms" className="ml-2 text-sm text-slate-400">
                   I agree to the{' '}
-                  <a href="/terms" className="text-blue-400 hover:text-blue-300 transition-colors">
-                    Terms and Conditions
-                  </a>{' '}
+                  <a href="/terms" className="text-blue-400 hover:text-blue-300 transition-colors">Terms and Conditions</a>{' '}
                   and{' '}
-                  <a href="/privacy" className="text-blue-400 hover:text-blue-300 transition-colors">
-                    Privacy Policy
-                  </a>
+                  <a href="/privacy" className="text-blue-400 hover:text-blue-300 transition-colors">Privacy Policy</a>
                 </label>
               </div>
 
-              {/* Message */}
               {message && (
-                <div className={`p-4 rounded-lg text-sm ${
-                  messageType === 'success'
-                    ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
-                }`}>
+                <div
+                  className={`p-4 rounded-lg text-sm ${
+                    messageType === 'success'
+                      ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                      : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                  }`}
+                >
                   {message}
                 </div>
               )}
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -385,6 +361,7 @@ export default function SignupPage() {
               <div className="text-center text-[11px] text-slate-500">
                 <div>Data is encrypted</div>
                 <div>No hidden fees</div>
+                <div>Takes only 1 minute</div>
               </div>
             </form>
           )}
@@ -397,9 +374,7 @@ export default function SignupPage() {
               </div>
 
               <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-slate-300 mb-2">
-                  Verification Code
-                </label>
+                <label htmlFor="otp" className="block text-sm font-medium text-slate-300 mb-2">Verification Code</label>
                 <div className="flex gap-2">
                   {otp.map((digit, index) => (
                     <input
@@ -418,13 +393,14 @@ export default function SignupPage() {
                 <p className="mt-2 text-[11px] text-slate-500">OTP expires in 10 minutes.</p>
               </div>
 
-              {/* Message */}
               {message && (
-                <div className={`p-4 rounded-lg text-sm ${
-                  messageType === 'success'
-                    ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
-                }`}>
+                <div
+                  className={`p-4 rounded-lg text-sm ${
+                    messageType === 'success'
+                      ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                      : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                  }`}
+                >
                   {message}
                 </div>
               )}
@@ -468,13 +444,24 @@ export default function SignupPage() {
               <div className="rounded-xl border border-emerald-600/60 bg-emerald-950/20 p-5 text-sm text-slate-200">
                 <div className="text-lg font-semibold text-emerald-400">Congratulations — Your Account is Ready!</div>
                 <p className="mt-2 text-slate-300">
-                  آپ کی email verify ہو گئی ہے، اور آپ کا Arbix account کامیابی کے ساتھ بن گیا ہے۔
+                  آپ کی email verify ہو گئی ہے، اور آپ کا Arbix account کامیابی کے ساتھ بن گیا ہے۔ اب آپ login کر کے اپنی earning journey شروع کر سکتے ہیں!
                 </p>
                 <div className="mt-4 space-y-1 text-[11px] text-slate-300">
-                  <div><span className="text-slate-400">Full Name:</span> {fullName}</div>
-                  <div><span className="text-slate-400">Email:</span> {email}</div>
-                  <div><span className="text-slate-400">Referral Used:</span> {referralCode || '—'}</div>
-                  <div><span className="text-slate-400">Account Status:</span> Verified</div>
+                  <div>
+                    <span className="text-slate-400">Full Name:</span> {fullName}
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Email:</span> {email}
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Referral Used:</span> {referralCode || '—'}
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Account Status:</span> Verified
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Registration Date:</span> {new Date().toLocaleDateString()}
+                  </div>
                 </div>
               </div>
 
@@ -488,7 +475,7 @@ export default function SignupPage() {
 
               <button
                 type="button"
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/how-it-works')}
                 className="w-full py-3 px-4 bg-slate-900/50 border border-slate-700 text-white rounded-lg font-semibold hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all"
               >
                 Explore How It Works
@@ -496,7 +483,6 @@ export default function SignupPage() {
             </div>
           )}
 
-          {/* Login Link */}
           <div className="mt-6 text-center">
             <p className="text-slate-400">
               Already have an account?{' '}
@@ -507,12 +493,8 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Back to Home */}
         <div className="mt-8 text-center">
-          <a 
-            href="/"
-            className="inline-flex items-center text-slate-400 hover:text-white transition-colors"
-          >
+          <a href="/" className="inline-flex items-center text-slate-400 hover:text-white transition-colors">
             <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>

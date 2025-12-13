@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function ResetPasswordClient() {
@@ -25,7 +26,7 @@ export default function ResetPasswordClient() {
     return { text: 'Strong', color: 'text-green-400' };
   }, [password]);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!token) {
