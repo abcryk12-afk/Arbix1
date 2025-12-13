@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type WalletUser = {
   id: string;
@@ -12,36 +12,6 @@ type WalletUser = {
   createdAt: string;
 };
 
-const DEMO_USERS: WalletUser[] = [
-  {
-    id: 'u1',
-    name: 'Ali Raza',
-    email: 'ali.raza@example.com',
-    referralCode: 'ABX123',
-    publicAddress: '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-    privateAddress: '0xprivkey1-demo-abcdef1234567890',
-    createdAt: '2025-12-01 10:12',
-  },
-  {
-    id: 'u2',
-    name: 'Sana Malik',
-    email: 'sana.malik@example.com',
-    referralCode: 'SNM456',
-    publicAddress: '0x98De45c1200e89fCbA3dfb22CEF56712AbCdE321',
-    privateAddress: '0xprivkey2-demo-0987654321fedcba',
-    createdAt: '2025-11-30 18:45',
-  },
-  {
-    id: 'u3',
-    name: 'Rehan Khan',
-    email: 'rehan.khan@example.com',
-    referralCode: 'RHK789',
-    publicAddress: '0xAb45cDe1200e89fCbA3dfb22CEF56712AbCdE3FF',
-    privateAddress: '0xprivkey3-demo-112233445566',
-    createdAt: '2025-11-29 09:30',
-  },
-];
-
 function shortAddr(addr: string) {
   if (addr.length <= 12) return addr;
   return `${addr.slice(0, 8)}...${addr.slice(-4)}`;
@@ -49,18 +19,74 @@ function shortAddr(addr: string) {
 
 export default function AdminUserWalletsPage() {
   const [query, setQuery] = useState('');
+  const [users, setUsers] = useState<WalletUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return DEMO_USERS;
-    return DEMO_USERS.filter((u) => {
+    if (!q) return users;
+    return users.filter((u) => {
       return (
         u.name.toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
         u.referralCode.toLowerCase().includes(q)
       );
     });
-  }, [query]);
+  }, [query, users]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) {
+            setUsers([]);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        const res = await fetch('/api/admin/wallets?limit=100', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+
+        if (!cancelled) {
+          if (data?.success && Array.isArray(data?.wallets)) {
+            setUsers(
+              data.wallets.map((w: any) => ({
+                id: String(w.id),
+                name: String(w.name || ''),
+                email: String(w.email || ''),
+                referralCode: String(w.referralCode || ''),
+                publicAddress: String(w.publicAddress || ''),
+                privateAddress: String(w.privateAddress || ''),
+                createdAt: w.createdAt ? String(w.createdAt).slice(0, 19).replace('T', ' ') : '',
+              }))
+            );
+          } else {
+            setUsers([]);
+          }
+          setIsLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setUsers([]);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCopy = async (value: string) => {
     try {
@@ -110,7 +136,16 @@ export default function AdminUserWalletsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
-                {filtered.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-3 py-6 text-center text-slate-500"
+                    >
+                      Loading...
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
                   <tr>
                     <td
                       colSpan={5}
@@ -133,12 +168,13 @@ export default function AdminUserWalletsPage() {
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[10px] text-slate-200">
-                            {shortAddr(u.publicAddress)}
+                            {u.publicAddress ? shortAddr(u.publicAddress) : '-'}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleCopy(u.publicAddress)}
                             className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                            disabled={!u.publicAddress}
                           >
                             Copy
                           </button>
@@ -147,12 +183,13 @@ export default function AdminUserWalletsPage() {
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[10px] text-slate-200">
-                            {shortAddr(u.privateAddress)}
+                            {u.privateAddress ? shortAddr(u.privateAddress) : '-'}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleCopy(u.privateAddress)}
                             className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                            disabled={!u.privateAddress}
                           >
                             Copy
                           </button>

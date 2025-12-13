@@ -2,10 +2,11 @@ const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const { generateOTP, generateSecureToken } = require('../utils/otpGenerator');
 const { sendOTPEmail, sendWelcomeEmail, sendPasswordResetEmail } = require('../config/email');
-const db = require('../models');
-const User = db.User;
+const bcrypt = require('bcryptjs');
+const { User } = require('../models');
+const { ensureWalletForUser } = require('../services/walletService');
 
-// @desc    Register a new user
+// @desc    Register a new user (OTP-based email verification)
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res) => {
@@ -21,49 +22,32 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create user with automatic verification (OTP temporarily disabled)
+    // Create user with email verification pending
     const user = await User.create({
       name,
       email,
       password,
       phone,
       referredBy,
-      emailVerified: true, // Auto-verify email
-      accountStatus: 'active', // Set account as active
-      emailVerificationToken: null, // No OTP needed
+      emailVerified: false,
+      accountStatus: 'pending_verification',
+      emailVerificationToken: null,
       emailVerificationExpires: null,
     });
 
-    // Skip OTP generation and email sending for now
-    // const otp = generateOTP();
-    // user.emailVerificationToken = otp;
-    // user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000);
-    // await user.save();
-    // await sendOTPEmail(email, otp, name);
+    await ensureWalletForUser(user);
 
-    // Send welcome email since account is auto-verified
-    await sendWelcomeEmail(user.email, user.name, user.referralCode);
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
-
-    // Remove sensitive data before sending response
-    const userData = user.get();
-    delete userData.password;
-    delete userData.emailVerificationToken;
-    delete userData.emailVerificationExpires;
-    delete userData.passwordResetToken;
-    delete userData.passwordResetExpires;
+    // Generate OTP and send verification email
+    const otp = generateOTP();
+    user.emailVerificationToken = otp;
+    user.emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+    await sendOTPEmail(email, otp, name);
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful. Your account is now active.',
-      token,
-      user: userData,
+      message: 'Registration successful. A verification code has been sent to your email.',
+      email,
     });
   } catch (error) {
     console.error('Registration error:', error);

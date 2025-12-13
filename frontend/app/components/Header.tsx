@@ -9,8 +9,8 @@ export default function Header() {
     { name: "Home", href: "/" },
     { name: "About", href: "/about" },
     { name: "How It Works", href: "/how-it-works" },
-    { name: "Profit Plan", href: "#plans" },
-    { name: "Testimonials", href: "#testimonials" },
+    { name: "Profit Plan", href: "/plans" },
+    { name: "Testimonials", href: "/testimonials" },
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
     { name: "Login", href: "/auth/login" },
@@ -39,8 +39,8 @@ export default function Header() {
             <a href="/" className="hover:text-white">Home</a>
             <a href="/about" className="hover:text-white">About</a>
             <a href="/how-it-works" className="hover:text-white">How It Works</a>
-            <a href="#plans" className="hover:text-white">Profit Plan</a>
-            <a href="#testimonials" className="hover:text-white">Testimonials</a>
+            <a href="/plans" className="hover:text-white">Profit Plan</a>
+            <a href="/testimonials" className="hover:text-white">Testimonials</a>
             <a href="/faq" className="hover:text-white">FAQ</a>
           </nav>
 

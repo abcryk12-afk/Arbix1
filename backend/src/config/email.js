@@ -2,17 +2,17 @@ const nodemailer = require('nodemailer');
 
 // Email configuration using Gmail SMTP
 const emailConfig = {
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: process.env.EMAIL_PORT || 465,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : undefined,
   secure: process.env.EMAIL_SECURE === 'true', // Use SSL
   auth: {
-    user: process.env.EMAIL_USER || 'wanum01234@gmail.com',
-    pass: process.env.EMAIL_PASS || 'sxat uuht hngw vfwc' // App password
-  }
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 };
 
 // Create transporter
-const transporter = nodemailer.createTransporter(emailConfig);
+const transporter = nodemailer.createTransport(emailConfig);
 
 // Verify connection
 transporter.verify((error, success) => {

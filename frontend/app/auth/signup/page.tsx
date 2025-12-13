@@ -62,11 +62,16 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage('Registration successful! Redirecting to login...');
+        setMessage('Registration successful! A verification code has been sent to your email.');
         setMessageType('success');
+
+        const params = new URLSearchParams(window.location.search);
+        params.set('email', email);
+        const target = `/auth/verify-email?${params.toString()}`;
+
         setTimeout(() => {
-          router.push('/auth/login');
-        }, 2000);
+          router.push(target);
+        }, 1200);
       } else {
         setMessage(data.message || 'Registration failed. Please try again.');
         setMessageType('error');

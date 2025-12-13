@@ -43,8 +43,8 @@ export default function RootLayout({
                   <ul className="mt-2 space-y-1.5">
                     <li><a href="/terms" className="hover:text-white hover:underline">Terms of Service</a></li>
                     <li><a href="/privacy" className="hover:text-white hover:underline">Privacy Policy</a></li>
-                    <li><a href="/aml" className="hover:text-white hover:underline">AML Policy</a></li>
-                    <li><a href="/risk" className="hover:text-white hover:underline">Risk Disclosure</a></li>
+                    <li><a href="/aml-kyc" className="hover:text-white hover:underline">AML Policy</a></li>
+                    <li><a href="/risk-disclosure" className="hover:text-white hover:underline">Risk Disclosure</a></li>
                   </ul>
                 </div>
                 <div>
@@ -71,7 +71,7 @@ export default function RootLayout({
                   <div className="flex items-center gap-4">
                     <a href="/terms" className="hover:text-slate-300 hover:underline">Terms</a>
                     <a href="/privacy" className="hover:text-slate-300 hover:underline">Privacy</a>
-                    <a href="/aml" className="hover:text-slate-300 hover:underline">AML Policy</a>
+                    <a href="/aml-kyc" className="hover:text-slate-300 hover:underline">AML Policy</a>
                   </div>
                 </div>
               </div>

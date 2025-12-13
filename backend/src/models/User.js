@@ -69,6 +69,8 @@ const User = db.define('User', {
     defaultValue: false,
   },
 }, {
+  tableName: 'users',
+  freezeTableName: true,
   timestamps: true,
   hooks: {
     beforeCreate: async (user) => {

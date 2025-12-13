@@ -1,17 +1,84 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function DepositPage() {
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [copied, setCopied] = useState(false);
 
-  // Demo values – later connect to backend
-  const walletAddress = '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27';
-  const walletBalance = 245.5;
-  const pendingDeposits = 30.0;
-  const totalDeposited = 1250.0;
+  const [walletAddress, setWalletAddress] = useState('');
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const pendingDeposits = 0;
+  const totalDeposited = 0;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const u = JSON.parse(storedUser);
+          setWalletAddress(u?.walletAddress || '');
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) setIsLoading(false);
+          return;
+        }
+
+        const res = await fetch('/api/user/summary', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled) {
+          if (data?.success) {
+            setWalletBalance(Number(data?.wallet?.balance || 0));
+            setTransactions(Array.isArray(data?.transactions) ? data.transactions : []);
+          } else {
+            setWalletBalance(0);
+            setTransactions([]);
+          }
+          setIsLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setWalletBalance(0);
+          setTransactions([]);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const depositTransactions = useMemo(() => {
+    return transactions
+      .filter((t) => t?.type === 'deposit')
+      .map((t) => ({
+        id: String(t.id),
+        amount: Number(t.amount || 0),
+        createdAt: t.createdAt ? new Date(t.createdAt) : null,
+        note: t.note || null,
+      }));
+  }, [transactions]);
 
   const handleGenerateAddress = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +96,7 @@ export default function DepositPage() {
 
   const handleCopy = async () => {
     try {
+      if (!walletAddress) return;
       await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -37,7 +105,9 @@ export default function DepositPage() {
     }
   };
 
-  const shortAddress = `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}`;
+  const shortAddress = walletAddress
+    ? `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}`
+    : 'Not assigned';
 
   return (
     <div className="bg-slate-950 text-slate-50">
@@ -209,6 +279,7 @@ export default function DepositPage() {
                     onClick={handleCopy}
                     className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-500"
                     type="button"
+                    disabled={!walletAddress}
                   >
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
@@ -279,15 +350,15 @@ export default function DepositPage() {
           <div className="mt-5 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Pending Deposits</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">2</p>
+              <p className="mt-1 text-lg font-semibold text-amber-400">0</p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Processing</p>
-              <p className="mt-1 text-lg font-semibold text-sky-400">1</p>
+              <p className="mt-1 text-lg font-semibold text-sky-400">0</p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Successful (30 days)</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">8</p>
+              <p className="mt-1 text-lg font-semibold text-emerald-400">{depositTransactions.length}</p>
             </div>
           </div>
         </div>
@@ -311,54 +382,25 @@ export default function DepositPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
-                <tr>
-                  <td className="px-3 py-2">2025-12-01 10:12</td>
-                  <td className="px-3 py-2">50.00</td>
-                  <td className="px-3 py-2 text-emerald-400">Successful</td>
-                  <td className="px-3 py-2">0x12ab...9c34</td>
-                  <td className="px-3 py-2 text-right">
-                    <a
-                      href="https://bscscan.com/tx/0x12ab..."
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:text-blue-400"
-                    >
-                      View on BscScan
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2">2025-12-01 09:45</td>
-                  <td className="px-3 py-2">30.00</td>
-                  <td className="px-3 py-2 text-sky-400">Processing</td>
-                  <td className="px-3 py-2">0x98de...7f21</td>
-                  <td className="px-3 py-2 text-right">
-                    <a
-                      href="https://bscscan.com/tx/0x98de..."
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:text-blue-400"
-                    >
-                      View on BscScan
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-3 py-2">2025-11-30 21:10</td>
-                  <td className="px-3 py-2">20.00</td>
-                  <td className="px-3 py-2 text-amber-400">Pending</td>
-                  <td className="px-3 py-2">0xab45...2f90</td>
-                  <td className="px-3 py-2 text-right">
-                    <a
-                      href="https://bscscan.com/tx/0xab45..."
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:text-blue-400"
-                    >
-                      View on BscScan
-                    </a>
-                  </td>
-                </tr>
+                {depositTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                      {isLoading ? 'Loading...' : 'No deposits yet'}
+                    </td>
+                  </tr>
+                ) : (
+                  depositTransactions.map((t) => (
+                    <tr key={t.id}>
+                      <td className="px-3 py-2">
+                        {t.createdAt ? t.createdAt.toISOString().replace('T', ' ').slice(0, 19) : '-'}
+                      </td>
+                      <td className="px-3 py-2">{t.amount.toFixed(2)}</td>
+                      <td className="px-3 py-2 text-emerald-400">Successful</td>
+                      <td className="px-3 py-2">-</td>
+                      <td className="px-3 py-2 text-right text-slate-400">{t.note || '-'}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

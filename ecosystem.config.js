@@ -10,7 +10,9 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 5000
+        PORT: 5000,
+        ADMIN_API_KEY: 'CHANGE_ME_STRONG_KEY',
+        ADMIN_EMAILS: 'admin@example.com'
       }
     },
     {
@@ -21,7 +23,11 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '512M'
+      max_memory_restart: '512M',
+      env: {
+        BACKEND_URL: 'http://216.219.95.100:5000',
+        ADMIN_API_KEY: 'CHANGE_ME_STRONG_KEY'
+      }
     }
   ]
 };

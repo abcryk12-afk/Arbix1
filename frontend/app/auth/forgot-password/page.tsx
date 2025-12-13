@@ -10,6 +10,9 @@ export default function ForgotPasswordPage() {
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
   const passwordStrength = useMemo(() => {
     let score = 0;
@@ -64,9 +67,38 @@ export default function ForgotPasswordPage() {
             </p>
             <form
               className="mt-6 space-y-4 text-xs text-slate-300"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setStep(2);
+
+                setIsSubmitting(true);
+                setMessage('');
+                setMessageType('');
+
+                try {
+                  const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email }),
+                  });
+
+                  const data = await response.json();
+
+                  if (data.success) {
+                    setMessage(data.message || 'If an account exists with this email, a reset link has been sent.');
+                    setMessageType('success');
+                    setStep(4);
+                  } else {
+                    setMessage(data.message || 'Failed to start password reset.');
+                    setMessageType('error');
+                  }
+                } catch (err) {
+                  setMessage('An error occurred. Please try again.');
+                  setMessageType('error');
+                } finally {
+                  setIsSubmitting(false);
+                }
               }}
             >
               <div>
@@ -86,12 +118,23 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+                disabled={isSubmitting}
               >
-                Send Reset Code
+                {isSubmitting ? 'Sending...' : 'Send Reset Link'}
               </button>
+              {message && (
+                <div
+                  className={`rounded-lg border p-3 text-[11px] ${
+                    messageType === 'success'
+                      ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
+                      : 'border-red-600/60 bg-red-950/20 text-red-300'
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
               <p className="mt-2 text-[10px] text-slate-500">
-                A password reset OTP will be sent to this email if it is registered
-                with Arbix.
+                If an account exists, a password reset link will be sent to this email.
               </p>
             </form>
           </div>
@@ -216,17 +259,17 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
             <div className="rounded-2xl border border-emerald-600/60 bg-emerald-950/20 p-5 text-xs text-slate-200 md:text-sm">
               <div className="text-lg font-semibold text-emerald-400">
-                🎉 Password Updated Successfully
+                Password Reset Email Sent
               </div>
               <p className="mt-2 text-slate-300">
-                Your password has been changed. You can now log in using your new
-                credentials.
+                If an account exists with this email, a password reset link has been sent.
+                Please open your email and click the link to set a new password.
               </p>
               <a
                 href="/auth/login"
                 className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white hover:bg-blue-500"
               >
-                Go to Login
+                Back to Login
               </a>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type WithdrawRequest = {
   id: string;
@@ -94,6 +94,15 @@ type UserInvestment = {
   status: 'active' | 'completed';
   startDate: string;
   daysLeft: number;
+};
+
+type AdminUserRow = {
+  id: string;
+  name: string;
+  email: string;
+  referralCode: string;
+  createdAt: string;
+  balance: number;
 };
 
 // Demo data
@@ -259,6 +268,171 @@ export default function AdminDashboardPage() {
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
 
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserPhone, setNewUserPhone] = useState('');
+  const [newUserReferredBy, setNewUserReferredBy] = useState('');
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [createUserMessage, setCreateUserMessage] = useState('');
+  const [createUserMessageType, setCreateUserMessageType] = useState<'success' | 'error' | ''>('');
+
+  const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [adjustAmount, setAdjustAmount] = useState('');
+  const [adjustNote, setAdjustNote] = useState('');
+  const [isAdjusting, setIsAdjusting] = useState(false);
+  const [adjustMessage, setAdjustMessage] = useState('');
+  const [adjustMessageType, setAdjustMessageType] = useState<'success' | 'error' | ''>('');
+
+  const loadAdminUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/users?limit=25', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data?.success && Array.isArray(data?.users)) {
+        setAdminUsers(
+          data.users.map((u: any) => ({
+            id: String(u.id),
+            name: String(u.name || ''),
+            email: String(u.email || ''),
+            referralCode: String(u.referralCode || ''),
+            createdAt: String(u.createdAt || ''),
+            balance: Number(u.balance || 0),
+          }))
+        );
+        if (!selectedUserId && data.users.length > 0) {
+          setSelectedUserId(String(data.users[0].id));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    loadAdminUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setIsCreatingUser(true);
+    setCreateUserMessage('');
+    setCreateUserMessageType('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setCreateUserMessage('Not logged in');
+        setCreateUserMessageType('error');
+        return;
+      }
+
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newUserName,
+          email: newUserEmail,
+          password: newUserPassword,
+          phone: newUserPhone,
+          referredBy: newUserReferredBy,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCreateUserMessage(data.message || 'User created successfully');
+        setCreateUserMessageType('success');
+        setNewUserName('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserPhone('');
+        setNewUserReferredBy('');
+
+        await loadAdminUsers();
+      } else {
+        setCreateUserMessage(data.message || 'Failed to create user');
+        setCreateUserMessageType('error');
+      }
+    } catch (error) {
+      setCreateUserMessage('An error occurred. Please try again.');
+      setCreateUserMessageType('error');
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const selectedAdminUser = useMemo(() => {
+    return adminUsers.find((u) => u.id === selectedUserId) || null;
+  }, [adminUsers, selectedUserId]);
+
+  const handleAdjustBalance = async (mode: 'deposit' | 'withdraw') => {
+    setIsAdjusting(true);
+    setAdjustMessage('');
+    setAdjustMessageType('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setAdjustMessage('Not logged in');
+        setAdjustMessageType('error');
+        return;
+      }
+
+      const amountValue = Number(adjustAmount);
+      if (!selectedUserId || !Number.isFinite(amountValue) || amountValue <= 0) {
+        setAdjustMessage('Please select a user and enter a valid amount');
+        setAdjustMessageType('error');
+        return;
+      }
+
+      const endpoint = mode === 'deposit' ? '/api/admin/deposit' : '/api/admin/withdraw';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: selectedUserId,
+          amount: amountValue,
+          note: adjustNote,
+        }),
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        setAdjustMessage(data.message || 'Success');
+        setAdjustMessageType('success');
+        setAdjustAmount('');
+        setAdjustNote('');
+        await loadAdminUsers();
+      } else {
+        setAdjustMessage(data.message || 'Failed');
+        setAdjustMessageType('error');
+      }
+    } catch {
+      setAdjustMessage('An error occurred. Please try again.');
+      setAdjustMessageType('error');
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
+
   const filteredWithdrawals = useMemo(() => {
     if (withdrawFilter === 'pending') {
       return WITHDRAW_REQUESTS;
@@ -311,6 +485,135 @@ export default function AdminDashboardPage() {
             <button className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500">
               Logout
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* New Users + Deposit/Withdraw */}
+      <section className="border-b border-slate-800 bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+              Users (Latest) + Adjust Balance
+            </h2>
+            <button
+              type="button"
+              onClick={loadAdminUsers}
+              className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+            >
+              Refresh
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400">Select User</label>
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                >
+                  {adminUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.email} ({u.name})
+                    </option>
+                  ))}
+                </select>
+                <div className="mt-2 text-[11px] text-slate-400">
+                  Current balance:{' '}
+                  <span className="font-semibold text-emerald-400">
+                    {selectedAdminUser ? selectedAdminUser.balance.toFixed(2) : '0.00'}
+                  </span>
+                </div>
+              </div>
+              <div className="grid gap-3">
+                <div>
+                  <label className="mb-1 block text-[11px] text-slate-400">Amount</label>
+                  <input
+                    value={adjustAmount}
+                    onChange={(e) => setAdjustAmount(e.target.value)}
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                    placeholder="Enter amount"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-slate-400">Note (optional)</label>
+                  <input
+                    value={adjustNote}
+                    onChange={(e) => setAdjustNote(e.target.value)}
+                    className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                    placeholder="Admin adjustment note"
+                  />
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    disabled={isAdjusting}
+                    onClick={() => handleAdjustBalance('deposit')}
+                    className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
+                  >
+                    {isAdjusting ? 'Working...' : 'Deposit'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isAdjusting}
+                    onClick={() => handleAdjustBalance('withdraw')}
+                    className="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-60"
+                  >
+                    {isAdjusting ? 'Working...' : 'Withdraw'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {adjustMessage && (
+              <div
+                className={`mt-3 rounded-lg border p-3 text-[11px] ${
+                  adjustMessageType === 'success'
+                    ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
+                    : 'border-red-600/60 bg-red-950/20 text-red-300'
+                }`}
+              >
+                {adjustMessage}
+              </div>
+            )}
+
+            <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/60">
+              <table className="min-w-full divide-y divide-slate-800 text-[11px]">
+                <thead className="bg-slate-950/90 text-slate-400">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Created</th>
+                    <th className="px-3 py-2 text-left">Name</th>
+                    <th className="px-3 py-2 text-left">Email</th>
+                    <th className="px-3 py-2 text-left">Referral</th>
+                    <th className="px-3 py-2 text-right">Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 text-slate-300">
+                  {adminUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                        No users found
+                      </td>
+                    </tr>
+                  ) : (
+                    adminUsers.map((u) => (
+                      <tr key={u.id}>
+                        <td className="px-3 py-2">{u.createdAt ? String(u.createdAt).slice(0, 19).replace('T', ' ') : '-'}</td>
+                        <td className="px-3 py-2">{u.name}</td>
+                        <td className="px-3 py-2">{u.email}</td>
+                        <td className="px-3 py-2">{u.referralCode || '-'}</td>
+                        <td className="px-3 py-2 text-right text-emerald-400">{Number(u.balance || 0).toFixed(2)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -381,6 +684,90 @@ export default function AdminDashboardPage() {
             <a href="/admin/logs" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
               Admin Logs
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Create New User */}
+      <section className="border-b border-slate-800 bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+            Create New User (Manual)
+          </h2>
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <form className="grid gap-3 md:grid-cols-2" onSubmit={handleCreateUser}>
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400">Full Name</label>
+                <input
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="User name"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400">Email</label>
+                <input
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  required
+                  type="email"
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="user@example.com"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400">Password</label>
+                <input
+                  value={newUserPassword}
+                  onChange={(e) => setNewUserPassword(e.target.value)}
+                  required
+                  type="password"
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Set password"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400">Phone (optional)</label>
+                <input
+                  value={newUserPhone}
+                  onChange={(e) => setNewUserPhone(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="+92..."
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400">Referred By (optional)</label>
+                <input
+                  value={newUserReferredBy}
+                  onChange={(e) => setNewUserReferredBy(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Referral code"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={isCreatingUser}
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 disabled:opacity-60"
+                >
+                  {isCreatingUser ? 'Creating...' : 'Create User'}
+                </button>
+              </div>
+            </form>
+
+            {createUserMessage && (
+              <div
+                className={`mt-3 rounded-lg border p-3 text-[11px] ${
+                  createUserMessageType === 'success'
+                    ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
+                    : 'border-red-600/60 bg-red-950/20 text-red-300'
+                }`}
+              >
+                {createUserMessage}
+              </div>
+            )}
           </div>
         </div>
       </section>

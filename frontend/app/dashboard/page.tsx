@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
@@ -17,70 +17,85 @@ type Announcement = {
 };
 
 export default function DashboardPage() {
-  // Demo values – later from backend
-  const [userName] = useState('Investor');
-  const [kycStatus] = useState<KycStatus>('pending');
-  const [availableBalance] = useState(280.75);
-  const [todayEarnings] = useState(18.25);
-  const [networkToday] = useState(12.5);
-  const [totalEarnings] = useState(3250.5);
+  const [userName, setUserName] = useState('');
+  const [kycStatus, setKycStatus] = useState<KycStatus>('pending');
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [myTradingToday] = useState(8.5);
-  const [myTradingMonth] = useState(210.75);
-  const [myTradingAll] = useState(1830.25);
+  const todayEarnings = 0;
+  const networkToday = 0;
+  const totalEarnings = 0;
 
-  const [networkMonth] = useState(340.0);
-  const [networkAll] = useState(1420.0);
+  const myTradingToday = 0;
+  const myTradingMonth = 0;
+  const myTradingAll = 0;
 
-  const [activePackagesCount] = useState(3);
-  const [activeCapital] = useState(600);
-  const [estimatedDailyProfit] = useState(22.5);
+  const networkMonth = 0;
+  const networkAll = 0;
 
-  const [l1Count] = useState(5);
-  const [l2Count] = useState(8);
-  const [l3Count] = useState(12);
-  const [teamTodayEarnings] = useState(12.5);
+  const activePackagesCount = 0;
+  const activeCapital = 0;
+  const estimatedDailyProfit = 0;
 
-  const activities: Activity[] = [
-    {
-      id: 'a1',
-      text: 'You received $18.25 in total earnings today (trading + network).',
-      time: 'Today • 10:45 AM',
-    },
-    {
-      id: 'a2',
-      text: 'Ali (L1) activated a $600 Gold package — high-tier bonus applied.',
-      time: 'Today • 09:30 AM',
-    },
-    {
-      id: 'a3',
-      text: 'You deposited $100.00 USDT (BEP20) to your Arbix wallet.',
-      time: 'Yesterday • 08:15 PM',
-    },
-    {
-      id: 'a4',
-      text: 'Daily trading snapshot updated with new arbitrage trades.',
-      time: 'Yesterday • 06:00 PM',
-    },
-    {
-      id: 'a5',
-      text: 'Sana (L1) upgraded to a $100 Silver package.',
-      time: '2 days ago',
-    },
-  ];
+  const l1Count = 0;
+  const l2Count = 0;
+  const l3Count = 0;
+  const teamTodayEarnings = 0;
 
-  const announcements: Announcement[] = [
-    {
-      id: 'n1',
-      title: 'System Maintenance Window',
-      text: 'Planned maintenance on Sunday 02:00–04:00 UTC. Trading engine will remain online, but dashboard updates may be slightly delayed.',
-    },
-    {
-      id: 'n2',
-      title: 'New Elite+ Package Enhancements',
-      text: 'Elite+ investors now receive extended analytics and dedicated support hours. Check the Investment page for details.',
-    },
-  ];
+  const activities: Activity[] = [];
+  const announcements: Announcement[] = [];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const u = JSON.parse(storedUser);
+          setUserName(u?.name || u?.email || '');
+          if (u?.kycStatus) setKycStatus(u.kycStatus);
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) setIsLoading(false);
+          return;
+        }
+
+        const res = await fetch('/api/user/summary', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled) {
+          if (data?.success) {
+            setAvailableBalance(Number(data?.wallet?.balance || 0));
+          } else {
+            setAvailableBalance(0);
+          }
+          setIsLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setAvailableBalance(0);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const teamTotal = l1Count + l2Count + l3Count;
 
@@ -139,7 +154,7 @@ export default function DashboardPage() {
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <p className="text-sm font-semibold text-slate-50">
-            Welcome Back, {userName} 👋
+            Welcome Back, {userName || 'User'} 👋 {isLoading ? <span className="text-[11px] text-slate-500">(loading...)</span> : null}
           </p>
           <p className="mt-1 text-xs text-slate-400 md:text-sm">
             Here&apos;s your overview for today.

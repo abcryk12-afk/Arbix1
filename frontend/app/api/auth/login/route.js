@@ -5,8 +5,10 @@ export async function POST(request) {
     const body = await request.json();
     const { email, password } = body;
 
-    // Forward the request to the VPS backend
-    const response = await fetch('http://216.219.95.100:5000/api/auth/login', {
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+
+    // Forward the request to the backend
+    const response = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
