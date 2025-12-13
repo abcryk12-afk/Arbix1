@@ -262,8 +262,8 @@ exports.forgotPassword = async (req, res) => {
     const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // Save reset token to user
-    user.passwordResetToken = resetToken;
-    user.passwordResetExpires = resetExpires;
+    user.reset_token = resetToken;
+    user.reset_token_expires_at = resetExpires;
     await user.save();
 
     // Create reset URL
@@ -296,8 +296,8 @@ exports.resetPassword = async (req, res) => {
     // Find user by reset token
     const user = await User.findOne({
       where: {
-        passwordResetToken: token,
-        passwordResetExpires: { [Op.gt]: new Date() },
+        reset_token: token,
+        reset_token_expires_at: { [Op.gt]: new Date() },
       },
     });
 
@@ -309,10 +309,9 @@ exports.resetPassword = async (req, res) => {
     }
 
     // Update password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    user.passwordResetToken = null;
-    user.passwordResetExpires = null;
+    user.password_hash = password; // Will be hashed by the beforeUpdate hook
+    user.reset_token = null;
+    user.reset_token_expires_at = null;
     await user.save();
 
     res.status(200).json({
@@ -335,7 +334,7 @@ exports.resetPassword = async (req, res) => {
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password', 'emailVerificationToken', 'passwordResetToken', 'passwordResetExpires'] },
+      attributes: { exclude: ['password_hash', 'reset_token', 'reset_token_expires_at'] },
     });
 
     if (!user) {
