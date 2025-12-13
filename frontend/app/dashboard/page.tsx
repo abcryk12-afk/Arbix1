@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import RequireAuth from '../../components/RequireAuth';
+import RequireAuth from '../components/RequireAuth';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
