@@ -101,7 +101,7 @@ const User = db.define('User', {
     },
     beforeUpdate: async (user) => {
       // Hash password if it's being updated
-      if (user.changed('password_hash')) {
+      if (user.changed('password_hash') && user.password_hash) {
         const salt = await bcrypt.genSalt(10);
         user.password_hash = await bcrypt.hash(user.password_hash, salt);
       }
@@ -111,7 +111,12 @@ const User = db.define('User', {
 
 // Method to compare password
 User.prototype.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password_hash);
+  // Handle case where password_hash might be an object (due to field mapping issues)
+  const hashedPassword = typeof this.password_hash === 'object' 
+    ? this.password_hash.password_hash || this.password_hash 
+    : this.password_hash;
+  
+  return await bcrypt.compare(candidatePassword, hashedPassword);
 };
 
 module.exports = User;
