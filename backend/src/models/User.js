@@ -111,10 +111,19 @@ const User = db.define('User', {
 
 // Method to compare password
 User.prototype.comparePassword = async function(candidatePassword) {
+  // Add null checks
+  if (!this || !this.password_hash) {
+    throw new Error('User password not found');
+  }
+  
   // Handle case where password_hash might be an object (due to field mapping issues)
   const hashedPassword = typeof this.password_hash === 'object' 
     ? this.password_hash.password_hash || this.password_hash 
     : this.password_hash;
+  
+  if (!hashedPassword) {
+    throw new Error('Hashed password is empty');
+  }
   
   return await bcrypt.compare(candidatePassword, hashedPassword);
 };
