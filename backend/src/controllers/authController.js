@@ -30,7 +30,7 @@ exports.register = async (req, res) => {
       phone,
       referred_by_id: referredBy, // Use referred_by_id field
       kyc_status: 'pending', // Use kyc_status field
-      account_status: 'pending_verification', // Use account_status field
+      account_status: 'hold', // Use 'hold' instead of 'pending_verification'
       reset_token: null, // Use reset_token field for verification
       reset_token_expires_at: null, // Use reset_token_expires_at for expiry
     });

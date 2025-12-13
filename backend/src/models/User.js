@@ -57,7 +57,7 @@ const User = db.define('User', {
   },
   account_status: {
     type: DataTypes.ENUM('active', 'hold'),
-    defaultValue: 'active',
+    defaultValue: 'hold', // Use 'hold' instead of 'pending_verification'
     field: 'account_status'
   },
   wallet_public_address: {
