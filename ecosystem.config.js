@@ -25,7 +25,7 @@ module.exports = {
       watch: false,
       max_memory_restart: '512M',
       env: {
-        BACKEND_URL: 'http://216.219.95.100:5000',
+        BACKEND_URL: 'http://localhost:5000',
         ADMIN_API_KEY: 'CHANGE_ME_STRONG_KEY'
       }
     }
