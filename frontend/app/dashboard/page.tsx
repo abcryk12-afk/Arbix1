@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import RequireAuth from '@/app/components/RequireAuth';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
@@ -571,5 +572,14 @@ export default function DashboardPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Wrap the dashboard with RequireAuth
+export default function DashboardWithAuth() {
+  return (
+    <RequireAuth>
+      <DashboardPage />
+    </RequireAuth>
   );
 }

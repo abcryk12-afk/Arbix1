@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import RequireAuth from '@/app/components/RequireAuth';
 
 type Level = 1 | 2 | 3;
 
@@ -492,5 +493,14 @@ export default function TeamEarningsPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Wrap the team page with RequireAuth
+export default function TeamWithAuth() {
+  return (
+    <RequireAuth>
+      <TeamEarningsPage />
+    </RequireAuth>
   );
 }

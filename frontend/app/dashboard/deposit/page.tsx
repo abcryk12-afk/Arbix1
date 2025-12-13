@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import RequireAuth from '@/app/components/RequireAuth';
 
 export default function DepositPage() {
   const [amount, setAmount] = useState('');
@@ -446,5 +447,14 @@ export default function DepositPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Wrap the deposit page with RequireAuth
+export default function DepositWithAuth() {
+  return (
+    <RequireAuth>
+      <DepositPage />
+    </RequireAuth>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import RequireAuth from '@/app/components/RequireAuth';
 
 type PackageId =
   | 'starter'
@@ -568,5 +569,14 @@ export default function StartInvestmentPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Wrap the invest page with RequireAuth
+export default function InvestWithAuth() {
+  return (
+    <RequireAuth>
+      <InvestPage />
+    </RequireAuth>
   );
 }

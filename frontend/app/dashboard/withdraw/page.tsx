@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import RequireAuth from '@/app/components/RequireAuth';
 
 type PendingWithdrawal = {
   id: string;
@@ -463,5 +464,14 @@ export default function WithdrawPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// Wrap the withdraw page with RequireAuth
+export default function WithdrawWithAuth() {
+  return (
+    <RequireAuth>
+      <WithdrawPage />
+    </RequireAuth>
   );
 }
