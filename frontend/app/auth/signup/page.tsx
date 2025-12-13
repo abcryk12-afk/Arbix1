@@ -1,19 +1,45 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import type { ClipboardEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  type Step = 1 | 2 | 3;
+  const [step, setStep] = useState<Step>(1);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [referralCode, setReferralCode] = useState('');
+  const [referralLocked, setReferralLocked] = useState(false);
+
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
+  const otpString = otp.join('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
+
+  useEffect(() => {
+    const ref = searchParams.get('ref') || '';
+    if (ref) {
+      setReferralCode(ref);
+      setReferralLocked(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => {
+      setResendCooldown((v) => (v > 0 ? v - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
 
   const passwordStrength = useMemo(() => {
     let score = 0;
@@ -26,9 +52,9 @@ export default function SignupPage() {
     return { text: 'Strong', color: 'text-green-400' };
   }, [password]);
 
-  const handleSubmit = async (e: any) => {
+  const handleRegister = async (e: any) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       setMessage('Passwords do not match!');
       setMessageType('error');
@@ -43,6 +69,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     setMessage('');
+    setMessageType('');
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -55,29 +82,122 @@ export default function SignupPage() {
           email,
           password,
           phone,
-          referredBy: referralCode,
+          referredBy: referralCode || undefined,
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-      if (data.success) {
-        setMessage('Registration successful! A verification code has been sent to your email.');
+      if (response.ok && data?.success) {
+        setMessage(data.message || 'OTP sent. Please check your email.');
         setMessageType('success');
-
-        const params = new URLSearchParams(window.location.search);
-        params.set('email', email);
-        const target = `/auth/verify-email?${params.toString()}`;
-
-        setTimeout(() => {
-          router.push(target);
-        }, 1200);
+        setOtp(['', '', '', '', '', '']);
+        setStep(2);
+        setResendCooldown(30);
       } else {
-        setMessage(data.message || 'Registration failed. Please try again.');
+        const fallback = data?.message || `Registration failed (HTTP ${response.status}).`;
+        setMessage(fallback);
         setMessageType('error');
       }
-    } catch (error) {
-      setMessage('An error occurred. Please try again.');
+    } catch (error: any) {
+      setMessage(`Network error. Please try again.`);
+      setMessageType('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    const clean = value.replace(/[^0-9]/g, '');
+    if (clean.length > 1) return;
+    const next = [...otp];
+    next[index] = clean;
+    setOtp(next);
+    if (clean && index < 5) {
+      const nextInput = document.getElementById(`signup-otp-${index + 1}`);
+      if (nextInput) (nextInput as HTMLInputElement).focus();
+    }
+  };
+
+  const handleOtpPaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!text) return;
+    const next = ['','','','','',''];
+    for (let i = 0; i < text.length; i++) next[i] = text[i];
+    setOtp(next);
+    const last = document.getElementById(`signup-otp-${Math.min(text.length, 6) - 1}`);
+    if (last) (last as HTMLInputElement).focus();
+    e.preventDefault();
+  };
+
+  const handleVerifyOtp = async (e: any) => {
+    e.preventDefault();
+    if (!email || otpString.length !== 6) {
+      setMessage('Please enter the 6-digit verification code.');
+      setMessageType('error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage('');
+    setMessageType('');
+
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp: otpString }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (response.ok && data?.success) {
+        setMessage('Email verified successfully.');
+        setMessageType('success');
+        setStep(3);
+      } else {
+        const fallback = data?.message || `Invalid OTP (HTTP ${response.status}).`;
+        setMessage(fallback);
+        setMessageType('error');
+      }
+    } catch {
+      setMessage('Network error. Please try again.');
+      setMessageType('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email || resendCooldown > 0) return;
+
+    setIsSubmitting(true);
+    setMessage('');
+    setMessageType('');
+
+    try {
+      const response = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.success) {
+        setMessage(data.message || 'OTP sent. Please check your email.');
+        setMessageType('success');
+        setResendCooldown(30);
+      } else {
+        const fallback = data?.message || `Failed to resend OTP (HTTP ${response.status}).`;
+        setMessage(fallback);
+        setMessageType('error');
+      }
+    } catch {
+      setMessage('Network error. Please try again.');
       setMessageType('error');
     } finally {
       setIsSubmitting(false);
@@ -97,169 +217,283 @@ export default function SignupPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl mb-4">
             <span className="text-white font-bold text-2xl">A</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-slate-400">Join Arbix and start earning passive income</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Create Your Arbix Account</h1>
+          <p className="text-slate-400">صرف چند آسان steps میں سائن اپ کریں، اپنی email verify کریں اور arbitrage trading سے earning شروع کریں۔</p>
         </div>
 
         {/* Signup Form */}
         <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Full Name */}
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
-                Full Name
-              </label>
-              <input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Enter your full name"
-              />
-            </div>
+          {step === 1 && (
+            <form onSubmit={handleRegister} className="space-y-6">
+              {/* Full Name */}
+              <div>
+                <div className="text-sm font-semibold text-white">Sign Up — Step 1</div>
+                <p className="mt-1 text-xs text-slate-400">Smooth registration. Takes only 1 minute.</p>
+              </div>
 
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Enter your email"
-              />
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
-                Phone Number
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
+                  Full Name
+                </label>
                 <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   required
                   className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Create a strong password"
+                  placeholder="Enter your full name"
                 />
               </div>
-              {password && (
-                <div className="mt-2 flex items-center justify-between">
-                  <span className={`text-xs ${passwordStrength.color}`}>
-                    Password strength: {passwordStrength.text}
-                  </span>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Enter your email"
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Create a strong password"
+                  />
+                </div>
+                {password && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className={`text-xs ${passwordStrength.color}`}>
+                      Password strength: {passwordStrength.text}
+                    </span>
+                    <span className="text-[10px] text-slate-500">8+ chars, 1 uppercase, 1 number, 1 symbol</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Confirm your password"
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="mt-1 text-xs text-red-400">Passwords do not match</p>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-2">
+                  Mobile Number (Optional)
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="+92... / +971..."
+                />
+              </div>
+
+              {/* Referral Code (Optional) */}
+              <div>
+                <label htmlFor="referralCode" className="block text-sm font-medium text-slate-300 mb-2">
+                  Referral Code (Optional)
+                </label>
+                <input
+                  id="referralCode"
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  disabled={referralLocked}
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-60"
+                  placeholder="If you don’t have a referral code, leave blank"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {referralLocked ? 'Referral detected from link and locked.' : 'If you don’t have a referral code, leave blank.'}
+                </p>
+              </div>
+
+              {/* Terms and Conditions */}
+              <div className="flex items-start">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  required
+                  className="mt-1 h-4 w-4 bg-slate-900/50 border-slate-600 rounded text-blue-500 focus:ring-blue-500 focus:ring-2"
+                />
+                <label htmlFor="terms" className="ml-2 text-sm text-slate-400">
+                  I agree to the{' '}
+                  <a href="/terms" className="text-blue-400 hover:text-blue-300 transition-colors">
+                    Terms and Conditions
+                  </a>{' '}
+                  and{' '}
+                  <a href="/privacy" className="text-blue-400 hover:text-blue-300 transition-colors">
+                    Privacy Policy
+                  </a>
+                </label>
+              </div>
+
+              {/* Message */}
+              {message && (
+                <div className={`p-4 rounded-lg text-sm ${
+                  messageType === 'success'
+                    ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                }`}>
+                  {message}
                 </div>
               )}
-            </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Confirm your password"
-              />
-              {confirmPassword && password !== confirmPassword && (
-                <p className="mt-1 text-xs text-red-400">Passwords do not match</p>
-              )}
-            </div>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-blue-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                {isSubmitting ? 'Sending OTP...' : 'Next: Send OTP'}
+              </button>
 
-            {/* Referral Code (Optional) */}
-            <div>
-              <label htmlFor="referralCode" className="block text-sm font-medium text-slate-300 mb-2">
-                Referral Code (Optional)
-              </label>
-              <input
-                id="referralCode"
-                type="text"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Enter referral code if you have one"
-              />
-            </div>
-
-            {/* Terms and Conditions */}
-            <div className="flex items-start">
-              <input
-                id="terms"
-                type="checkbox"
-                required
-                className="mt-1 h-4 w-4 bg-slate-900/50 border-slate-600 rounded text-blue-500 focus:ring-blue-500 focus:ring-2"
-              />
-              <label htmlFor="terms" className="ml-2 text-sm text-slate-400">
-                I agree to the{' '}
-                <a href="/terms" className="text-blue-400 hover:text-blue-300 transition-colors">
-                  Terms and Conditions
-                </a>{' '}
-                and{' '}
-                <a href="/privacy" className="text-blue-400 hover:text-blue-300 transition-colors">
-                  Privacy Policy
-                </a>
-              </label>
-            </div>
-
-            {/* Message */}
-            {message && (
-              <div className={`p-4 rounded-lg text-sm ${
-                messageType === 'success' 
-                  ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
-                  : 'bg-red-500/10 border border-red-500/30 text-red-400'
-              }`}>
-                {message}
+              <div className="text-center text-[11px] text-slate-500">
+                <div>Data is encrypted</div>
+                <div>No hidden fees</div>
               </div>
-            )}
+            </form>
+          )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-blue-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Creating Account...
-                </span>
-              ) : (
-                'Create Account'
+          {step === 2 && (
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <div>
+                <div className="text-sm font-semibold text-white">Verify Your Email — Step 2</div>
+                <p className="mt-1 text-xs text-slate-400">We’ve sent a 6-digit OTP to your email. Please enter it below.</p>
+              </div>
+
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-slate-300 mb-2">
+                  Verification Code
+                </label>
+                <div className="flex gap-2">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`signup-otp-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onPaste={index === 0 ? handleOtpPaste : undefined}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      className="h-11 w-11 rounded-lg border border-slate-600 bg-slate-900/50 text-center text-lg text-white outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-500">OTP expires in 10 minutes.</p>
+              </div>
+
+              {/* Message */}
+              {message && (
+                <div className={`p-4 rounded-lg text-sm ${
+                  messageType === 'success'
+                    ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                }`}>
+                  {message}
+                </div>
               )}
-            </button>
-          </form>
+
+              <button
+                type="submit"
+                disabled={isSubmitting || otpString.length !== 6}
+                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-blue-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              >
+                {isSubmitting ? 'Verifying...' : 'Verify & Continue'}
+              </button>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-400">
+                <button
+                  type="button"
+                  className="text-blue-400 hover:text-blue-300 disabled:opacity-60"
+                  onClick={handleResendOtp}
+                  disabled={isSubmitting || resendCooldown > 0}
+                >
+                  {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : 'Resend OTP'}
+                </button>
+                <button
+                  type="button"
+                  className="underline underline-offset-2"
+                  onClick={() => {
+                    setStep(1);
+                    setOtp(['', '', '', '', '', '']);
+                    setMessage('');
+                    setMessageType('');
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Change Email
+                </button>
+              </div>
+            </form>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-emerald-600/60 bg-emerald-950/20 p-5 text-sm text-slate-200">
+                <div className="text-lg font-semibold text-emerald-400">Congratulations — Your Account is Ready!</div>
+                <p className="mt-2 text-slate-300">
+                  آپ کی email verify ہو گئی ہے، اور آپ کا Arbix account کامیابی کے ساتھ بن گیا ہے۔
+                </p>
+                <div className="mt-4 space-y-1 text-[11px] text-slate-300">
+                  <div><span className="text-slate-400">Full Name:</span> {fullName}</div>
+                  <div><span className="text-slate-400">Email:</span> {email}</div>
+                  <div><span className="text-slate-400">Referral Used:</span> {referralCode || '—'}</div>
+                  <div><span className="text-slate-400">Account Status:</span> Verified</div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => router.push('/auth/login')}
+                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-blue-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all shadow-lg hover:shadow-xl"
+              >
+                Go to Login
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="w-full py-3 px-4 bg-slate-900/50 border border-slate-700 text-white rounded-lg font-semibold hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all"
+              >
+                Explore How It Works
+              </button>
+            </div>
+          )}
 
           {/* Login Link */}
           <div className="mt-6 text-center">
