@@ -1,6 +1,6 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env'), override: true });
 
 if (!process.env.DB_NAME || !process.env.DB_USER) {
   console.error('Database env vars missing. Check backend/.env for DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT.');
