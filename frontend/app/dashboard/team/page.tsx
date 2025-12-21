@@ -55,79 +55,55 @@ export default function TeamEarningsPage() {
 
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const res = await fetch('/api/user/referral-earnings', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (!cancelled && data?.success && data?.earnings) {
-          setEarnings({
-            today: Number(data.earnings?.today || 0),
-            allTime: Number(data.earnings?.allTime || 0),
-            withdrawable: Number(data.earnings?.withdrawable || 0),
-            breakdown: {
-              l1: Number(data.earnings?.breakdown?.l1 || 0),
-              l2: Number(data.earnings?.breakdown?.l2 || 0),
-              l3: Number(data.earnings?.breakdown?.l3 || 0),
-            },
-            categories: {
-              deposit_commission: {
-                today: Number(data.earnings?.categories?.deposit_commission?.today || 0),
-                allTime: Number(data.earnings?.categories?.deposit_commission?.allTime || 0),
-                breakdown: {
-                  l1: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l1 || 0),
-                  l2: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l2 || 0),
-                  l3: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l3 || 0),
-                },
-              },
-              referral_profit: {
-                today: Number(data.earnings?.categories?.referral_profit?.today || 0),
-                allTime: Number(data.earnings?.categories?.referral_profit?.allTime || 0),
-                breakdown: {
-                  l1: Number(data.earnings?.categories?.referral_profit?.breakdown?.l1 || 0),
-                  l2: Number(data.earnings?.categories?.referral_profit?.breakdown?.l2 || 0),
-                  l3: Number(data.earnings?.categories?.referral_profit?.breakdown?.l3 || 0),
-                },
-              },
-              referral_bonus: {
-                today: Number(data.earnings?.categories?.referral_bonus?.today || 0),
-                allTime: Number(data.earnings?.categories?.referral_bonus?.allTime || 0),
-                breakdown: {
-                  l1: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l1 || 0),
-                  l2: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l2 || 0),
-                  l3: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l3 || 0),
-                },
-              },
+        if (token) {
+          const res = await fetch('/api/user/referral-earnings', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
           });
-        }
-      } catch {
-        // ignore
-      }
 
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const res = await fetch('/api/auth/me', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (!cancelled && data?.success && data?.user) {
-          setReferralCode(data.user?.referral_code || '');
-          try {
-            localStorage.setItem('user', JSON.stringify(data.user));
-          } catch {
-            // ignore
+          const data = await res.json();
+          if (!cancelled && data?.success && data?.earnings) {
+            setEarnings({
+              today: Number(data.earnings?.today || 0),
+              allTime: Number(data.earnings?.allTime || 0),
+              withdrawable: Number(data.earnings?.withdrawable || 0),
+              breakdown: {
+                l1: Number(data.earnings?.breakdown?.l1 || 0),
+                l2: Number(data.earnings?.breakdown?.l2 || 0),
+                l3: Number(data.earnings?.breakdown?.l3 || 0),
+              },
+              categories: {
+                deposit_commission: {
+                  today: Number(data.earnings?.categories?.deposit_commission?.today || 0),
+                  allTime: Number(data.earnings?.categories?.deposit_commission?.allTime || 0),
+                  breakdown: {
+                    l1: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l1 || 0),
+                    l2: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l2 || 0),
+                    l3: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l3 || 0),
+                  },
+                },
+                referral_profit: {
+                  today: Number(data.earnings?.categories?.referral_profit?.today || 0),
+                  allTime: Number(data.earnings?.categories?.referral_profit?.allTime || 0),
+                  breakdown: {
+                    l1: Number(data.earnings?.categories?.referral_profit?.breakdown?.l1 || 0),
+                    l2: Number(data.earnings?.categories?.referral_profit?.breakdown?.l2 || 0),
+                    l3: Number(data.earnings?.categories?.referral_profit?.breakdown?.l3 || 0),
+                  },
+                },
+                referral_bonus: {
+                  today: Number(data.earnings?.categories?.referral_bonus?.today || 0),
+                  allTime: Number(data.earnings?.categories?.referral_bonus?.allTime || 0),
+                  breakdown: {
+                    l1: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l1 || 0),
+                    l2: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l2 || 0),
+                    l3: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l3 || 0),
+                  },
+                },
+              },
+            });
           }
         }
       } catch {
@@ -136,43 +112,67 @@ export default function TeamEarningsPage() {
 
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (token) {
+          const res = await fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-        const res = await fetch('/api/user/referrals', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+          const data = await res.json();
+          if (!cancelled && data?.success && data?.user) {
+            setReferralCode(data.user?.referral_code || '');
+            try {
+              localStorage.setItem('user', JSON.stringify(data.user));
+            } catch {
+              // ignore
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
 
-        const data = await res.json();
-        if (!cancelled && data?.success) {
-          const next: Member[] = [];
-          const pushLevel = (arr: any[], level: Level) => {
-            if (!Array.isArray(arr)) return;
-            arr.forEach((u) => {
-              next.push({
-                id: String(u.id),
-                level,
-                name: u?.name || '—',
-                email: u?.email || '—',
-                joinDate: u?.joinDate ? String(u.joinDate).slice(0, 10) : '—',
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const res = await fetch('/api/user/referrals', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await res.json();
+          if (!cancelled && data?.success) {
+            const next: Member[] = [];
+            const pushLevel = (arr: any[], level: Level) => {
+              if (!Array.isArray(arr)) return;
+              arr.forEach((u) => {
+                next.push({
+                  id: String(u.id),
+                  level,
+                  name: u?.name || '—',
+                  email: u?.email || '—',
+                  joinDate: u?.joinDate ? String(u.joinDate).slice(0, 10) : '—',
+                });
               });
-            });
-          };
+            };
 
-          pushLevel(data?.referrals?.l1, 1);
-          pushLevel(data?.referrals?.l2, 2);
-          pushLevel(data?.referrals?.l3, 3);
+            pushLevel(data?.referrals?.l1, 1);
+            pushLevel(data?.referrals?.l2, 2);
+            pushLevel(data?.referrals?.l3, 3);
 
-          setMembers(next);
-          if (data?.counts) {
-            setCounts({
-              l1: Number(data.counts?.l1 || 0),
-              l2: Number(data.counts?.l2 || 0),
-              l3: Number(data.counts?.l3 || 0),
-              total: Number(data.counts?.total || 0),
-            });
+            setMembers(next);
+            if (data?.counts) {
+              setCounts({
+                l1: Number(data.counts?.l1 || 0),
+                l2: Number(data.counts?.l2 || 0),
+                l3: Number(data.counts?.l3 || 0),
+                total: Number(data.counts?.total || 0),
+              });
+            }
           }
         }
       } catch {

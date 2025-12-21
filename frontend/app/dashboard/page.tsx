@@ -92,6 +92,7 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState('');
   const [availableBalance, setAvailableBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [teamCounts, setTeamCounts] = useState({ l1: 0, l2: 0, l3: 0 });
   const [kpiHasAnimated, setKpiHasAnimated] = useState(false);
   const [kpiDisplay, setKpiDisplay] = useState({
     availableBalance: 0,
@@ -120,9 +121,9 @@ export default function DashboardPage() {
   const activeCapital = 0;
   const estimatedDailyProfit = 0;
 
-  const l1Count = 0;
-  const l2Count = 0;
-  const l3Count = 0;
+  const l1Count = teamCounts.l1;
+  const l2Count = teamCounts.l2;
+  const l3Count = teamCounts.l3;
   const teamTodayEarnings = 0;
 
   const activities: Activity[] = [];
@@ -170,6 +171,29 @@ export default function DashboardPage() {
           setAvailableBalance(0);
           setIsLoading(false);
         }
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/referrals', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success && data?.counts) {
+          setTeamCounts({
+            l1: Number(data.counts?.l1 || 0),
+            l2: Number(data.counts?.l2 || 0),
+            l3: Number(data.counts?.l3 || 0),
+          });
+        }
+      } catch {
+        // ignore
       }
     };
 
