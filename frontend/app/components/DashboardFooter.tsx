@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type StatCardProps = {
   label: string;
@@ -43,6 +43,18 @@ export default function DashboardFooter() {
     updatedAt?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const [display, setDisplay] = useState({
+    systemDailyWithdrawals: 0,
+    systemTotalWithdrawals: 0,
+    systemDailyJoinings: 0,
+    systemTotalJoinings: 0,
+  });
+  const footerRef = useRef<HTMLElement | null>(null);
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,7 +102,7 @@ export default function DashboardFooter() {
 
   const systemDailyWithdrawals = stats?.system?.daily ?? 0;
   const systemTotalWithdrawals = stats?.system?.total ?? 0;
-  const networkDailyJoinings = stats?.team?.joiningsDaily ?? 0;
+  const systemDailyJoinings = stats?.system?.joiningsDaily ?? 0;
   const systemTotalJoinings = stats?.system?.joiningsTotal ?? 0;
 
   const formatMoney = (n: number) => `$${n.toFixed(2)}`;
@@ -101,14 +113,79 @@ export default function DashboardFooter() {
       ? `Updated: ${new Date(stats.updatedAt).toLocaleString()}`
       : 'Updated: just now';
 
+  useEffect(() => {
+    if (loading) return;
+
+    const target = {
+      systemDailyWithdrawals,
+      systemTotalWithdrawals,
+      systemDailyJoinings,
+      systemTotalJoinings,
+    };
+
+    if (prefersReducedMotion) {
+      setDisplay(target);
+      return;
+    }
+
+    const node = footerRef.current;
+    if (!node) return;
+
+    const startAnimation = () => {
+      if (hasAnimated) return;
+      setHasAnimated(true);
+
+      const durationMs = 1400;
+      const start = performance.now();
+
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / durationMs);
+        const easeOut = 1 - Math.pow(1 - t, 3);
+
+        setDisplay({
+          systemDailyWithdrawals: target.systemDailyWithdrawals * easeOut,
+          systemTotalWithdrawals: target.systemTotalWithdrawals * easeOut,
+          systemDailyJoinings: target.systemDailyJoinings * easeOut,
+          systemTotalJoinings: target.systemTotalJoinings * easeOut,
+        });
+
+        if (t < 1) requestAnimationFrame(tick);
+      };
+
+      requestAnimationFrame(tick);
+    };
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) startAnimation();
+      },
+      { threshold: 0.25 }
+    );
+
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [
+    loading,
+    prefersReducedMotion,
+    hasAnimated,
+    systemDailyWithdrawals,
+    systemTotalWithdrawals,
+    systemDailyJoinings,
+    systemTotalJoinings,
+  ]);
+
   return (
-    <footer className="mt-10 border-t border-slate-800 bg-gradient-to-b from-slate-950/80 via-slate-950/95 to-slate-950">
+    <footer
+      ref={footerRef}
+      className="mt-10 border-t border-slate-800 bg-gradient-to-b from-slate-950/80 via-slate-950/95 to-slate-950"
+    >
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <div className="text-sm font-semibold text-slate-100">Arbix Dashboard</div>
+            <div className="text-sm font-semibold text-slate-100">Arbix Overview</div>
             <div className="mt-1 text-[11px] text-slate-400">
-              System &amp; team withdrawal overview
+              System performance snapshot
             </div>
           </div>
           <div className="text-[11px] text-slate-500">{updatedLabel}</div>
@@ -117,28 +194,28 @@ export default function DashboardFooter() {
         <div className="mt-5 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
             label="Daily Withdrawals (System)"
-            value={formatMoney(systemDailyWithdrawals)}
+            value={formatMoney(display.systemDailyWithdrawals)}
             subLabel="All users today"
             accentClassName="bg-emerald-400"
             loading={loading}
           />
           <StatCard
             label="Total Withdrawals (System)"
-            value={formatMoney(systemTotalWithdrawals)}
+            value={formatMoney(display.systemTotalWithdrawals)}
             subLabel="All-time"
             accentClassName="bg-slate-300"
             loading={loading}
           />
           <StatCard
-            label="Daily Joinings (Network)"
-            value={formatInt(networkDailyJoinings)}
-            subLabel="Your network today"
+            label="Daily Joinings (System)"
+            value={formatInt(display.systemDailyJoinings)}
+            subLabel="All users today"
             accentClassName="bg-violet-400"
             loading={loading}
           />
           <StatCard
             label="Total Joinings (System)"
-            value={formatInt(systemTotalJoinings)}
+            value={formatInt(display.systemTotalJoinings)}
             subLabel="All users all-time"
             accentClassName="bg-sky-400"
             loading={loading}
