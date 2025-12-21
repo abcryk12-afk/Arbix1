@@ -76,9 +76,14 @@ export default function DashboardHeader() {
               key={item.href}
               href={item.href}
               className={
-                isActive(item)
-                  ? 'rounded-lg bg-slate-800 px-3 py-2 text-slate-50'
-                  : 'rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-900 hover:text-slate-100'
+                (
+                  'relative rounded-lg px-3 py-2 transition-colors duration-150 ' +
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 ' +
+                  'motion-reduce:transition-none '
+                ) +
+                (isActive(item)
+                  ? 'bg-slate-800 text-slate-50 after:absolute after:inset-x-2 after:bottom-1 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/70 after:to-transparent'
+                  : 'text-slate-300 hover:bg-slate-900/60 hover:text-slate-100')
               }
             >
               {item.label}
@@ -95,7 +100,11 @@ export default function DashboardHeader() {
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden rounded-lg border border-slate-700 px-3 py-2 text-[11px] font-medium text-slate-100 hover:border-slate-500 md:inline-flex"
+            className={
+              'hidden rounded-lg border border-rose-900/60 bg-rose-500/5 px-3 py-2 text-[11px] font-medium text-rose-100 ' +
+              'transition-colors duration-150 hover:border-rose-500/70 hover:bg-rose-500/10 ' +
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30 motion-reduce:transition-none md:inline-flex'
+            }
           >
             Logout
           </button>
@@ -103,7 +112,11 @@ export default function DashboardHeader() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex rounded-lg border border-slate-700 p-2 text-slate-100 hover:border-slate-500 md:hidden"
+            className={
+              'inline-flex rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
+              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none md:hidden'
+            }
             aria-label="Toggle dashboard menu"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +148,11 @@ export default function DashboardHeader() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-lg border border-slate-700 px-3 py-1.5 text-[11px] text-slate-100 hover:border-slate-500"
+                className={
+                  'rounded-lg border border-rose-900/60 bg-rose-500/5 px-3 py-1.5 text-[11px] text-rose-100 ' +
+                  'transition-colors duration-150 hover:border-rose-500/70 hover:bg-rose-500/10 ' +
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30 motion-reduce:transition-none'
+                }
               >
                 Logout
               </button>
@@ -148,9 +165,13 @@ export default function DashboardHeader() {
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={
-                    isActive(item)
-                      ? 'rounded-lg bg-slate-800 px-3 py-2 text-xs text-slate-50'
-                      : 'rounded-lg border border-slate-800 px-3 py-2 text-xs text-slate-200 hover:border-slate-700'
+                    (
+                      'rounded-lg border px-3 py-2 text-xs transition-colors duration-150 ' +
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none '
+                    ) +
+                    (isActive(item)
+                      ? 'border-slate-700 bg-slate-800 text-slate-50'
+                      : 'border-slate-800 text-slate-200 hover:border-slate-700 hover:bg-slate-900/50')
                   }
                 >
                   {item.label}
