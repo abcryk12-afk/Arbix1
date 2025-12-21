@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Level = 1 | 2 | 3;
 
@@ -130,6 +130,53 @@ function calcReferralEarnings(member: Member) {
 
 export default function TeamEarningsPage() {
   const [activeTab, setActiveTab] = useState<'L1' | 'L2' | 'L3' | 'ALL'>('L1');
+  const [referralCode, setReferralCode] = useState<string>('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser && !cancelled) {
+          const u = JSON.parse(storedUser);
+          setReferralCode(u?.referral_code || '');
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success && data?.user) {
+          setReferralCode(data.user?.referral_code || '');
+          try {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const counts = useMemo(() => {
     const l1 = MEMBERS.filter((m) => m.level === 1).length;
@@ -168,8 +215,38 @@ export default function TeamEarningsPage() {
     return MEMBERS.filter((m) => m.level === level);
   }, [activeTab]);
 
-  const referralCode = 'USER123ABC';
-  const referralLink = `https://arbix.com/join?ref=${referralCode}`;
+  const referralLink = useMemo(() => {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://rbx.space';
+    if (!referralCode) return `${base}/auth/signup`;
+    return `${base}/auth/signup?ref=${encodeURIComponent(referralCode)}`;
+  }, [referralCode]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const nav: any = navigator;
+      if (nav?.share) {
+        await nav.share({
+          title: 'Arbix Referral',
+          text: 'Join Arbix using my referral link:',
+          url: referralLink,
+        });
+        return;
+      }
+      await handleCopy();
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <div className="bg-slate-950 text-slate-50">
@@ -236,10 +313,18 @@ export default function TeamEarningsPage() {
               <span className="break-all">{referralLink}</span>
             </div>
             <div className="flex gap-2 text-[11px]">
-              <button className="rounded-lg border border-slate-700 px-3 py-1 text-slate-100 hover:border-slate-500">
-                Copy Link
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="rounded-lg border border-slate-700 px-3 py-1 text-slate-100 hover:border-slate-500"
+              >
+                {copied ? 'Copied!' : 'Copy Link'}
               </button>
-              <button className="rounded-lg border border-slate-700 px-3 py-1 text-slate-100 hover:border-slate-500">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="rounded-lg border border-slate-700 px-3 py-1 text-slate-100 hover:border-slate-500"
+              >
                 Share
               </button>
             </div>

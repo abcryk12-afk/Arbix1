@@ -162,13 +162,14 @@ Arbix Team`;
  * @param {string} referralCode - User's referral code
  */
 const sendWelcomeEmail = async (to, userName, referralCode) => {
+  const siteUrl = process.env.FRONTEND_URL || 'https://rbx.space';
   const subject = 'Welcome to Arbix - Your Account is Ready!';
   const text = `Hello ${userName},
 
 Welcome to Arbix! Your account has been successfully created.
 
 Your referral code: ${referralCode}
-Your referral link: https://arbix.com/join?ref=${referralCode}
+Your referral link: ${siteUrl}/auth/signup?ref=${referralCode}
 
 Start your investment journey with us and earn through automated arbitrage trading and our referral program.
 
@@ -193,11 +194,11 @@ Arbix Team`;
           <h3 style="color: #1e293b; margin: 0 0 10px;">Your Referral Information</h3>
           <p style="color: #475569; margin: 5px 0;"><strong>Referral Code:</strong> <span style="color: #3b82f6;">${referralCode}</span></p>
           <p style="color: #475569; margin: 5px 0;"><strong>Referral Link:</strong></p>
-          <p style="color: #3b82f6; word-break: break-all; font-size: 12px;">https://arbix.com/join?ref=${referralCode}</p>
+          <p style="color: #3b82f6; word-break: break-all; font-size: 12px;">${siteUrl}/auth/signup?ref=${referralCode}</p>
         </div>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://arbix.com/dashboard" style="background-color: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+          <a href="${siteUrl}/dashboard" style="background-color: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
             Go to Dashboard
           </a>
         </div>

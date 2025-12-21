@@ -1,26 +1,102 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
 export default function ProfilePage() {
   // Demo data – later map from backend
-  const [userName] = useState('Investor Name');
-  const [email] = useState('investor@example.com');
-  const [phone] = useState('+971500000000');
-  const [country] = useState('United Arab Emirates');
-  const [memberSince] = useState('Jan 2025');
-  const [userId] = useState('ARBX-2345');
-  const [referralCode] = useState('ABX123');
-  const [joinDate] = useState('Jan 2025');
-  const [lastLogin] = useState('Today at 09:24 AM');
-  const [withdrawalAddress] = useState<string | null>(
-    '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-  );
-  const [kycStatus] = useState<KycStatus>('pending');
+  const [user, setUser] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
-  const referralLink = `https://arbix.com/join?ref=${referralCode}`;
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser && !cancelled) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) setIsLoading(false);
+          return;
+        }
+
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled) {
+          if (data?.success && data?.user) {
+            setUser(data.user);
+            try {
+              localStorage.setItem('user', JSON.stringify(data.user));
+            } catch {
+              // ignore
+            }
+          }
+          setIsLoading(false);
+        }
+      } catch {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const userName = user?.name || user?.email || 'Account';
+  const email = user?.email || '—';
+  const phone = user?.phone || '—';
+  const kycStatus = (user?.kyc_status as KycStatus) || 'pending';
+  const referralCode = user?.referral_code || '—';
+  const withdrawalAddress: string | null = null;
+
+  const memberSince = useMemo(() => {
+    const d = user?.createdAt || user?.created_at;
+    if (!d) return '—';
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return '—';
+    return date.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+  }, [user?.createdAt, user?.created_at]);
+
+  const joinDate = memberSince;
+  const userId = user?.id ? `ARBX-${user.id}` : '—';
+  const lastLogin = '—';
+
+  const referralLink = useMemo(() => {
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : 'https://rbx.space') ||
+      'https://rbx.space';
+    if (!referralCode || referralCode === '—') return `${base}/auth/signup`;
+    return `${base}/auth/signup?ref=${encodeURIComponent(referralCode)}`;
+  }, [referralCode]);
+
+  const handleCopyReferralLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   const kycBlock = (() => {
     if (kycStatus === 'approved') {
@@ -62,7 +138,10 @@ export default function ProfilePage() {
             {userName.charAt(0).toUpperCase()}
           </div>
           <h1 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">
-            {userName}
+            {userName}{' '}
+            {isLoading ? (
+              <span className="text-[11px] font-medium text-slate-500">(loading...)</span>
+            ) : null}
           </h1>
           <p className="mt-1 text-xs text-slate-300 md:text-sm">{email}</p>
           <p className="mt-1 text-[11px] text-slate-500">Member since: {memberSince}</p>
@@ -111,10 +190,6 @@ export default function ProfilePage() {
               <span className="text-slate-400">Phone Number:</span>{' '}
               <span className="font-semibold text-slate-100">{phone}</span>
             </p>
-            <p>
-              <span className="text-slate-400">Country:</span>{' '}
-              <span className="font-semibold text-slate-100">{country}</span>
-            </p>
             <p className="mt-1 text-[10px] text-slate-500">
               Note: Only non-sensitive fields (name and phone) should be editable.
               Email changes require support and additional verification.
@@ -144,8 +219,12 @@ export default function ProfilePage() {
                 <div className="flex-1 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-200">
                   <span className="break-all">{referralLink}</span>
                 </div>
-                <button className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500">
-                  Copy Link
+                <button
+                  type="button"
+                  onClick={handleCopyReferralLink}
+                  className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+                >
+                  {copied ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
             </div>
