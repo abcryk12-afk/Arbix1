@@ -216,7 +216,7 @@ export default function TeamEarningsPage() {
   }, [activeTab]);
 
   const referralLink = useMemo(() => {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://rbx.space';
+    const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://arbix.space';
     if (!referralCode) return `${base}/auth/signup`;
     return `${base}/auth/signup?ref=${encodeURIComponent(referralCode)}`;
   }, [referralCode]);

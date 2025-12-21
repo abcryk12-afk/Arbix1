@@ -162,7 +162,7 @@ Arbix Team`;
  * @param {string} referralCode - User's referral code
  */
 const sendWelcomeEmail = async (to, userName, referralCode) => {
-  const siteUrl = process.env.FRONTEND_URL || 'https://rbx.space';
+  const siteUrl = process.env.FRONTEND_URL || 'https://arbix.space';
   const subject = 'Welcome to Arbix - Your Account is Ready!';
   const text = `Hello ${userName},
 
