@@ -112,7 +112,7 @@ export default function DashboardPage() {
       {/* Top Summary Cards */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-          <div className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
             <a
               href="/dashboard/withdraw"
               className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 hover:border-slate-600"
