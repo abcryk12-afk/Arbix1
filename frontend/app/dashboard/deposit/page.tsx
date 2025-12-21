@@ -23,7 +23,9 @@ export default function DepositPage() {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           const u = JSON.parse(storedUser);
-          setWalletAddress(u?.walletAddress || '');
+          setWalletAddress(
+            u?.wallet_public_address || u?.walletAddress || u?.walletPublicAddress || ''
+          );
         }
       } catch {
         // ignore
@@ -34,6 +36,26 @@ export default function DepositPage() {
         if (!token) {
           if (!cancelled) setIsLoading(false);
           return;
+        }
+
+        try {
+          const meRes = await fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const meData = await meRes.json();
+          if (!cancelled && meData?.success && meData?.user) {
+            setWalletAddress(meData.user?.wallet_public_address || '');
+            try {
+              localStorage.setItem('user', JSON.stringify(meData.user));
+            } catch {
+              // ignore
+            }
+          }
+        } catch {
+          // ignore
         }
 
         const res = await fetch('/api/user/summary', {
@@ -48,6 +70,11 @@ export default function DepositPage() {
           if (data?.success) {
             setWalletBalance(Number(data?.wallet?.balance || 0));
             setTransactions(Array.isArray(data?.transactions) ? data.transactions : []);
+            if (data?.wallet?.publicAddress || data?.wallet?.public_address) {
+              setWalletAddress((prev) =>
+                data?.wallet?.publicAddress || data?.wallet?.public_address || prev
+              );
+            }
           } else {
             setWalletBalance(0);
             setTransactions([]);

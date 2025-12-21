@@ -65,7 +65,8 @@ export default function ProfilePage() {
   const phone = user?.phone || '—';
   const kycStatus = (user?.kyc_status as KycStatus) || 'pending';
   const referralCode = user?.referral_code || '—';
-  const withdrawalAddress: string | null = null;
+  const withdrawalAddress: string | null =
+    user?.withdrawal_address || user?.withdrawalAddress || null;
 
   const memberSince = useMemo(() => {
     const d = user?.createdAt || user?.created_at;
