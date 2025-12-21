@@ -250,12 +250,12 @@ export default function HomePage() {
             <p className="text-lg text-slate-300 mb-8">
               Join thousands of successful traders earning passive income with Arbix
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <a 
-                href="/auth/signup" 
+                href="/auth/login" 
                 className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Get Started Now
+                Start Earning Today
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
