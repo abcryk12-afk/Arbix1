@@ -444,7 +444,7 @@ export default function SignupPage() {
               <div className="rounded-xl border border-emerald-600/60 bg-emerald-950/20 p-5 text-sm text-slate-200">
                 <div className="text-lg font-semibold text-emerald-400">Congratulations — Your Account is Ready!</div>
                 <p className="mt-2 text-slate-300">
-                  آپ کی email verify ہو گئی ہے، اور آپ کا Arbix account کامیابی کے ساتھ بن گیا ہے۔ اب آپ login کر کے اپنی earning journey شروع کر سکتے ہیں!
+                  Your email has been verified, and your Arbix account has been created successfully. You can now log in and start your earning journey!
                 </p>
                 <div className="mt-4 space-y-1 text-[11px] text-slate-300">
                   <div>
