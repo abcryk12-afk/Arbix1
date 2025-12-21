@@ -356,29 +356,49 @@ export default function DashboardPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Quick Actions
           </h2>
-          <div className="mt-3 grid gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
             <a
               href="/dashboard/deposit"
-              className="flex items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 hover:border-slate-600"
+              className={
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
+                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+              }
             >
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
               Deposit Funds
             </a>
             <a
               href="/dashboard/invest"
-              className="flex items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 hover:border-slate-600"
+              className={
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
+                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+              }
             >
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
               Start Investment
             </a>
             <a
               href="/dashboard/withdraw"
-              className="flex items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 hover:border-slate-600"
+              className={
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
+                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+              }
             >
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
               Withdraw Funds
             </a>
             <a
               href="/dashboard/team"
-              className="flex items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 hover:border-slate-600"
+              className={
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
+                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+              }
             >
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
               My Team &amp; Earnings
             </a>
           </div>
