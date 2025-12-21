@@ -134,16 +134,9 @@ export default function DepositPage() {
             Your Arbix Wallet (Permanent Deposit Address)
           </h2>
           <p className="mt-2 text-slate-400">
-            When you registered, a dedicated blockchain wallet was automatically
-            created for your account. This wallet&apos;s public address is your
-            permanent deposit address for all future USDT (BEP20) deposits.
+            Most deposits are credited in about <span className="font-semibold text-slate-200">10 minutes</span>.
+            In some cases, it can take up to <span className="font-semibold text-slate-200">1–2 hours</span> depending on network confirmations.
           </p>
-          <ul className="mt-2 space-y-1 text-slate-400">
-            <li>• The deposit address below is unique to your account.</li>
-            <li>• All future deposits should be sent to the same address.</li>
-            <li>• The wallet private key is stored in encrypted form in the system.</li>
-            <li>• System-level secured access is limited to authorised admin tools.</li>
-          </ul>
         </div>
       </section>
 
