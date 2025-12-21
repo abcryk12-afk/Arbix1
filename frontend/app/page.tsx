@@ -36,7 +36,7 @@ export default function HomePage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <a 
-                href="/auth/signup" 
+                href="/auth/login" 
                 className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Start Earning Today
