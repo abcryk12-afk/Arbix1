@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  if (pathname?.startsWith("/dashboard")) return null;
 
   const menuItems = [
     { name: "Home", href: "/" },
