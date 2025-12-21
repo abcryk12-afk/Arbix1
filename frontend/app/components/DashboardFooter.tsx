@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 type StatCardProps = {
   label: string;
   value: string;
@@ -17,10 +19,66 @@ function StatCard({ label, value, subLabel }: StatCardProps) {
 }
 
 export default function DashboardFooter() {
-  const systemDailyWithdrawals = 0;
-  const systemTotalWithdrawals = 0;
-  const teamDailyWithdrawals = 0;
-  const teamTotalWithdrawals = 0;
+  const [stats, setStats] = useState<{
+    system: { daily: number; total: number };
+    team: { daily: number; total: number };
+    updatedAt?: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) {
+            setStats(null);
+            setLoading(false);
+          }
+          return;
+        }
+
+        const res = await fetch('/api/user/footer-stats', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled) {
+          if (data?.success && data?.stats) {
+            setStats(data.stats);
+          } else {
+            setStats(null);
+          }
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setStats(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const systemDailyWithdrawals = stats?.system?.daily ?? 0;
+  const systemTotalWithdrawals = stats?.system?.total ?? 0;
+  const teamDailyWithdrawals = stats?.team?.daily ?? 0;
+  const teamTotalWithdrawals = stats?.team?.total ?? 0;
+  const updatedLabel = loading
+    ? 'Updating...'
+    : stats?.updatedAt
+      ? `Updated: ${new Date(stats.updatedAt).toLocaleString()}`
+      : 'Updated: just now';
 
   return (
     <footer className="mt-10 border-t border-slate-800 bg-slate-950/95">
@@ -32,7 +90,7 @@ export default function DashboardFooter() {
               System &amp; team withdrawal overview
             </div>
           </div>
-          <div className="text-[11px] text-slate-500">Updated: just now</div>
+          <div className="text-[11px] text-slate-500">{updatedLabel}</div>
         </div>
 
         <div className="mt-4 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
