@@ -287,6 +287,10 @@ export default function AdminDashboardPage() {
   const [adjustMessage, setAdjustMessage] = useState('');
   const [adjustMessageType, setAdjustMessageType] = useState<'success' | 'error' | ''>('');
 
+  const [isRunningDailyProfit, setIsRunningDailyProfit] = useState(false);
+  const [runDailyProfitMessage, setRunDailyProfitMessage] = useState('');
+  const [runDailyProfitMessageType, setRunDailyProfitMessageType] = useState<'success' | 'error' | ''>('');
+
   const loadAdminUsers = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -316,6 +320,46 @@ export default function AdminDashboardPage() {
       }
     } catch {
       // ignore
+    }
+  };
+
+  const handleRunDailyProfit = async () => {
+    setIsRunningDailyProfit(true);
+    setRunDailyProfitMessage('');
+    setRunDailyProfitMessageType('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setRunDailyProfitMessage('Not logged in');
+        setRunDailyProfitMessageType('error');
+        return;
+      }
+
+      const res = await fetch('/api/admin/run-daily-profit', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        const r = data?.result || {};
+        setRunDailyProfitMessage(
+          `OK. totalPackages=${Number(r.totalPackages || 0)}, creditedPackages=${Number(r.creditedPackages || 0)}, completedPackages=${Number(r.completedPackages || 0)}`
+        );
+        setRunDailyProfitMessageType('success');
+        await loadAdminUsers();
+      } else {
+        setRunDailyProfitMessage(data?.message || 'Failed to run daily profit');
+        setRunDailyProfitMessageType('error');
+      }
+    } catch {
+      setRunDailyProfitMessage('An error occurred. Please try again.');
+      setRunDailyProfitMessageType('error');
+    } finally {
+      setIsRunningDailyProfit(false);
     }
   };
 
@@ -554,6 +598,35 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-100">Manual Job Runner</p>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Trigger daily profit credit now (testing).
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={isRunningDailyProfit}
+                onClick={handleRunDailyProfit}
+                className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-medium text-white hover:bg-violet-500 disabled:opacity-60"
+              >
+                {isRunningDailyProfit ? 'Running...' : 'Run Daily Profit'}
+              </button>
+            </div>
+
+            {runDailyProfitMessage && (
+              <div
+                className={`mb-4 rounded-lg border p-3 text-[11px] ${
+                  runDailyProfitMessageType === 'success'
+                    ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
+                    : 'border-red-600/60 bg-red-950/20 text-red-300'
+                }`}
+              >
+                {runDailyProfitMessage}
+              </div>
+            )}
+
             <div className="grid gap-3 md:grid-cols-2">
               <div>
                 <label className="mb-1 block text-[11px] text-slate-400">Select User</label>
