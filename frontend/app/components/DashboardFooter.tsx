@@ -38,8 +38,8 @@ function StatCard({ label, value, subLabel, accentClassName, loading }: StatCard
 
 export default function DashboardFooter() {
   const [stats, setStats] = useState<{
-    system: { daily: number; total: number };
-    team: { daily: number; total: number };
+    system: { daily: number; total: number; joiningsDaily?: number; joiningsTotal?: number };
+    team: { daily: number; total: number; joiningsDaily?: number; joiningsTotal?: number };
     updatedAt?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,8 +90,11 @@ export default function DashboardFooter() {
 
   const systemDailyWithdrawals = stats?.system?.daily ?? 0;
   const systemTotalWithdrawals = stats?.system?.total ?? 0;
-  const teamDailyWithdrawals = stats?.team?.daily ?? 0;
-  const teamTotalWithdrawals = stats?.team?.total ?? 0;
+  const networkDailyJoinings = stats?.team?.joiningsDaily ?? 0;
+  const systemTotalJoinings = stats?.system?.joiningsTotal ?? 0;
+
+  const formatMoney = (n: number) => `$${n.toFixed(2)}`;
+  const formatInt = (n: number) => Math.round(n).toLocaleString();
   const updatedLabel = loading
     ? 'Updating...'
     : stats?.updatedAt
@@ -114,29 +117,29 @@ export default function DashboardFooter() {
         <div className="mt-5 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
             label="Daily Withdrawals (System)"
-            value={`$${systemDailyWithdrawals.toFixed(2)}`}
+            value={formatMoney(systemDailyWithdrawals)}
             subLabel="All users today"
             accentClassName="bg-emerald-400"
             loading={loading}
           />
           <StatCard
             label="Total Withdrawals (System)"
-            value={`$${systemTotalWithdrawals.toFixed(2)}`}
+            value={formatMoney(systemTotalWithdrawals)}
             subLabel="All-time"
             accentClassName="bg-slate-300"
             loading={loading}
           />
           <StatCard
-            label="Daily Withdrawals (Team)"
-            value={`$${teamDailyWithdrawals.toFixed(2)}`}
+            label="Daily Joinings (Network)"
+            value={formatInt(networkDailyJoinings)}
             subLabel="Your network today"
             accentClassName="bg-violet-400"
             loading={loading}
           />
           <StatCard
-            label="Total Withdrawals (Team)"
-            value={`$${teamTotalWithdrawals.toFixed(2)}`}
-            subLabel="Your network all-time"
+            label="Total Joinings (System)"
+            value={formatInt(systemTotalJoinings)}
+            subLabel="All users all-time"
             accentClassName="bg-sky-400"
             loading={loading}
           />

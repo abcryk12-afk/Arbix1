@@ -90,18 +90,47 @@ exports.getFooterStats = async (req, res) => {
     const teamMin = 250;
     const teamMax = 1800;
 
+    const systemJoinMin = 250;
+    const systemJoinMax = 1200;
+    const teamJoinMin = 5;
+    const teamJoinMax = 80;
+
     const todayKey = utcDateKey(today);
     const systemDaily = dailyValueForKey(`system:${todayKey}`, systemMin, systemMax);
     const teamDaily = dailyValueForKey(`team:${userId}:${todayKey}`, teamMin, teamMax);
 
+    const systemDailyJoinings = dailyValueForKey(
+      `system:joinings:${todayKey}`,
+      systemJoinMin,
+      systemJoinMax
+    );
+    const teamDailyJoinings = dailyValueForKey(
+      `team:${userId}:joinings:${todayKey}`,
+      teamJoinMin,
+      teamJoinMax
+    );
+
     let systemTotal = 0;
     let teamTotal = 0;
+    let systemTotalJoinings = 0;
+    let teamTotalJoinings = 0;
 
     for (let i = 0; i <= dayCount; i++) {
       const d = new Date(Date.UTC(2025, 0, 1 + i));
       const key = utcDateKey(d);
       systemTotal += dailyValueForKey(`system:${key}`, systemMin, systemMax);
       teamTotal += dailyValueForKey(`team:${userId}:${key}`, teamMin, teamMax);
+
+      systemTotalJoinings += dailyValueForKey(
+        `system:joinings:${key}`,
+        systemJoinMin,
+        systemJoinMax
+      );
+      teamTotalJoinings += dailyValueForKey(
+        `team:${userId}:joinings:${key}`,
+        teamJoinMin,
+        teamJoinMax
+      );
     }
 
     res.status(200).json({
@@ -110,10 +139,14 @@ exports.getFooterStats = async (req, res) => {
         system: {
           daily: systemDaily,
           total: systemTotal,
+          joiningsDaily: systemDailyJoinings,
+          joiningsTotal: systemTotalJoinings,
         },
         team: {
           daily: teamDaily,
           total: teamTotal,
+          joiningsDaily: teamDailyJoinings,
+          joiningsTotal: teamTotalJoinings,
         },
         updatedAt: new Date().toISOString(),
         timezone: 'UTC',
