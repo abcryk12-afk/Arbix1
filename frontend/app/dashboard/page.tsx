@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Activity = {
   id: string;
@@ -14,10 +14,68 @@ type Announcement = {
   text: string;
 };
 
+type KpiCardProps = {
+  href: string;
+  label: string;
+  value: string;
+  subLabel: string;
+  accentClassName: string;
+  loading?: boolean;
+};
+
+function KpiCard({ href, label, value, subLabel, accentClassName, loading }: KpiCardProps) {
+  return (
+    <a
+      href={href}
+      className={
+        'group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 ' +
+        'hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 ' +
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none'
+      }
+    >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-medium tracking-wide text-slate-400">
+            {label}
+          </p>
+          <p
+            className={
+              'mt-1 text-xl font-semibold leading-none text-slate-100 ' +
+              (loading ? 'animate-pulse' : '')
+            }
+          >
+            {value}
+          </p>
+          <p className="mt-2 text-[11px] text-slate-500">{subLabel}</p>
+        </div>
+        <div
+          className={
+            'mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-slate-900/50 ' +
+            accentClassName
+          }
+        />
+      </div>
+    </a>
+  );
+}
+
 export default function DashboardPage() {
   const [userName, setUserName] = useState('');
   const [availableBalance, setAvailableBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [kpiHasAnimated, setKpiHasAnimated] = useState(false);
+  const [kpiDisplay, setKpiDisplay] = useState({
+    availableBalance: 0,
+    todayEarnings: 0,
+    networkToday: 0,
+    totalEarnings: 0,
+  });
+
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
+  }, []);
 
   const todayEarnings = 0;
   const networkToday = 0;
@@ -95,6 +153,56 @@ export default function DashboardPage() {
 
   const teamTotal = l1Count + l2Count + l3Count;
 
+  useEffect(() => {
+    if (isLoading) return;
+
+    const target = {
+      availableBalance,
+      todayEarnings,
+      networkToday,
+      totalEarnings,
+    };
+
+    if (prefersReducedMotion) {
+      setKpiDisplay(target);
+      return;
+    }
+
+    if (kpiHasAnimated) {
+      setKpiDisplay(target);
+      return;
+    }
+
+    setKpiHasAnimated(true);
+
+    const durationMs = 900;
+    const start = performance.now();
+
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const easeOut = 1 - Math.pow(1 - t, 3);
+
+      setKpiDisplay({
+        availableBalance: target.availableBalance * easeOut,
+        todayEarnings: target.todayEarnings * easeOut,
+        networkToday: target.networkToday * easeOut,
+        totalEarnings: target.totalEarnings * easeOut,
+      });
+
+      if (t < 1) requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+  }, [
+    availableBalance,
+    isLoading,
+    kpiHasAnimated,
+    networkToday,
+    prefersReducedMotion,
+    todayEarnings,
+    totalEarnings,
+  ]);
+
   return (
     <div className="bg-slate-950 text-slate-50">
       {/* Welcome Block */}
@@ -113,48 +221,38 @@ export default function DashboardPage() {
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
-            <a
+            <KpiCard
               href="/dashboard/withdraw"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 hover:border-slate-600"
-            >
-              <p className="text-[11px] text-slate-400">Available Balance</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
-                ${availableBalance.toFixed(2)}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">
-                Ready to withdraw or invest
-              </p>
-            </a>
-            <a
+              label="Available Balance"
+              value={isLoading ? '$--' : `$${kpiDisplay.availableBalance.toFixed(2)}`}
+              subLabel="Ready to withdraw or invest"
+              accentClassName="bg-emerald-400"
+              loading={isLoading}
+            />
+            <KpiCard
               href="/dashboard/invest"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 hover:border-slate-600"
-            >
-              <p className="text-[11px] text-slate-400">My Today&apos;s Earnings</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-300">
-                ${todayEarnings.toFixed(2)}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">From trading &amp; packages</p>
-            </a>
-            <a
+              label="My Today&apos;s Earnings"
+              value={isLoading ? '$--' : `$${kpiDisplay.todayEarnings.toFixed(2)}`}
+              subLabel="From trading & packages"
+              accentClassName="bg-emerald-300"
+              loading={isLoading}
+            />
+            <KpiCard
               href="/dashboard/team"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 hover:border-slate-600"
-            >
-              <p className="text-[11px] text-slate-400">Network Earnings Today</p>
-              <p className="mt-1 text-lg font-semibold text-violet-300">
-                ${networkToday.toFixed(2)}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">From your team activity</p>
-            </a>
-            <a
+              label="Network Earnings Today"
+              value={isLoading ? '$--' : `$${kpiDisplay.networkToday.toFixed(2)}`}
+              subLabel="From your team activity"
+              accentClassName="bg-violet-400"
+              loading={isLoading}
+            />
+            <KpiCard
               href="/dashboard/invest"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 hover:border-slate-600"
-            >
-              <p className="text-[11px] text-slate-400">Total Earnings (All Time)</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
-                ${totalEarnings.toFixed(2)}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">Trading + network combined</p>
-            </a>
+              label="Total Earnings (All Time)"
+              value={isLoading ? '$--' : `$${kpiDisplay.totalEarnings.toFixed(2)}`}
+              subLabel="Trading + network combined"
+              accentClassName="bg-sky-400"
+              loading={isLoading}
+            />
           </div>
         </div>
       </section>
