@@ -211,11 +211,11 @@ export default function TeamEarningsPage() {
         </div>
       </section>
 
-      {/* Referral Earnings (Deposit Commissions) */}
+      {/* Referral Earnings */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Referral Earnings (Deposit Commission)
+            Referral Earnings
           </h2>
           <div className="mt-4 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
@@ -243,7 +243,7 @@ export default function TeamEarningsPage() {
               <thead className="bg-slate-950/80 text-slate-400">
                 <tr>
                   <th className="px-3 py-2 text-left">Level</th>
-                  <th className="px-3 py-2 text-left">Deposit Commission (1%)</th>
+                  <th className="px-3 py-2 text-left">Earnings (Deposit + Daily + Bonus)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">

@@ -1,5 +1,15 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction } = require('../models');
+const { User, Wallet, Transaction, UserPackage } = require('../models');
+
+const PACKAGES = {
+  starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
+  basic: { name: 'Basic', capital: 30, dailyRoi: 1.3, durationDays: 365 },
+  growth: { name: 'Growth', capital: 50, dailyRoi: 1.5, durationDays: 365 },
+  silver: { name: 'Silver', capital: 100, dailyRoi: 2, durationDays: 365 },
+  gold: { name: 'Gold', capital: 500, dailyRoi: 3, durationDays: 365 },
+  platinum: { name: 'Platinum', capital: 1000, dailyRoi: 4, durationDays: 365 },
+  elite_plus: { name: 'Elite+', capital: 'flex', minCapital: 1000, dailyRoi: 4.5, durationDays: 365 },
+};
 
 exports.getSummary = async (req, res) => {
   try {
@@ -39,6 +49,155 @@ exports.getSummary = async (req, res) => {
   }
 };
 
+exports.activatePackage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { packageId, capital } = req.body;
+
+    if (!packageId || !PACKAGES[String(packageId)]) {
+      return res.status(400).json({ success: false, message: 'Invalid packageId' });
+    }
+
+    const config = PACKAGES[String(packageId)];
+
+    const cap =
+      config.capital === 'flex'
+        ? Number(capital)
+        : Number(config.capital);
+
+    if (!Number.isFinite(cap) || cap <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid capital amount' });
+    }
+
+    if (config.capital === 'flex' && cap < Number(config.minCapital || 1000)) {
+      return res.status(400).json({
+        success: false,
+        message: `Elite+ requires capital of at least ${Number(config.minCapital || 1000)}`,
+      });
+    }
+
+    const now = new Date();
+    const endAt = new Date(now.getTime() + Number(config.durationDays) * 24 * 60 * 60 * 1000);
+
+    const result = await Transaction.sequelize.transaction(async (t) => {
+      let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t });
+      if (!wallet) {
+        wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
+      }
+
+      const available = Number(wallet.balance || 0);
+      if (available < cap) {
+        return { ok: false, status: 400, message: 'Insufficient balance' };
+      }
+
+      wallet.balance = available - cap;
+      await wallet.save({ transaction: t });
+
+      const pkg = await UserPackage.create(
+        {
+          user_id: userId,
+          package_id: String(packageId),
+          package_name: String(config.name),
+          capital: cap,
+          daily_roi: Number(config.dailyRoi),
+          duration_days: Number(config.durationDays),
+          total_earned: 0,
+          start_at: now,
+          end_at: endAt,
+          status: 'active',
+          last_profit_at: null,
+        },
+        { transaction: t }
+      );
+
+      await Transaction.create(
+        {
+          user_id: userId,
+          type: 'package_purchase',
+          amount: cap,
+          created_by: req.user?.email || null,
+          note: `Package activation (#${pkg.id} - ${config.name})`,
+        },
+        { transaction: t }
+      );
+
+      return { ok: true, wallet, pkg };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ success: false, message: result.message });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Package activated',
+      wallet: { balance: Number(result.wallet.balance) },
+      package: {
+        id: result.pkg.id,
+        packageId: result.pkg.package_id,
+        name: result.pkg.package_name,
+        capital: Number(result.pkg.capital),
+        dailyRoi: Number(result.pkg.daily_roi),
+        durationDays: Number(result.pkg.duration_days),
+        startAt: result.pkg.start_at,
+        endAt: result.pkg.end_at,
+        status: result.pkg.status,
+      },
+    });
+  } catch (error) {
+    console.error('Activate package error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to activate package',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getPackages = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const now = new Date();
+
+    const packages = await UserPackage.findAll({
+      where: { user_id: userId },
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.status(200).json({
+      success: true,
+      packages: packages.map((p) => {
+        const endAt = p.end_at ? new Date(p.end_at) : null;
+        const daysLeft = endAt ? Math.max(0, Math.ceil((endAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))) : 0;
+        const capital = Number(p.capital || 0);
+        const roi = Number(p.daily_roi || 0);
+        const todayEarnings = (capital * roi) / 100;
+        return {
+          id: p.id,
+          packageId: p.package_id,
+          name: p.package_name,
+          capital,
+          dailyRoi: roi,
+          durationDays: Number(p.duration_days || 0),
+          startAt: p.start_at,
+          endAt: p.end_at,
+          status: p.status,
+          daysLeft,
+          todayEarnings: Number.isFinite(todayEarnings) ? todayEarnings : 0,
+          totalEarned: Number(p.total_earned || 0),
+        };
+      }),
+    });
+  } catch (error) {
+    console.error('Get packages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch packages',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.getReferralEarnings = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -49,12 +208,13 @@ exports.getReferralEarnings = async (req, res) => {
     const txs = await Transaction.findAll({
       where: {
         user_id: userId,
-        note: {
-          [Op.like]: 'Referral commission%'
-        },
+        [Op.or]: [
+          { type: { [Op.in]: ['referral_profit', 'referral_bonus'] } },
+          { note: { [Op.like]: 'Referral commission%' } },
+        ],
       },
       order: [['createdAt', 'DESC']],
-      attributes: ['id', 'amount', 'note', 'createdAt'],
+      attributes: ['id', 'amount', 'note', 'createdAt', 'type'],
     });
 
     const summary = {
@@ -91,6 +251,7 @@ exports.getReferralEarnings = async (req, res) => {
       transactions: txs.map((t) => ({
         id: t.id,
         amount: Number(t.amount || 0),
+        type: t.type,
         note: t.note || null,
         createdAt: t.createdAt,
       })),

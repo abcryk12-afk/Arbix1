@@ -15,7 +15,14 @@ const Transaction = db.define(
       field: 'user_id'
     },
     type: {
-      type: DataTypes.ENUM('deposit', 'withdraw'),
+      type: DataTypes.ENUM(
+        'deposit',
+        'withdraw',
+        'package_purchase',
+        'profit',
+        'referral_profit',
+        'referral_bonus'
+      ),
       allowNull: false,
     },
     amount: {

@@ -3,6 +3,7 @@ const User = require('./User');
 const Wallet = require('./Wallet');
 const Transaction = require('./Transaction');
 const WalletKey = require('./WalletKey');
+const UserPackage = require('./UserPackage');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -13,10 +14,14 @@ Transaction.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasOne(WalletKey, { foreignKey: 'user_id', as: 'walletKey' });
 WalletKey.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+User.hasMany(UserPackage, { foreignKey: 'user_id', as: 'packages' });
+UserPackage.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
   Wallet,
   Transaction,
   WalletKey,
+  UserPackage,
 };

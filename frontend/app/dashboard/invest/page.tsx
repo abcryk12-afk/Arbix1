@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type PackageId =
   | 'starter'
@@ -121,47 +121,28 @@ type ActivePackage = {
 };
 
 export default function StartInvestmentPage() {
-  const [availableBalance, setAvailableBalance] = useState(245.5);
-  const [dailyRewards, setDailyRewards] = useState(5.75);
-  const [totalActiveCapital, setTotalActiveCapital] = useState(600);
-  const [activePackages, setActivePackages] = useState<ActivePackage[]>([
-    {
-      id: 'pkg-1',
-      configId: 'gold',
-      name: 'Gold',
-      capital: 500,
-      dailyRoi: 3,
-      startDate: '2025-11-20',
-      daysLeft: 310,
-      todayEarnings: 15,
-      totalEarned: 270,
-      status: 'active',
-    },
-    {
-      id: 'pkg-2',
-      configId: 'starter',
-      name: 'Starter',
-      capital: 100,
-      dailyRoi: 1,
-      startDate: '2025-12-01',
-      daysLeft: 360,
-      todayEarnings: 1,
-      totalEarned: 3,
-      status: 'active',
-    },
-  ]);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [dailyRewards, setDailyRewards] = useState(0);
+  const [totalActiveCapital, setTotalActiveCapital] = useState(0);
+  const [activePackages, setActivePackages] = useState<ActivePackage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activationError, setActivationError] = useState<string>('');
 
   const [selectedPackageId, setSelectedPackageId] = useState<PackageId | null>(
     null,
   );
   const [showActivation, setShowActivation] = useState(false);
+  const [eliteCapital, setEliteCapital] = useState<number>(1000);
 
   const selectedConfig = useMemo(
     () => PACKAGES.find((p) => p.id === selectedPackageId) || null,
     [selectedPackageId],
   );
 
-  const requiredCapital = selectedConfig?.capital === 'flex' ? 1000 : selectedConfig?.capital || 0;
+  const requiredCapital =
+    selectedConfig?.capital === 'flex'
+      ? eliteCapital
+      : selectedConfig?.capital || 0;
   const hasEnoughBalance = availableBalance >= requiredCapital;
 
   const expectedDailyEarnings = useMemo(() => {
@@ -177,32 +158,133 @@ export default function StartInvestmentPage() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleConfirmActivation = () => {
+  const handleConfirmActivation = async () => {
+    setActivationError('');
     if (!selectedConfig) return;
-    const cap = selectedConfig.capital === 'flex' ? requiredCapital : selectedConfig.capital;
-    if (availableBalance < cap) return;
-    const today = new Date();
-    const startDate = today.toISOString().slice(0, 10);
-    const newPkg: ActivePackage = {
-      id: `pkg-${Date.now()}`,
-      configId: selectedConfig.id,
-      name: selectedConfig.name,
-      capital: cap,
-      dailyRoi: selectedConfig.dailyRoi,
-      startDate,
-      daysLeft: selectedConfig.durationDays,
-      todayEarnings: (cap * selectedConfig.dailyRoi) / 100,
-      totalEarned: 0,
-      status: 'active',
-    };
-    setActivePackages((prev) => [newPkg, ...prev]);
-    setAvailableBalance((prev) => prev - cap);
-    setTotalActiveCapital((prev) => prev + cap);
-    setDailyRewards((prev) => prev + newPkg.todayEarnings);
-    setShowActivation(false);
-    const el = document.getElementById('active-packages');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setActivationError('Please login again.');
+      return;
+    }
+
+    const cap = selectedConfig.capital === 'flex' ? eliteCapital : selectedConfig.capital;
+    if (!Number.isFinite(cap) || cap <= 0) {
+      setActivationError('Invalid capital amount.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/user/activate-package', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          packageId: selectedConfig.id,
+          capital: selectedConfig.capital === 'flex' ? cap : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!data?.success) {
+        setActivationError(data?.message || 'Failed to activate package.');
+        return;
+      }
+
+      setShowActivation(false);
+      setAvailableBalance(Number(data?.wallet?.balance || 0));
+
+      const listRes = await fetch('/api/user/packages', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const listData = await listRes.json();
+      if (listData?.success && Array.isArray(listData?.packages)) {
+        const pkgs: ActivePackage[] = listData.packages
+          .filter((p: any) => p?.status === 'active')
+          .map((p: any) => ({
+            id: String(p.id),
+            configId: String(p.packageId) as PackageId,
+            name: String(p.name || '—'),
+            capital: Number(p.capital || 0),
+            dailyRoi: Number(p.dailyRoi || 0),
+            startDate: p.startAt ? String(p.startAt).slice(0, 10) : '—',
+            daysLeft: Number(p.daysLeft || 0),
+            todayEarnings: Number(p.todayEarnings || 0),
+            totalEarned: Number(p.totalEarned || 0),
+            status: p.status === 'completed' ? 'completed' : 'active',
+          }));
+        setActivePackages(pkgs);
+      }
+
+      const el = document.getElementById('active-packages');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } catch {
+      setActivationError('Failed to activate package.');
+    }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      if (!cancelled) setIsLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const summaryRes = await fetch('/api/user/summary', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const summary = await summaryRes.json();
+        if (!cancelled && summary?.success) {
+          setAvailableBalance(Number(summary?.wallet?.balance || 0));
+        }
+
+        const packagesRes = await fetch('/api/user/packages', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const packagesData = await packagesRes.json();
+        if (!cancelled && packagesData?.success && Array.isArray(packagesData?.packages)) {
+          const pkgs: ActivePackage[] = packagesData.packages
+            .filter((p: any) => p?.status === 'active')
+            .map((p: any) => ({
+              id: String(p.id),
+              configId: String(p.packageId) as PackageId,
+              name: String(p.name || '—'),
+              capital: Number(p.capital || 0),
+              dailyRoi: Number(p.dailyRoi || 0),
+              startDate: p.startAt ? String(p.startAt).slice(0, 10) : '—',
+              daysLeft: Number(p.daysLeft || 0),
+              todayEarnings: Number(p.todayEarnings || 0),
+              totalEarned: Number(p.totalEarned || 0),
+              status: p.status === 'completed' ? 'completed' : 'active',
+            }));
+          setActivePackages(pkgs);
+          setDailyRewards(pkgs.reduce((sum, p) => sum + Number(p.todayEarnings || 0), 0));
+          setTotalActiveCapital(pkgs.reduce((sum, p) => sum + Number(p.capital || 0), 0));
+        }
+      } catch {
+        // ignore
+      }
+      if (!cancelled) setIsLoading(false);
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="bg-slate-950 text-slate-50">
@@ -230,7 +312,7 @@ export default function StartInvestmentPage() {
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] text-slate-400">Available Balance</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
-                {availableBalance.toFixed(2)} USDT
+                {isLoading ? '—' : `${availableBalance.toFixed(2)} USDT`}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
                 Available to purchase new packages
@@ -239,7 +321,7 @@ export default function StartInvestmentPage() {
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] text-slate-400">Daily Earnings</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
-                {dailyRewards.toFixed(2)} USDT
+                {isLoading ? '—' : `${dailyRewards.toFixed(2)} USDT`}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
                 Earned from active packages (today)
@@ -248,7 +330,7 @@ export default function StartInvestmentPage() {
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] text-slate-400">Total Active Capital</p>
               <p className="mt-1 text-lg font-semibold text-slate-100">
-                {totalActiveCapital.toFixed(2)} USDT
+                {isLoading ? '—' : `${totalActiveCapital.toFixed(2)} USDT`}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
                 Sum of all active packages
@@ -375,6 +457,20 @@ export default function StartInvestmentPage() {
                         : `$${selectedConfig.capital.toLocaleString()}`}
                     </span>
                   </p>
+                  {selectedConfig.capital === 'flex' && (
+                    <div className="mt-2">
+                      <label className="block text-[11px] text-slate-400">
+                        Enter Capital (min 1000)
+                      </label>
+                      <input
+                        value={eliteCapital}
+                        onChange={(e) => setEliteCapital(Number(e.target.value || 0))}
+                        type="number"
+                        min={1000}
+                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100"
+                      />
+                    </div>
+                  )}
                   <p>
                     <span className="text-slate-400">Daily Profit %:</span>{' '}
                     <span className="font-semibold text-emerald-400">
@@ -407,6 +503,9 @@ export default function StartInvestmentPage() {
                       {requiredCapital.toFixed(2)} USDT
                     </span>
                   </p>
+                  {activationError && (
+                    <p className="mt-1 text-red-400">✖ {activationError}</p>
+                  )}
                   {hasEnoughBalance ? (
                     <p className="mt-1 text-emerald-400">
                       ✔ You have enough balance to activate this package.

@@ -9,6 +9,7 @@ const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const userRoutes = require('./src/routes/user.routes');
 const db = require('./src/config/db');
+const { startDailyProfitScheduler } = require('./src/services/dailyProfitService');
 
 const app = express();
 
@@ -39,7 +40,46 @@ const PORT = process.env.PORT || 5000;
 
 const ensureSchema = async () => {
   const { sequelize } = require('./src/models');
+  const models = require('./src/models');
   await sequelize.sync();
+
+  try {
+    const [rows] = await sequelize.query("SHOW COLUMNS FROM transactions LIKE 'type'");
+    const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+    const rawType = row?.Type ? String(row.Type) : '';
+
+    const existingValues = rawType.startsWith('enum(')
+      ? rawType
+          .slice(5, -1)
+          .split(',')
+          .map((s) => s.trim())
+          .map((s) => s.replace(/^'/, '').replace(/'$/, ''))
+          .filter(Boolean)
+      : [];
+
+    const desiredValues = [
+      'deposit',
+      'withdraw',
+      'package_purchase',
+      'profit',
+      'referral_profit',
+      'referral_bonus',
+    ];
+
+    const merged = Array.from(new Set([...existingValues, ...desiredValues]));
+    if (merged.length && desiredValues.some((v) => !existingValues.includes(v))) {
+      const enumSql = merged.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');
+      await sequelize.query(`ALTER TABLE transactions MODIFY COLUMN type ENUM(${enumSql}) NOT NULL`);
+    }
+  } catch (e) {}
+
+  startDailyProfitScheduler({
+    sequelize: models.sequelize,
+    User: models.User,
+    Wallet: models.Wallet,
+    Transaction: models.Transaction,
+    UserPackage: models.UserPackage,
+  });
 };
 
 ensureSchema()
