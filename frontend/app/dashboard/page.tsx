@@ -411,28 +411,28 @@ export default function DashboardPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Active Packages Overview
           </h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
               <p className="text-[11px] text-slate-400">Total Active Packages</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+              <p className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
                 {activePackagesCount}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
               <p className="text-[11px] text-slate-400">Total Active Capital</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+              <p className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
                 ${activeCapital.toFixed(2)}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
               <p className="text-[11px] text-slate-400">Estimated Daily Profit</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+              <p className="mt-1 text-base font-semibold text-emerald-400 sm:text-lg">
                 ${estimatedDailyProfit.toFixed(2)}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 space-y-2 text-[11px] text-slate-300">
+          <div className="mt-4 grid grid-cols-3 gap-2 text-[10px] text-slate-300 sm:gap-3 sm:text-[11px]">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="font-semibold text-slate-100">Gold • $500 • 3% daily</p>
               <p className="text-slate-400">Today&apos;s profit: $15.00 • Days left: 310</p>
