@@ -135,20 +135,57 @@ exports.deposit = async (req, res) => {
     }
 
     const wallet = await Wallet.findOrCreate({
-      where: { userId },
-      defaults: { userId, balance: 0 },
+      where: { user_id: userId },
+      defaults: { user_id: userId, balance: 0 },
     }).then(([w]) => w);
 
     wallet.balance = Number(wallet.balance) + value;
     await wallet.save();
 
     await Transaction.create({
-      userId,
+      user_id: userId,
       type: 'deposit',
       amount: value,
-      createdBy: req.user?.email || null,
+      created_by: req.user?.email || null,
       note: note || 'Admin deposit',
     });
+
+    const commissionAmount = value * 0.01;
+    if (Number.isFinite(commissionAmount) && commissionAmount > 0) {
+      const uplines = [];
+      const seen = new Set([Number(userId)]);
+
+      let current = user;
+      for (let level = 1; level <= 3; level++) {
+        const nextId = current?.referred_by_id;
+        if (!nextId) break;
+        const nextNum = Number(nextId);
+        if (!Number.isFinite(nextNum) || seen.has(nextNum)) break;
+        seen.add(nextNum);
+        uplines.push({ id: nextNum, level });
+
+        current = await User.findByPk(nextNum);
+        if (!current) break;
+      }
+
+      for (const upline of uplines) {
+        const w = await Wallet.findOrCreate({
+          where: { user_id: upline.id },
+          defaults: { user_id: upline.id, balance: 0 },
+        }).then(([wallet]) => wallet);
+
+        w.balance = Number(w.balance) + commissionAmount;
+        await w.save();
+
+        await Transaction.create({
+          user_id: upline.id,
+          type: 'deposit',
+          amount: commissionAmount,
+          created_by: req.user?.email || 'system',
+          note: `Referral commission L${upline.level} (1%) from user ${userId} deposit`,
+        });
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -183,8 +220,8 @@ exports.withdraw = async (req, res) => {
     }
 
     const wallet = await Wallet.findOrCreate({
-      where: { userId },
-      defaults: { userId, balance: 0 },
+      where: { user_id: userId },
+      defaults: { user_id: userId, balance: 0 },
     }).then(([w]) => w);
 
     const current = Number(wallet.balance);
@@ -199,10 +236,10 @@ exports.withdraw = async (req, res) => {
     await wallet.save();
 
     await Transaction.create({
-      userId,
+      user_id: userId,
       type: 'withdraw',
       amount: value,
-      createdBy: req.user?.email || null,
+      created_by: req.user?.email || null,
       note: note || 'Admin withdraw',
     });
 

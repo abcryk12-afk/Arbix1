@@ -26,6 +26,12 @@ export default function TeamEarningsPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [counts, setCounts] = useState({ l1: 0, l2: 0, l3: 0, total: 0 });
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
+  const [earnings, setEarnings] = useState({
+    today: 0,
+    allTime: 0,
+    withdrawable: 0,
+    breakdown: { l1: 0, l2: 0, l3: 0 },
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +43,34 @@ export default function TeamEarningsPage() {
         if (storedUser && !cancelled) {
           const u = JSON.parse(storedUser);
           setReferralCode(u?.referral_code || '');
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/referral-earnings', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success && data?.earnings) {
+          setEarnings({
+            today: Number(data.earnings?.today || 0),
+            allTime: Number(data.earnings?.allTime || 0),
+            withdrawable: Number(data.earnings?.withdrawable || 0),
+            breakdown: {
+              l1: Number(data.earnings?.breakdown?.l1 || 0),
+              l2: Number(data.earnings?.breakdown?.l2 || 0),
+              l3: Number(data.earnings?.breakdown?.l3 || 0),
+            },
+          });
         }
       } catch {
         // ignore
@@ -174,6 +208,60 @@ export default function TeamEarningsPage() {
             View your team across all three levels, track their packages and see
             how much referral income you earn every day.
           </p>
+        </div>
+      </section>
+
+      {/* Referral Earnings (Deposit Commissions) */}
+      <section className="border-b border-slate-800 bg-slate-950">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
+          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+            Referral Earnings (Deposit Commission)
+          </h2>
+          <div className="mt-4 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-slate-400">Today</p>
+              <p className="mt-1 text-lg font-semibold text-emerald-400">
+                ${earnings.today.toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-slate-400">All Time</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">
+                ${earnings.allTime.toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <p className="text-slate-400">Withdrawable</p>
+              <p className="mt-1 text-lg font-semibold text-amber-400">
+                ${earnings.withdrawable.toFixed(2)}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
+            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
+              <thead className="bg-slate-950/80 text-slate-400">
+                <tr>
+                  <th className="px-3 py-2 text-left">Level</th>
+                  <th className="px-3 py-2 text-left">Deposit Commission (1%)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                <tr>
+                  <td className="px-3 py-2">Level 1</td>
+                  <td className="px-3 py-2">${earnings.breakdown.l1.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2">Level 2</td>
+                  <td className="px-3 py-2">${earnings.breakdown.l2.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2">Level 3</td>
+                  <td className="px-3 py-2">${earnings.breakdown.l3.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 

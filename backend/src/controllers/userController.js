@@ -1,16 +1,17 @@
+const { Op } = require('sequelize');
 const { User, Wallet, Transaction } = require('../models');
 
 exports.getSummary = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    let wallet = await Wallet.findOne({ where: { userId } });
+    let wallet = await Wallet.findOne({ where: { user_id: userId } });
     if (!wallet) {
-      wallet = await Wallet.create({ userId, balance: 0 });
+      wallet = await Wallet.create({ user_id: userId, balance: 0 });
     }
 
     const transactions = await Transaction.findAll({
-      where: { userId },
+      where: { user_id: userId },
       order: [['createdAt', 'DESC']],
       limit: 20,
     });
@@ -33,6 +34,72 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user summary',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getReferralEarnings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const txs = await Transaction.findAll({
+      where: {
+        user_id: userId,
+        note: {
+          [Op.like]: 'Referral commission%'
+        },
+      },
+      order: [['createdAt', 'DESC']],
+      attributes: ['id', 'amount', 'note', 'createdAt'],
+    });
+
+    const summary = {
+      today: 0,
+      allTime: 0,
+      byLevel: { 1: 0, 2: 0, 3: 0 },
+    };
+
+    for (const t of txs) {
+      const amt = Number(t.amount || 0);
+      if (!Number.isFinite(amt)) continue;
+
+      summary.allTime += amt;
+      if (t.createdAt && new Date(t.createdAt) >= startOfToday) summary.today += amt;
+
+      const note = String(t.note || '');
+      if (note.includes('L1')) summary.byLevel[1] += amt;
+      else if (note.includes('L2')) summary.byLevel[2] += amt;
+      else if (note.includes('L3')) summary.byLevel[3] += amt;
+    }
+
+    res.status(200).json({
+      success: true,
+      earnings: {
+        today: summary.today,
+        allTime: summary.allTime,
+        withdrawable: summary.allTime,
+        breakdown: {
+          l1: summary.byLevel[1],
+          l2: summary.byLevel[2],
+          l3: summary.byLevel[3],
+        },
+      },
+      transactions: txs.map((t) => ({
+        id: t.id,
+        amount: Number(t.amount || 0),
+        note: t.note || null,
+        createdAt: t.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error('Get referral earnings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch referral earnings',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
