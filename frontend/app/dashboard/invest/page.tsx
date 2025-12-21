@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import RequireAuth from '../../components/RequireAuth';
 
 type PackageId =
   | 'starter'
@@ -121,7 +120,7 @@ type ActivePackage = {
   status: 'active' | 'completed';
 };
 
-function StartInvestmentPage() {
+export default function StartInvestmentPage() {
   const [availableBalance, setAvailableBalance] = useState(245.5);
   const [dailyRewards, setDailyRewards] = useState(5.75);
   const [totalActiveCapital, setTotalActiveCapital] = useState(600);
@@ -569,14 +568,5 @@ function StartInvestmentPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-// Wrap the invest page with RequireAuth
-export default function InvestWithAuth() {
-  return (
-    <RequireAuth>
-      <StartInvestmentPage />
-    </RequireAuth>
   );
 }

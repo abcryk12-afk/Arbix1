@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import RequireAuth from '../../components/RequireAuth';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
-function DepositPage() {
+export default function DepositPage() {
   const [amount, setAmount] = useState('');
   const [amountError, setAmountError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -81,7 +80,7 @@ function DepositPage() {
       }));
   }, [transactions]);
 
-  const handleGenerateAddress = (e: React.FormEvent) => {
+  const handleGenerateAddress = (e: FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount || '0');
     if (isNaN(value) || value < 10) {
@@ -447,14 +446,5 @@ function DepositPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-// Wrap the deposit page with RequireAuth
-export default function DepositWithAuth() {
-  return (
-    <RequireAuth>
-      <DepositPage />
-    </RequireAuth>
   );
 }

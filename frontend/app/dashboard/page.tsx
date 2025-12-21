@@ -1,9 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import RequireAuth from '../components/RequireAuth';
-
-type KycStatus = 'pending' | 'approved' | 'rejected';
 
 type Activity = {
   id: string;
@@ -17,9 +14,8 @@ type Announcement = {
   text: string;
 };
 
-function DashboardPage() {
+export default function DashboardPage() {
   const [userName, setUserName] = useState('');
-  const [kycStatus, setKycStatus] = useState<KycStatus>('pending');
   const [availableBalance, setAvailableBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,7 +51,6 @@ function DashboardPage() {
         if (storedUser) {
           const u = JSON.parse(storedUser);
           setUserName(u?.name || u?.email || '');
-          if (u?.kycStatus) setKycStatus(u.kycStatus);
         }
       } catch {
         // ignore
@@ -100,57 +95,8 @@ function DashboardPage() {
 
   const teamTotal = l1Count + l2Count + l3Count;
 
-  const kycBadge = (() => {
-    if (kycStatus === 'approved')
-      return {
-        color: 'bg-emerald-400',
-        title: 'KYC Approved',
-        icon: '✓',
-      };
-    if (kycStatus === 'rejected')
-      return {
-        color: 'bg-red-500',
-        title: 'KYC Rejected – action required',
-        icon: '!',
-      };
-    return {
-      color: 'bg-amber-400',
-      title: 'KYC Pending',
-      icon: '•',
-    };
-  })();
-
   return (
     <div className="bg-slate-950 text-slate-50">
-      {/* Dashboard Header Bar */}
-      <section className="border-b border-slate-800 bg-slate-950/95">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-xs font-bold text-white">
-              AR
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold tracking-tight">Arbix Dashboard</p>
-              <p className="text-[11px] text-slate-400">Automated Arbitrage &amp; Earnings</p>
-            </div>
-          </div>
-
-          {/* Profile / KYC Icon */}
-          <a
-            href="/profile"
-            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500"
-            title={kycBadge.title}
-          >
-            <span className="text-lg">👤</span>
-            <span
-              className={`absolute -right-0.5 -top-0.5 flex h-3 w-3 items-center justify-center rounded-full ${kycBadge.color}`}
-            >
-              <span className="text-[9px] text-slate-900">{kycBadge.icon}</span>
-            </span>
-          </a>
-        </div>
-      </section>
-
       {/* Welcome Block */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
@@ -572,14 +518,5 @@ function DashboardPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-// Wrap the dashboard with RequireAuth
-export default function DashboardWithAuth() {
-  return (
-    <RequireAuth>
-      <DashboardPage />
-    </RequireAuth>
   );
 }

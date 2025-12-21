@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import RequireAuth from '../../components/RequireAuth';
+import { useRef, useState, type FormEvent } from 'react';
 
 type PendingWithdrawal = {
   id: string;
@@ -26,7 +25,7 @@ function shortHash(hash?: string) {
   return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
 }
 
-function WithdrawPage() {
+export default function WithdrawPage() {
   // Demo balances (later from backend)
   const [available, setAvailable] = useState(280.75);
   const [pendingTotal] = useState(50.0);
@@ -100,7 +99,7 @@ function WithdrawPage() {
     return '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const addrErr = validateAddress(address.trim());
     const amtErr = validateAmount(amount);
@@ -464,14 +463,5 @@ function WithdrawPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-// Wrap the withdraw page with RequireAuth
-export default function WithdrawWithAuth() {
-  return (
-    <RequireAuth>
-      <WithdrawPage />
-    </RequireAuth>
   );
 }
