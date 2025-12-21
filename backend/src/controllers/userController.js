@@ -1,4 +1,4 @@
-const { Wallet, Transaction } = require('../models');
+const { User, Wallet, Transaction } = require('../models');
 
 exports.getSummary = async (req, res) => {
   try {
@@ -33,6 +33,78 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user summary',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getReferrals = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const level1 = await User.findAll({
+      where: { referred_by_id: userId },
+      attributes: ['id', 'name', 'email', 'createdAt'],
+      order: [['createdAt', 'DESC']],
+    });
+
+    const level1Ids = level1.map((u) => u.id);
+    const level2 = level1Ids.length
+      ? await User.findAll({
+          where: { referred_by_id: level1Ids },
+          attributes: ['id', 'name', 'email', 'createdAt', 'referred_by_id'],
+          order: [['createdAt', 'DESC']],
+        })
+      : [];
+
+    const level2Ids = level2.map((u) => u.id);
+    const level3 = level2Ids.length
+      ? await User.findAll({
+          where: { referred_by_id: level2Ids },
+          attributes: ['id', 'name', 'email', 'createdAt', 'referred_by_id'],
+          order: [['createdAt', 'DESC']],
+        })
+      : [];
+
+    res.status(200).json({
+      success: true,
+      counts: {
+        l1: level1.length,
+        l2: level2.length,
+        l3: level3.length,
+        total: level1.length + level2.length + level3.length,
+      },
+      referrals: {
+        l1: level1.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          joinDate: u.createdAt,
+          level: 1,
+        })),
+        l2: level2.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          joinDate: u.createdAt,
+          level: 2,
+          referredById: u.referred_by_id,
+        })),
+        l3: level3.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          joinDate: u.createdAt,
+          level: 3,
+          referredById: u.referred_by_id,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Get referrals error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch referrals',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

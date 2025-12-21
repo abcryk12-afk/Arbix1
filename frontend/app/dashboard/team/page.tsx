@@ -132,6 +132,13 @@ export default function TeamEarningsPage() {
   const [activeTab, setActiveTab] = useState<'L1' | 'L2' | 'L3' | 'ALL'>('L1');
   const [referralCode, setReferralCode] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [members, setMembers] = useState<Member[]>(MEMBERS);
+  const [counts, setCounts] = useState(() => {
+    const l1 = MEMBERS.filter((m) => m.level === 1).length;
+    const l2 = MEMBERS.filter((m) => m.level === 2).length;
+    const l3 = MEMBERS.filter((m) => m.level === 3).length;
+    return { l1, l2, l3, total: l1 + l2 + l3 };
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -170,19 +177,60 @@ export default function TeamEarningsPage() {
       } catch {
         // ignore
       }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/referrals', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success) {
+          const next: Member[] = [];
+          const pushLevel = (arr: any[], level: Level) => {
+            if (!Array.isArray(arr)) return;
+            arr.forEach((u) => {
+              next.push({
+                id: String(u.id),
+                level,
+                name: u?.name || '—',
+                email: u?.email || '—',
+                joinDate: u?.joinDate ? String(u.joinDate).slice(0, 10) : '—',
+                packageName: null,
+                capital: 0,
+                dailyRoi: 0,
+              });
+            });
+          };
+
+          pushLevel(data?.referrals?.l1, 1);
+          pushLevel(data?.referrals?.l2, 2);
+          pushLevel(data?.referrals?.l3, 3);
+
+          if (next.length > 0) setMembers(next);
+          if (data?.counts) {
+            setCounts({
+              l1: Number(data.counts?.l1 || 0),
+              l2: Number(data.counts?.l2 || 0),
+              l3: Number(data.counts?.l3 || 0),
+              total: Number(data.counts?.total || 0),
+            });
+          }
+        }
+      } catch {
+        // ignore
+      }
     };
 
     run();
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  const counts = useMemo(() => {
-    const l1 = MEMBERS.filter((m) => m.level === 1).length;
-    const l2 = MEMBERS.filter((m) => m.level === 2).length;
-    const l3 = MEMBERS.filter((m) => m.level === 3).length;
-    return { l1, l2, l3, total: l1 + l2 + l3 };
   }, []);
 
   const earningsSummary = useMemo(() => {
@@ -210,10 +258,10 @@ export default function TeamEarningsPage() {
   }, []);
 
   const filteredMembers = useMemo(() => {
-    if (activeTab === 'ALL') return MEMBERS;
+    if (activeTab === 'ALL') return members;
     const level: Level = activeTab === 'L1' ? 1 : activeTab === 'L2' ? 2 : 3;
-    return MEMBERS.filter((m) => m.level === level);
-  }, [activeTab]);
+    return members.filter((m) => m.level === level);
+  }, [activeTab, members]);
 
   const referralLink = useMemo(() => {
     const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://arbix.space';

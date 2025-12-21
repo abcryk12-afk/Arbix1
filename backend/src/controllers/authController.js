@@ -13,6 +13,26 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, phone, referredBy } = req.body;
 
+    let referredById = null;
+    if (referredBy) {
+      const refCode = String(referredBy).trim();
+      if (refCode) {
+        const refUser = await User.findOne({
+          where: { referral_code: refCode.toUpperCase() },
+          attributes: ['id'],
+        });
+
+        if (!refUser) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid referral code',
+          });
+        }
+
+        referredById = refUser.id;
+      }
+    }
+
     // Check if user already exists
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
@@ -28,7 +48,7 @@ exports.register = async (req, res) => {
       email,
       password_hash: password, // Use password_hash field
       phone,
-      referred_by_id: referredBy, // Use referred_by_id field
+      referred_by_id: referredById, // Store referrer user id
       kyc_status: 'pending', // Use kyc_status field
       account_status: 'hold', // Use 'hold' instead of 'pending_verification'
       reset_token: null, // Use reset_token field for verification
