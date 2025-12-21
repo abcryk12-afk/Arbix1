@@ -187,12 +187,6 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <a
-                href="/trade-logs"
-                className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-blue-400"
-              >
-                View Trade Logs
-              </a>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
@@ -368,15 +362,21 @@ export default function DashboardPage() {
             Recent Activity
           </h2>
           <div className="mt-3 space-y-2 text-[11px] text-slate-300">
-            {activities.map((a) => (
-              <div
-                key={a.id}
-                className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"
-              >
-                <p>{a.text}</p>
-                <p className="mt-1 text-[10px] text-slate-500">{a.time}</p>
+            {activities.length ? (
+              activities.map((a) => (
+                <div
+                  key={a.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"
+                >
+                  <p>{a.text}</p>
+                  <p className="mt-1 text-[10px] text-slate-500">{a.time}</p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-slate-400">
+                No recent activity yet.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -388,110 +388,21 @@ export default function DashboardPage() {
             Announcements &amp; Notifications
           </h2>
           <div className="mt-3 space-y-2 text-[11px] text-slate-300">
-            {announcements.map((n) => (
-              <div
-                key={n.id}
-                className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"
-              >
-                <p className="font-semibold text-slate-100">{n.title}</p>
-                <p className="mt-1 text-slate-400">{n.text}</p>
+            {announcements.length ? (
+              announcements.map((n) => (
+                <div
+                  key={n.id}
+                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"
+                >
+                  <p className="font-semibold text-slate-100">{n.title}</p>
+                  <p className="mt-1 text-slate-400">{n.text}</p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-slate-400">
+                No announcements right now.
               </div>
-            ))}
-          </div>
-          <a
-            href="/notifications"
-            className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-blue-400"
-          >
-            View All Notifications
-          </a>
-        </div>
-      </section>
-
-      {/* Navigation Grid */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Quick Navigation
-          </h2>
-          <div className="mt-3 grid gap-3 text-[11px] sm:grid-cols-3 md:grid-cols-4">
-            <a
-              href="/dashboard"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/dashboard/deposit"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Deposit
-            </a>
-            <a
-              href="/dashboard/withdraw"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Withdraw
-            </a>
-            <a
-              href="/dashboard/invest"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Investment
-            </a>
-            <a
-              href="/dashboard/team"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              My Team &amp; Earnings
-            </a>
-            <a
-              href="/trade-logs"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Trade Logs
-            </a>
-            <a
-              href="/transactions"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Transactions
-            </a>
-            <a
-              href="/reports"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Reports
-            </a>
-            <a
-              href="/profile"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Profile
-            </a>
-            <a
-              href="/profile/kyc"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              KYC
-            </a>
-            <a
-              href="/notifications"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Notifications
-            </a>
-            <a
-              href="/faq"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              FAQ
-            </a>
-            <a
-              href="/contact"
-              className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center hover:border-slate-600"
-            >
-              Support
-            </a>
+            )}
           </div>
         </div>
       </section>
