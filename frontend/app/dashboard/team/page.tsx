@@ -31,6 +31,11 @@ export default function TeamEarningsPage() {
     allTime: 0,
     withdrawable: 0,
     breakdown: { l1: 0, l2: 0, l3: 0 },
+    categories: {
+      deposit_commission: { today: 0, allTime: 0, breakdown: { l1: 0, l2: 0, l3: 0 } },
+      referral_profit: { today: 0, allTime: 0, breakdown: { l1: 0, l2: 0, l3: 0 } },
+      referral_bonus: { today: 0, allTime: 0, breakdown: { l1: 0, l2: 0, l3: 0 } },
+    },
   });
 
   useEffect(() => {
@@ -69,6 +74,35 @@ export default function TeamEarningsPage() {
               l1: Number(data.earnings?.breakdown?.l1 || 0),
               l2: Number(data.earnings?.breakdown?.l2 || 0),
               l3: Number(data.earnings?.breakdown?.l3 || 0),
+            },
+            categories: {
+              deposit_commission: {
+                today: Number(data.earnings?.categories?.deposit_commission?.today || 0),
+                allTime: Number(data.earnings?.categories?.deposit_commission?.allTime || 0),
+                breakdown: {
+                  l1: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l1 || 0),
+                  l2: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l2 || 0),
+                  l3: Number(data.earnings?.categories?.deposit_commission?.breakdown?.l3 || 0),
+                },
+              },
+              referral_profit: {
+                today: Number(data.earnings?.categories?.referral_profit?.today || 0),
+                allTime: Number(data.earnings?.categories?.referral_profit?.allTime || 0),
+                breakdown: {
+                  l1: Number(data.earnings?.categories?.referral_profit?.breakdown?.l1 || 0),
+                  l2: Number(data.earnings?.categories?.referral_profit?.breakdown?.l2 || 0),
+                  l3: Number(data.earnings?.categories?.referral_profit?.breakdown?.l3 || 0),
+                },
+              },
+              referral_bonus: {
+                today: Number(data.earnings?.categories?.referral_bonus?.today || 0),
+                allTime: Number(data.earnings?.categories?.referral_bonus?.allTime || 0),
+                breakdown: {
+                  l1: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l1 || 0),
+                  l2: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l2 || 0),
+                  l3: Number(data.earnings?.categories?.referral_bonus?.breakdown?.l3 || 0),
+                },
+              },
             },
           });
         }
@@ -242,22 +276,41 @@ export default function TeamEarningsPage() {
             <table className="min-w-full divide-y divide-slate-800 text-[11px]">
               <thead className="bg-slate-950/80 text-slate-400">
                 <tr>
-                  <th className="px-3 py-2 text-left">Level</th>
-                  <th className="px-3 py-2 text-left">Earnings (Deposit + Daily + Bonus)</th>
+                  <th className="px-3 py-2 text-left">Category</th>
+                  <th className="px-3 py-2 text-left">L1</th>
+                  <th className="px-3 py-2 text-left">L2</th>
+                  <th className="px-3 py-2 text-left">L3</th>
+                  <th className="px-3 py-2 text-left">All</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 <tr>
-                  <td className="px-3 py-2">Level 1</td>
-                  <td className="px-3 py-2">${earnings.breakdown.l1.toFixed(2)}</td>
+                  <td className="px-3 py-2">Deposit commissions (1%)</td>
+                  <td className="px-3 py-2">${earnings.categories.deposit_commission.breakdown.l1.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.deposit_commission.breakdown.l2.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.deposit_commission.breakdown.l3.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.deposit_commission.allTime.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className="px-3 py-2">Level 2</td>
-                  <td className="px-3 py-2">${earnings.breakdown.l2.toFixed(2)}</td>
+                  <td className="px-3 py-2">Referral profit (20% / 10% / 5%)</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_profit.breakdown.l1.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_profit.breakdown.l2.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_profit.breakdown.l3.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_profit.allTime.toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td className="px-3 py-2">Level 3</td>
-                  <td className="px-3 py-2">${earnings.breakdown.l3.toFixed(2)}</td>
+                  <td className="px-3 py-2">Referral bonus (L1 60% for $500+)</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_bonus.breakdown.l1.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_bonus.breakdown.l2.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_bonus.breakdown.l3.toFixed(2)}</td>
+                  <td className="px-3 py-2">${earnings.categories.referral_bonus.allTime.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2 font-semibold text-slate-100">Total</td>
+                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.breakdown.l1.toFixed(2)}</td>
+                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.breakdown.l2.toFixed(2)}</td>
+                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.breakdown.l3.toFixed(2)}</td>
+                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.allTime.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>

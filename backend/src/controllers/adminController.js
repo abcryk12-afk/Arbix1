@@ -1,6 +1,7 @@
-const { User, Wallet, Transaction, WalletKey } = require('../models');
+const { User, Wallet, Transaction, WalletKey, UserPackage, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
+const { runDailyProfitCredit } = require('../services/dailyProfitService');
 
 exports.checkAccess = async (req, res) => {
   try {
@@ -15,6 +16,30 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check admin access',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.runDailyProfit = async (req, res) => {
+  try {
+    const result = await runDailyProfitCredit({
+      sequelize,
+      User,
+      Wallet,
+      Transaction,
+      UserPackage,
+    });
+
+    res.status(200).json({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    console.error('Admin run daily profit error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to run daily profit job',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

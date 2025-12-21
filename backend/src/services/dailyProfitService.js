@@ -45,6 +45,12 @@ function sameUtcDay(a, b) {
 async function runDailyProfitCredit({ sequelize, User, Wallet, Transaction, UserPackage }) {
   const now = new Date();
 
+  const result = {
+    totalPackages: 0,
+    completedPackages: 0,
+    creditedPackages: 0,
+  };
+
   const activePackages = await UserPackage.findAll({
     where: {
       status: 'active',
@@ -54,11 +60,13 @@ async function runDailyProfitCredit({ sequelize, User, Wallet, Transaction, User
   });
 
   for (const pkg of activePackages) {
+    result.totalPackages += 1;
     if (pkg.end_at && new Date(pkg.end_at) <= now) {
       try {
         pkg.status = 'completed';
         await pkg.save();
       } catch {}
+      result.completedPackages += 1;
       continue;
     }
 
@@ -172,7 +180,11 @@ async function runDailyProfitCredit({ sequelize, User, Wallet, Transaction, User
       pkg.last_profit_at = now;
       await pkg.save({ transaction: t });
     });
+
+    result.creditedPackages += 1;
   }
+
+  return result;
 }
 
 module.exports = {

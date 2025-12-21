@@ -221,19 +221,47 @@ exports.getReferralEarnings = async (req, res) => {
       today: 0,
       allTime: 0,
       byLevel: { 1: 0, 2: 0, 3: 0 },
+      categories: {
+        deposit_commission: { today: 0, allTime: 0, byLevel: { 1: 0, 2: 0, 3: 0 } },
+        referral_profit: { today: 0, allTime: 0, byLevel: { 1: 0, 2: 0, 3: 0 } },
+        referral_bonus: { today: 0, allTime: 0, byLevel: { 1: 0, 2: 0, 3: 0 } },
+      },
+    };
+
+    const addTo = (bucket, amt, isToday, level) => {
+      bucket.allTime += amt;
+      if (isToday) bucket.today += amt;
+      if (level && bucket.byLevel && bucket.byLevel[level] !== undefined) bucket.byLevel[level] += amt;
     };
 
     for (const t of txs) {
       const amt = Number(t.amount || 0);
       if (!Number.isFinite(amt)) continue;
 
-      summary.allTime += amt;
-      if (t.createdAt && new Date(t.createdAt) >= startOfToday) summary.today += amt;
-
+      const isToday = t.createdAt && new Date(t.createdAt) >= startOfToday;
       const note = String(t.note || '');
-      if (note.includes('L1')) summary.byLevel[1] += amt;
-      else if (note.includes('L2')) summary.byLevel[2] += amt;
-      else if (note.includes('L3')) summary.byLevel[3] += amt;
+
+      const level = note.includes('L1') ? 1 : note.includes('L2') ? 2 : note.includes('L3') ? 3 : null;
+
+      summary.allTime += amt;
+      if (isToday) summary.today += amt;
+      if (level) summary.byLevel[level] += amt;
+
+      const isDepositCommission = note.startsWith('Referral commission') || note.startsWith('Referral commission ');
+      if (isDepositCommission) {
+        addTo(summary.categories.deposit_commission, amt, isToday, level);
+        continue;
+      }
+
+      if (t.type === 'referral_profit') {
+        addTo(summary.categories.referral_profit, amt, isToday, level);
+        continue;
+      }
+
+      if (t.type === 'referral_bonus') {
+        addTo(summary.categories.referral_bonus, amt, isToday, level);
+        continue;
+      }
     }
 
     res.status(200).json({
@@ -246,6 +274,35 @@ exports.getReferralEarnings = async (req, res) => {
           l1: summary.byLevel[1],
           l2: summary.byLevel[2],
           l3: summary.byLevel[3],
+        },
+        categories: {
+          deposit_commission: {
+            today: summary.categories.deposit_commission.today,
+            allTime: summary.categories.deposit_commission.allTime,
+            breakdown: {
+              l1: summary.categories.deposit_commission.byLevel[1],
+              l2: summary.categories.deposit_commission.byLevel[2],
+              l3: summary.categories.deposit_commission.byLevel[3],
+            },
+          },
+          referral_profit: {
+            today: summary.categories.referral_profit.today,
+            allTime: summary.categories.referral_profit.allTime,
+            breakdown: {
+              l1: summary.categories.referral_profit.byLevel[1],
+              l2: summary.categories.referral_profit.byLevel[2],
+              l3: summary.categories.referral_profit.byLevel[3],
+            },
+          },
+          referral_bonus: {
+            today: summary.categories.referral_bonus.today,
+            allTime: summary.categories.referral_bonus.allTime,
+            breakdown: {
+              l1: summary.categories.referral_bonus.byLevel[1],
+              l2: summary.categories.referral_bonus.byLevel[2],
+              l3: summary.categories.referral_bonus.byLevel[3],
+            },
+          },
         },
       },
       transactions: txs.map((t) => ({
