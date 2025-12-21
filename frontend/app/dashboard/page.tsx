@@ -60,6 +60,34 @@ function KpiCard({ href, label, value, subLabel, accentClassName, loading }: Kpi
   );
 }
 
+type MiniStatCardProps = {
+  label: string;
+  value: number;
+  accentClassName: string;
+};
+
+function MiniStatCard({ label, value, accentClassName }: MiniStatCardProps) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/40 motion-reduce:transform-none">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-medium tracking-wide text-slate-400">{label}</p>
+          <p className="mt-1 text-lg font-semibold leading-none text-slate-100">
+            {value.toLocaleString()}
+          </p>
+        </div>
+        <div
+          className={
+            'mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-slate-900/50 ' +
+            accentClassName
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [userName, setUserName] = useState('');
   const [availableBalance, setAvailableBalance] = useState(0);
@@ -414,23 +442,11 @@ export default function DashboardPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Team Snapshot
           </h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Level 1</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">{l1Count}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Level 2</p>
-              <p className="mt-1 text-lg font-semibold text-sky-400">{l2Count}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Level 3</p>
-              <p className="mt-1 text-lg font-semibold text-violet-400">{l3Count}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Total Team</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">{teamTotal}</p>
-            </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <MiniStatCard label="Level 1" value={l1Count} accentClassName="bg-emerald-400" />
+            <MiniStatCard label="Level 2" value={l2Count} accentClassName="bg-sky-400" />
+            <MiniStatCard label="Level 3" value={l3Count} accentClassName="bg-violet-400" />
+            <MiniStatCard label="Total Team" value={teamTotal} accentClassName="bg-slate-300" />
           </div>
           <div className="mt-3 text-[11px] text-slate-400">
             <p>

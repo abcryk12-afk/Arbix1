@@ -178,7 +178,7 @@ export default function DashboardFooter() {
   return (
     <footer
       ref={footerRef}
-      className="mt-10 border-t border-slate-800 bg-gradient-to-b from-slate-950/80 via-slate-950/95 to-slate-950"
+      className="mt-10 border-t border-slate-800 bg-gradient-to-b from-slate-900/60 via-slate-950/90 to-slate-950"
     >
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
