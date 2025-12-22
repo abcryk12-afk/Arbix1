@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [secretCode, setSecretCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
@@ -13,8 +14,8 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email) {
-      setMessage('Please enter your email address');
+    if (!email || !secretCode) {
+      setMessage('Please enter email and secret code');
       setMessageType('error');
       return;
     }
@@ -29,7 +30,7 @@ export default function AdminLoginPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, secretCode }),
       });
 
       const loginData = await loginRes.json();
@@ -93,7 +94,7 @@ export default function AdminLoginPage() {
             <span className="text-white font-bold text-2xl">A</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
-          <p className="text-slate-400">Sign in with your admin email address</p>
+          <p className="text-slate-400">Sign in with your admin email and secret code</p>
         </div>
 
         <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">
@@ -110,6 +111,21 @@ export default function AdminLoginPage() {
                 required
                 className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="admin@example.com"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="secretCode" className="block text-sm font-medium text-slate-300 mb-2">
+                Secret Code
+              </label>
+              <input
+                id="secretCode"
+                type="text"
+                value={secretCode}
+                onChange={(e) => setSecretCode(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter secret code"
               />
             </div>
 

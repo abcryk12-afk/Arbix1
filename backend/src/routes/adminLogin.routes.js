@@ -2,16 +2,24 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
-// Simple admin login route - email only
+// Simple admin login route - email + secret code
 router.post('/login', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, secretCode } = req.body;
     
     // Check if email is the admin email
     if (email !== 'wanum01234@gmail.com') {
       return res.status(401).json({
         success: false,
         message: 'Not authorized'
+      });
+    }
+
+    // Check if secret code is correct
+    if (secretCode !== '1020') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid secret code'
       });
     }
     
