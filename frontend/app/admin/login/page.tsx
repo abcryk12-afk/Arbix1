@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
     setMessageType('');
 
     try {
-      const loginRes = await fetch('/api/auth/login', {
+      const loginRes = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
