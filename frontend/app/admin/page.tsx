@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type WithdrawRequest = {
@@ -472,6 +472,121 @@ export default function AdminDashboardPage() {
         u.referralCode.toLowerCase().includes(q)
     ).slice(0, 5);
   }, [userSearchQuery]);
+
+  const selectedAdminUser = useMemo(() => {
+    return adminUsers.find((u) => u.id === selectedUserId) || null;
+  }, [adminUsers, selectedUserId]);
+
+  const handleCreateUser = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setIsCreatingUser(true);
+    setCreateUserMessage('');
+    setCreateUserMessageType('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setCreateUserMessage('Not logged in');
+        setCreateUserMessageType('error');
+        return;
+      }
+
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newUserName,
+          email: newUserEmail,
+          password: newUserPassword,
+          phone: newUserPhone,
+          referredBy: newUserReferredBy,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCreateUserMessage(data.message || 'User created successfully');
+        setCreateUserMessageType('success');
+        setNewUserName('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserPhone('');
+        setNewUserReferredBy('');
+
+        await loadAdminUsers();
+      } else {
+        setCreateUserMessage(data.message || 'Failed to create user');
+        setCreateUserMessageType('error');
+      }
+    } catch {
+      setCreateUserMessage('An error occurred. Please try again.');
+      setCreateUserMessageType('error');
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const handleAdjustBalance = async (mode: 'deposit' | 'withdraw') => {
+    setIsAdjusting(true);
+    setAdjustMessage('');
+    setAdjustMessageType('');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setAdjustMessage('Not logged in');
+        setAdjustMessageType('error');
+        return;
+      }
+
+      const amountValue = Number(adjustAmount);
+      if (!selectedUserId || !Number.isFinite(amountValue) || amountValue <= 0) {
+        setAdjustMessage('Please select a user and enter a valid amount');
+        setAdjustMessageType('error');
+        return;
+      }
+
+      const body = {
+        userId: selectedUserId,
+        amount: amountValue,
+        note: adjustNote,
+      };
+
+      const url = mode === 'deposit' ? '/api/admin/deposit' : '/api/admin/withdraw';
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAdjustMessage(data.message || 'Balance adjusted successfully');
+        setAdjustMessageType('success');
+        setAdjustAmount('');
+        setAdjustNote('');
+        await loadAdminUsers();
+      } else {
+        setAdjustMessage(data.message || 'Failed to adjust balance');
+        setAdjustMessageType('error');
+      }
+    } catch {
+      setAdjustMessage('An error occurred. Please try again.');
+      setAdjustMessageType('error');
+    } finally {
+      setIsAdjusting(false);
+    }
+  };
 
   const handleApprove = (id: string) => {
     // Demo: in real app, call API to approve
