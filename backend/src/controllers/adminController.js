@@ -368,3 +368,144 @@ exports.createUser = async (req, res) => {
     });
   }
 };
+
+exports.getAdminStats = async (req, res) => {
+  try {
+    const [totalUsers, activeInvestors, totalDepositedRaw, totalWithdrawnRaw, pendingKyc, pendingWithdrawals] =
+      await Promise.all([
+        User.count(),
+        UserPackage.count({ where: { status: 'active' } }),
+        Transaction.sum('amount', { where: { type: 'deposit' } }),
+        Transaction.sum('amount', { where: { type: 'withdraw' } }),
+        User.count({ where: { kyc_status: 'pending' } }),
+        Transaction.count({ where: { type: 'withdraw' } }),
+      ]);
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalUsers: Number(totalUsers || 0),
+        activeInvestors: Number(activeInvestors || 0),
+        totalDeposited: Number(totalDepositedRaw || 0),
+        totalWithdrawn: Number(totalWithdrawnRaw || 0),
+        pendingKyc: Number(pendingKyc || 0),
+        pendingWithdrawals: Number(pendingWithdrawals || 0),
+      },
+    });
+  } catch (error) {
+    console.error('Admin stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch admin stats',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.listRecentTransactions = async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit || 20), 100);
+
+    const [depositsRaw, withdrawalsRaw] = await Promise.all([
+      Transaction.findAll({
+        where: { type: 'deposit' },
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+        attributes: [
+          'id',
+          'user_id',
+          'type',
+          'amount',
+          'note',
+          [sequelize.col('created_at'), 'createdAt'],
+        ],
+      }),
+      Transaction.findAll({
+        where: { type: 'withdraw' },
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+        attributes: [
+          'id',
+          'user_id',
+          'type',
+          'amount',
+          'note',
+          [sequelize.col('created_at'), 'createdAt'],
+        ],
+      }),
+    ]);
+
+    const userIds = Array.from(
+      new Set([
+        ...depositsRaw.map((t) => t.user_id).filter(Boolean),
+        ...withdrawalsRaw.map((t) => t.user_id).filter(Boolean),
+      ]),
+    );
+
+    const [users, wallets] = await Promise.all([
+      userIds.length
+        ? User.findAll({
+            where: { id: userIds },
+            raw: true,
+            attributes: ['id', 'name', 'email', 'wallet_public_address'],
+          })
+        : [],
+      userIds.length
+        ? Wallet.findAll({
+            where: { user_id: userIds },
+            raw: true,
+            attributes: ['user_id', 'balance'],
+          })
+        : [],
+    ]);
+
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const walletMap = new Map(wallets.map((w) => [w.user_id, w]));
+
+    const deposits = depositsRaw.map((t) => {
+      const u = userMap.get(t.user_id) || {};
+      return {
+        id: t.id,
+        userId: t.user_id,
+        userName: u.name || '',
+        email: u.email || '',
+        amount: Number(t.amount || 0),
+        // There is no tx hash column in the schema, use note or id as a fallback
+        txHash: t.note || `TX-${t.id}`,
+        status: 'success',
+        time: t.createdAt,
+      };
+    });
+
+    const withdrawals = withdrawalsRaw.map((t) => {
+      const u = userMap.get(t.user_id) || {};
+      const w = walletMap.get(t.user_id) || {};
+      return {
+        id: t.id,
+        userId: t.user_id,
+        userName: u.name || '',
+        email: u.email || '',
+        amount: Number(t.amount || 0),
+        walletAddress: u.wallet_public_address || null,
+        userBalance: Number(w.balance || 0),
+        status: 'success',
+        time: t.createdAt,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      deposits,
+      withdrawals,
+    });
+  } catch (error) {
+    console.error('Admin recent transactions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recent transactions',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};

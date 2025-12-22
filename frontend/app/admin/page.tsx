@@ -41,7 +41,10 @@ type RecentDeposit = {
 type RecentWithdrawal = {
   id: string;
   userName: string;
+  email: string;
   amount: number;
+  walletAddress: string | null;
+  userBalance: number;
   status: string;
   time: string;
 };
@@ -106,27 +109,17 @@ type AdminUserRow = {
   balance: number;
 };
 
-// Demo data
-const WITHDRAW_REQUESTS: WithdrawRequest[] = [
-  {
-    id: 'TX001',
-    userName: 'Ali Raza',
-    email: 'ali.raza@example.com',
-    amount: 150.0,
-    walletAddress: '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-    requestTime: '2025-12-07 10:15 AM',
-    userBalance: 280.75,
-  },
-  {
-    id: 'TX002',
-    userName: 'Sana Malik',
-    email: 'sana.malik@example.com',
-    amount: 75.0,
-    walletAddress: '0x98De45c1200e89fCbA3dfb22CEF56712AbCdE321',
-    requestTime: '2025-12-07 09:30 AM',
-    userBalance: 120.5,
-  },
-];
+type AdminStats = {
+  totalUsers: number;
+  activeInvestors: number;
+  totalDeposited: number;
+  totalWithdrawn: number;
+  pendingKyc: number;
+  pendingWithdrawals: number;
+};
+
+// Demo data (to be fully replaced step-by-step)
+const WITHDRAW_REQUESTS: WithdrawRequest[] = [];
 
 const KYC_PENDING: KycPending[] = [
   {
@@ -137,37 +130,11 @@ const KYC_PENDING: KycPending[] = [
   },
 ];
 
-const LATEST_USERS: RecentUser[] = [
-  {
-    id: 'u1',
-    name: 'Ali Raza',
-    email: 'ali.raza@example.com',
-    referralCode: 'ABX123',
-    publicAddress: '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-    signupDate: '2025-12-01',
-  },
-];
+const LATEST_USERS: RecentUser[] = [];
 
-const RECENT_DEPOSITS: RecentDeposit[] = [
-  {
-    id: 'd1',
-    userName: 'Ali Raza',
-    amount: 100.0,
-    txHash: '0xabc123...def456',
-    status: 'success',
-    time: '2025-12-07 08:00 AM',
-  },
-];
+const RECENT_DEPOSITS: RecentDeposit[] = [];
 
-const RECENT_WITHDRAWALS: RecentWithdrawal[] = [
-  {
-    id: 'w1',
-    userName: 'Sana Malik',
-    amount: 50.0,
-    status: 'pending',
-    time: '2025-12-07 09:30 AM',
-  },
-];
+const RECENT_WITHDRAWALS: RecentWithdrawal[] = [];
 
 const ADMIN_LOGS: AdminLog[] = [
   {
@@ -291,6 +258,10 @@ export default function AdminDashboardPage() {
   const [runDailyProfitMessage, setRunDailyProfitMessage] = useState('');
   const [runDailyProfitMessageType, setRunDailyProfitMessageType] = useState<'success' | 'error' | ''>('');
 
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [recentDeposits, setRecentDeposits] = useState<RecentDeposit[]>([]);
+  const [recentWithdrawals, setRecentWithdrawals] = useState<RecentWithdrawal[]>([]);
+
   const loadAdminUsers = async () => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -323,6 +294,78 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const loadAdminStats = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/stats', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data?.success && data?.stats) {
+        setAdminStats({
+          totalUsers: Number(data.stats.totalUsers || 0),
+          activeInvestors: Number(data.stats.activeInvestors || 0),
+          totalDeposited: Number(data.stats.totalDeposited || 0),
+          totalWithdrawn: Number(data.stats.totalWithdrawn || 0),
+          pendingKyc: Number(data.stats.pendingKyc || 0),
+          pendingWithdrawals: Number(data.stats.pendingWithdrawals || 0),
+        });
+      }
+    } catch {
+      // ignore for now
+    }
+  };
+
+  const loadRecentTransactions = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/recent-transactions?limit=20', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data?.success) {
+        const deposits: RecentDeposit[] = Array.isArray(data.deposits)
+          ? data.deposits.map((d: any) => ({
+              id: String(d.id),
+              userName: String(d.userName || ''),
+              amount: Number(d.amount || 0),
+              txHash: String(d.txHash || ''),
+              status: String(d.status || 'success'),
+              time: String(d.time || d.createdAt || ''),
+            }))
+          : [];
+
+        const withdrawals: RecentWithdrawal[] = Array.isArray(data.withdrawals)
+          ? data.withdrawals.map((w: any) => ({
+              id: String(w.id),
+              userName: String(w.userName || ''),
+              email: String(w.email || ''),
+              amount: Number(w.amount || 0),
+              walletAddress: String(w.walletAddress || null),
+              userBalance: Number(w.userBalance || 0),
+              status: String(w.status || 'success'),
+              time: String(w.time || w.createdAt || ''),
+            }))
+          : [];
+
+        setRecentDeposits(deposits);
+        setRecentWithdrawals(withdrawals);
+      }
+    } catch {
+      // ignore for now
+    }
+  };
+
   const handleRunDailyProfit = async () => {
     setIsRunningDailyProfit(true);
     setRunDailyProfitMessage('');
@@ -351,6 +394,8 @@ export default function AdminDashboardPage() {
         );
         setRunDailyProfitMessageType('success');
         await loadAdminUsers();
+        await loadAdminStats();
+        await loadRecentTransactions();
       } else {
         setRunDailyProfitMessage(data?.message || 'Failed to run daily profit');
         setRunDailyProfitMessageType('error');
@@ -391,6 +436,8 @@ export default function AdminDashboardPage() {
 
         if (!cancelled) {
           await loadAdminUsers();
+          await loadAdminStats();
+          await loadRecentTransactions();
         }
       } catch {
         localStorage.removeItem('adminToken');
@@ -406,123 +453,13 @@ export default function AdminDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    setIsCreatingUser(true);
-    setCreateUserMessage('');
-    setCreateUserMessageType('');
-
-    try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setCreateUserMessage('Not logged in');
-        setCreateUserMessageType('error');
-        return;
-      }
-
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: newUserName,
-          email: newUserEmail,
-          password: newUserPassword,
-          phone: newUserPhone,
-          referredBy: newUserReferredBy,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCreateUserMessage(data.message || 'User created successfully');
-        setCreateUserMessageType('success');
-        setNewUserName('');
-        setNewUserEmail('');
-        setNewUserPassword('');
-        setNewUserPhone('');
-        setNewUserReferredBy('');
-
-        await loadAdminUsers();
-      } else {
-        setCreateUserMessage(data.message || 'Failed to create user');
-        setCreateUserMessageType('error');
-      }
-    } catch (error) {
-      setCreateUserMessage('An error occurred. Please try again.');
-      setCreateUserMessageType('error');
-    } finally {
-      setIsCreatingUser(false);
-    }
-  };
-
-  const selectedAdminUser = useMemo(() => {
-    return adminUsers.find((u) => u.id === selectedUserId) || null;
-  }, [adminUsers, selectedUserId]);
-
-  const handleAdjustBalance = async (mode: 'deposit' | 'withdraw') => {
-    setIsAdjusting(true);
-    setAdjustMessage('');
-    setAdjustMessageType('');
-
-    try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setAdjustMessage('Not logged in');
-        setAdjustMessageType('error');
-        return;
-      }
-
-      const amountValue = Number(adjustAmount);
-      if (!selectedUserId || !Number.isFinite(amountValue) || amountValue <= 0) {
-        setAdjustMessage('Please select a user and enter a valid amount');
-        setAdjustMessageType('error');
-        return;
-      }
-
-      const endpoint = mode === 'deposit' ? '/api/admin/deposit' : '/api/admin/withdraw';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: selectedUserId,
-          amount: amountValue,
-          note: adjustNote,
-        }),
-      });
-
-      const data = await res.json();
-      if (data?.success) {
-        setAdjustMessage(data.message || 'Success');
-        setAdjustMessageType('success');
-        setAdjustAmount('');
-        setAdjustNote('');
-        await loadAdminUsers();
-      } else {
-        setAdjustMessage(data.message || 'Failed');
-        setAdjustMessageType('error');
-      }
-    } catch {
-      setAdjustMessage('An error occurred. Please try again.');
-      setAdjustMessageType('error');
-    } finally {
-      setIsAdjusting(false);
-    }
-  };
-
   const filteredWithdrawals = useMemo(() => {
+    const source = recentWithdrawals;
     if (withdrawFilter === 'pending') {
-      return WITHDRAW_REQUESTS;
+      return source.filter((w) => w.status === 'pending');
     }
-    return WITHDRAW_REQUESTS;
-  }, [withdrawFilter]);
+    return source;
+  }, [withdrawFilter, recentWithdrawals]);
 
   const filteredUsers = useMemo(() => {
     const q = userSearchQuery.trim().toLowerCase();
@@ -748,27 +685,39 @@ export default function AdminDashboardPage() {
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 text-xs">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-[11px] text-slate-400">Total Users</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">1,247</p>
+              <p className="mt-1 text-lg font-semibold text-slate-100">
+                {adminStats ? adminStats.totalUsers.toLocaleString() : '–'}
+              </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-[11px] text-slate-400">Active Investors</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">892</p>
+              <p className="mt-1 text-lg font-semibold text-emerald-400">
+                {adminStats ? adminStats.activeInvestors.toLocaleString() : '–'}
+              </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-[11px] text-slate-400">Total Deposited</p>
-              <p className="mt-1 text-lg font-semibold text-blue-400">$45.2K</p>
+              <p className="mt-1 text-lg font-semibold text-blue-400">
+                {adminStats ? `$${adminStats.totalDeposited.toFixed(2)}` : '$0.00'}
+              </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-[11px] text-slate-400">Total Withdrawn</p>
-              <p className="mt-1 text-lg font-semibold text-orange-400">$12.8K</p>
+              <p className="mt-1 text-lg font-semibold text-orange-400">
+                {adminStats ? `$${adminStats.totalWithdrawn.toFixed(2)}` : '$0.00'}
+              </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-[11px] text-slate-400">Pending KYC</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">3</p>
+              <p className="mt-1 text-lg font-semibold text-amber-400">
+                {adminStats ? adminStats.pendingKyc.toLocaleString() : '0'}
+              </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-[11px] text-slate-400">Pending Withdrawals</p>
-              <p className="mt-1 text-lg font-semibold text-red-400">2</p>
+              <p className="mt-1 text-lg font-semibold text-red-400">
+                {adminStats ? adminStats.pendingWithdrawals.toLocaleString() : '0'}
+              </p>
             </div>
           </div>
         </div>
@@ -934,13 +883,19 @@ export default function AdminDashboardPage() {
                     <td className="px-3 py-2">{req.email}</td>
                     <td className="px-3 py-2 font-semibold text-emerald-400">${req.amount.toFixed(2)}</td>
                     <td className="px-3 py-2">
-                      <span className="font-mono text-[10px]">{shortAddr(req.walletAddress)}</span>
+                      <span className="font-mono text-[10px]">{req.walletAddress ? shortAddr(req.walletAddress) : '-'}</span>
                     </td>
-                    <td className="px-3 py-2">{req.requestTime}</td>
+                    <td className="px-3 py-2">{req.time}</td>
                     <td className="px-3 py-2">${req.userBalance.toFixed(2)}</td>
                     <td className="px-3 py-2">
-                      <span className="rounded-full bg-amber-600/20 px-2 py-0.5 text-[10px] text-amber-300">
-                        Pending
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] ${
+                          req.status === 'pending'
+                            ? 'bg-amber-600/20 text-amber-300'
+                            : 'bg-emerald-600/20 text-emerald-300'
+                        }`}
+                      >
+                        {req.status}
                       </span>
                     </td>
                     <td className="px-3 py-2">
@@ -1420,7 +1375,7 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {RECENT_DEPOSITS.map((dep) => (
+                    {recentDeposits.map((dep) => (
                       <tr key={dep.id}>
                         <td className="px-3 py-2">{dep.userName}</td>
                         <td className="px-3 py-2 font-semibold text-emerald-400">${dep.amount.toFixed(2)}</td>
@@ -1452,7 +1407,7 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {RECENT_WITHDRAWALS.map((wd) => (
+                    {recentWithdrawals.map((wd) => (
                       <tr key={wd.id}>
                         <td className="px-3 py-2">{wd.userName}</td>
                         <td className="px-3 py-2 font-semibold text-orange-400">${wd.amount.toFixed(2)}</td>
