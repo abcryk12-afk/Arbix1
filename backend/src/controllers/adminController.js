@@ -57,14 +57,22 @@ exports.listWallets = async (req, res) => {
     const limit = Math.min(Number(req.query.limit || 50), 200);
 
     const users = await User.findAll({
-      order: [['createdAt', 'DESC']],
+      order: [[sequelize.col('created_at'), 'DESC']],
       limit,
-      attributes: ['id', 'name', 'email', 'referralCode', 'walletAddress', 'createdAt'],
+      raw: true,
+      attributes: [
+        'id',
+        'name',
+        'email',
+        ['referral_code', 'referralCode'],
+        ['wallet_public_address', 'walletAddress'],
+        [sequelize.col('created_at'), 'createdAt'],
+      ],
     });
 
     const userIds = users.map((u) => u.id);
-    const keys = await WalletKey.findAll({ where: { userId: userIds } });
-    const keyMap = new Map(keys.map((k) => [k.userId, k]));
+    const keys = await WalletKey.findAll({ where: { user_id: userIds }, raw: true });
+    const keyMap = new Map(keys.map((k) => [k.user_id, k]));
 
     const wallets = users.map((u) => {
       const k = keyMap.get(u.id);
@@ -109,14 +117,21 @@ exports.listUsers = async (req, res) => {
     const limit = Math.min(Number(req.query.limit || 20), 100);
 
     const users = await User.findAll({
-      order: [['createdAt', 'DESC']],
+      order: [[sequelize.col('created_at'), 'DESC']],
       limit,
-      attributes: ['id', 'name', 'email', 'referralCode', 'createdAt'],
+      raw: true,
+      attributes: [
+        'id',
+        'name',
+        'email',
+        ['referral_code', 'referralCode'],
+        [sequelize.col('created_at'), 'createdAt'],
+      ],
     });
 
     const userIds = users.map((u) => u.id);
-    const wallets = await Wallet.findAll({ where: { userId: userIds } });
-    const walletMap = new Map(wallets.map((w) => [w.userId, w]));
+    const wallets = await Wallet.findAll({ where: { user_id: userIds }, raw: true });
+    const walletMap = new Map(wallets.map((w) => [w.user_id, w]));
 
     res.status(200).json({
       success: true,
@@ -302,26 +317,42 @@ exports.createUser = async (req, res) => {
       });
     }
 
+    let referredById = null;
+    if (referredBy) {
+      const ref = String(referredBy).trim();
+      if (ref) {
+        const maybeId = Number(ref);
+        if (Number.isFinite(maybeId) && maybeId > 0) {
+          const refUser = await User.findByPk(maybeId, { attributes: ['id'] });
+          if (refUser) referredById = refUser.id;
+        } else {
+          const refUser = await User.findOne({
+            where: { referral_code: ref.toUpperCase() },
+            attributes: ['id'],
+          });
+          if (refUser) referredById = refUser.id;
+        }
+      }
+    }
+
     const user = await User.create({
       name,
       email,
-      password,
+      password_hash: password,
       phone: phone || null,
-      referredBy: referredBy || null,
-      emailVerified: true,
-      accountStatus: 'active',
-      emailVerificationToken: null,
-      emailVerificationExpires: null,
+      referred_by_id: referredById,
+      kyc_status: 'pending',
+      account_status: 'active',
+      reset_token: null,
+      reset_token_expires_at: null,
     });
 
     await ensureWalletForUser(user);
 
     const userData = user.get();
-    delete userData.password;
-    delete userData.emailVerificationToken;
-    delete userData.emailVerificationExpires;
-    delete userData.passwordResetToken;
-    delete userData.passwordResetExpires;
+    delete userData.password_hash;
+    delete userData.reset_token;
+    delete userData.reset_token_expires_at;
 
     res.status(201).json({
       success: true,

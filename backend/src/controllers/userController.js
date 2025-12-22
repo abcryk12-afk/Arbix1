@@ -22,7 +22,7 @@ exports.getSummary = async (req, res) => {
 
     const transactions = await Transaction.findAll({
       where: { user_id: userId },
-      order: [['createdAt', 'DESC']],
+      order: [[Transaction.sequelize.col('created_at'), 'DESC']],
       limit: 20,
     });
 
@@ -161,7 +161,7 @@ exports.getPackages = async (req, res) => {
 
     const packages = await UserPackage.findAll({
       where: { user_id: userId },
-      order: [['createdAt', 'DESC']],
+      order: [[UserPackage.sequelize.col('created_at'), 'DESC']],
     });
 
     res.status(200).json({
@@ -213,8 +213,15 @@ exports.getReferralEarnings = async (req, res) => {
           { note: { [Op.like]: 'Referral commission%' } },
         ],
       },
-      order: [['createdAt', 'DESC']],
-      attributes: ['id', 'amount', 'note', 'createdAt', 'type'],
+      order: [[Transaction.sequelize.col('created_at'), 'DESC']],
+      raw: true,
+      attributes: [
+        'id',
+        'amount',
+        'note',
+        'type',
+        [Transaction.sequelize.col('created_at'), 'createdAt'],
+      ],
     });
 
     const summary = {
@@ -329,16 +336,18 @@ exports.getReferrals = async (req, res) => {
 
     const level1 = await User.findAll({
       where: { referred_by_id: userId },
-      attributes: ['id', 'name', 'email', 'createdAt'],
-      order: [['createdAt', 'DESC']],
+      raw: true,
+      attributes: ['id', 'name', 'email', [User.sequelize.col('created_at'), 'createdAt']],
+      order: [[User.sequelize.col('created_at'), 'DESC']],
     });
 
     const level1Ids = level1.map((u) => u.id);
     const level2 = level1Ids.length
       ? await User.findAll({
           where: { referred_by_id: level1Ids },
-          attributes: ['id', 'name', 'email', 'createdAt', 'referred_by_id'],
-          order: [['createdAt', 'DESC']],
+          raw: true,
+          attributes: ['id', 'name', 'email', [User.sequelize.col('created_at'), 'createdAt'], 'referred_by_id'],
+          order: [[User.sequelize.col('created_at'), 'DESC']],
         })
       : [];
 
@@ -346,8 +355,9 @@ exports.getReferrals = async (req, res) => {
     const level3 = level2Ids.length
       ? await User.findAll({
           where: { referred_by_id: level2Ids },
-          attributes: ['id', 'name', 'email', 'createdAt', 'referred_by_id'],
-          order: [['createdAt', 'DESC']],
+          raw: true,
+          attributes: ['id', 'name', 'email', [User.sequelize.col('created_at'), 'createdAt'], 'referred_by_id'],
+          order: [[User.sequelize.col('created_at'), 'DESC']],
         })
       : [];
 
@@ -437,73 +447,104 @@ function daysBetweenUtc(start, end) {
 exports.getFooterStats = async (req, res) => {
   try {
     const userId = req.user.id;
-    const today = new Date();
-    const start = new Date(Date.UTC(2025, 0, 1));
+    const now = new Date();
+    const startOfTodayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
-    const dayCount = daysBetweenUtc(start, today);
+    const level1 = await User.findAll({
+      where: { referred_by_id: userId },
+      raw: true,
+      attributes: ['id'],
+    });
 
-    const systemMin = 700;
-    const systemMax = 3000;
-    const teamMin = 250;
-    const teamMax = 1800;
+    const level1Ids = level1.map((u) => u.id);
+    const level2 = level1Ids.length
+      ? await User.findAll({
+          where: { referred_by_id: level1Ids },
+          raw: true,
+          attributes: ['id'],
+        })
+      : [];
 
-    const systemJoinMin = 250;
-    const systemJoinMax = 1200;
-    const teamJoinMin = 5;
-    const teamJoinMax = 80;
+    const level2Ids = level2.map((u) => u.id);
+    const level3 = level2Ids.length
+      ? await User.findAll({
+          where: { referred_by_id: level2Ids },
+          raw: true,
+          attributes: ['id'],
+        })
+      : [];
 
-    const todayKey = utcDateKey(today);
-    const systemDaily = dailyValueForKey(`system:${todayKey}`, systemMin, systemMax);
-    const teamDaily = dailyValueForKey(`team:${userId}:${todayKey}`, teamMin, teamMax);
+    const teamIds = [...level1Ids, ...level2Ids, ...level3.map((u) => u.id)];
 
-    const systemDailyJoinings = dailyValueForKey(
-      `system:joinings:${todayKey}`,
-      systemJoinMin,
-      systemJoinMax
-    );
-    const teamDailyJoinings = dailyValueForKey(
-      `team:${userId}:joinings:${todayKey}`,
-      teamJoinMin,
-      teamJoinMax
-    );
+    const systemDailyWithdrawals =
+      (await Transaction.sum('amount', {
+        where: {
+          type: 'withdraw',
+          [Op.and]: [Transaction.sequelize.where(Transaction.sequelize.col('created_at'), { [Op.gte]: startOfTodayUtc })],
+        },
+      })) || 0;
 
-    let systemTotal = 0;
-    let teamTotal = 0;
-    let systemTotalJoinings = 0;
-    let teamTotalJoinings = 0;
+    const systemTotalWithdrawals =
+      (await Transaction.sum('amount', {
+        where: { type: 'withdraw' },
+      })) || 0;
 
-    for (let i = 0; i <= dayCount; i++) {
-      const d = new Date(Date.UTC(2025, 0, 1 + i));
-      const key = utcDateKey(d);
-      systemTotal += dailyValueForKey(`system:${key}`, systemMin, systemMax);
-      teamTotal += dailyValueForKey(`team:${userId}:${key}`, teamMin, teamMax);
+    const systemDailyJoinings = await User.count({
+      where: {
+        [Op.and]: [User.sequelize.where(User.sequelize.col('created_at'), { [Op.gte]: startOfTodayUtc })],
+      },
+    });
 
-      systemTotalJoinings += dailyValueForKey(
-        `system:joinings:${key}`,
-        systemJoinMin,
-        systemJoinMax
-      );
-      teamTotalJoinings += dailyValueForKey(
-        `team:${userId}:joinings:${key}`,
-        teamJoinMin,
-        teamJoinMax
-      );
-    }
+    const systemTotalJoinings = await User.count();
+
+    const teamDailyWithdrawals = teamIds.length
+      ? (await Transaction.sum('amount', {
+          where: {
+            user_id: teamIds,
+            type: 'withdraw',
+            [Op.and]: [Transaction.sequelize.where(Transaction.sequelize.col('created_at'), { [Op.gte]: startOfTodayUtc })],
+          },
+        })) || 0
+      : 0;
+
+    const teamTotalWithdrawals = teamIds.length
+      ? (await Transaction.sum('amount', {
+          where: {
+            user_id: teamIds,
+            type: 'withdraw',
+          },
+        })) || 0
+      : 0;
+
+    const teamDailyJoinings = teamIds.length
+      ? await User.count({
+          where: {
+            id: teamIds,
+            [Op.and]: [User.sequelize.where(User.sequelize.col('created_at'), { [Op.gte]: startOfTodayUtc })],
+          },
+        })
+      : 0;
+
+    const teamTotalJoinings = teamIds.length
+      ? await User.count({
+          where: { id: teamIds },
+        })
+      : 0;
 
     res.status(200).json({
       success: true,
       stats: {
         system: {
-          daily: systemDaily,
-          total: systemTotal,
-          joiningsDaily: systemDailyJoinings,
-          joiningsTotal: systemTotalJoinings,
+          daily: Number(systemDailyWithdrawals) || 0,
+          total: Number(systemTotalWithdrawals) || 0,
+          joiningsDaily: Number(systemDailyJoinings) || 0,
+          joiningsTotal: Number(systemTotalJoinings) || 0,
         },
         team: {
-          daily: teamDaily,
-          total: teamTotal,
-          joiningsDaily: teamDailyJoinings,
-          joiningsTotal: teamTotalJoinings,
+          daily: Number(teamDailyWithdrawals) || 0,
+          total: Number(teamTotalWithdrawals) || 0,
+          joiningsDaily: Number(teamDailyJoinings) || 0,
+          joiningsTotal: Number(teamTotalJoinings) || 0,
         },
         updatedAt: new Date().toISOString(),
         timezone: 'UTC',
