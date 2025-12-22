@@ -7,6 +7,7 @@ const healthRoutes = require('./src/routes/health.routes');
 const emailRoutes = require('./src/routes/email.routes');
 const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
+const adminLoginRoutes = require('./src/routes/adminLogin.routes');
 const userRoutes = require('./src/routes/user.routes');
 const db = require('./src/config/db');
 const { startDailyProfitScheduler } = require('./src/services/dailyProfitService');
@@ -23,6 +24,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminLoginRoutes);
 app.use('/api/user', userRoutes);
 
 // 404 handler
