@@ -35,28 +35,21 @@ async function main() {
     user = await User.create({
       name,
       email,
-      password,
+      password_hash: password,
       phone: null,
-      referredBy: null,
-      emailVerified: true,
-      accountStatus: 'active',
-      emailVerificationToken: null,
-      emailVerificationExpires: null,
-      passwordResetToken: null,
-      passwordResetExpires: null,
+      referred_by_id: null,
+      account_status: 'active',
+      kyc_status: 'approved',
+      reset_token: null,
+      reset_token_expires_at: null,
     });
   } else {
-    const salt = await bcrypt.genSalt(10);
-    const hashed = await bcrypt.hash(password, salt);
-
     user.name = user.name || name;
-    user.password = hashed;
-    user.emailVerified = true;
-    user.accountStatus = 'active';
-    user.emailVerificationToken = null;
-    user.emailVerificationExpires = null;
-    user.passwordResetToken = null;
-    user.passwordResetExpires = null;
+    user.password_hash = password;
+    user.account_status = 'active';
+    user.kyc_status = user.kyc_status || 'approved';
+    user.reset_token = null;
+    user.reset_token_expires_at = null;
     await user.save();
   }
 
