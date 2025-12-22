@@ -1,15 +1,7 @@
-exports.requireAdminUser = (req, res, next) => {
-  const allow = (process.env.ADMIN_EMAILS || '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
+const ADMIN_EMAILS = ['wanum01234@gmail.com'];
 
-  if (allow.length === 0) {
-    return res.status(500).json({
-      success: false,
-      message: 'Admin emails are not configured',
-    });
-  }
+exports.requireAdminUser = (req, res, next) => {
+  const allow = ADMIN_EMAILS.map((s) => s.trim().toLowerCase()).filter(Boolean);
 
   const email = (req.user?.email || '').toLowerCase();
   if (!email || !allow.includes(email)) {
