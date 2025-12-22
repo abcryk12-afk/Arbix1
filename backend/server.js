@@ -23,8 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/health', healthRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminLoginRoutes); // Register login routes first
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin', adminLoginRoutes);
 app.use('/api/user', userRoutes);
 
 // 404 handler
