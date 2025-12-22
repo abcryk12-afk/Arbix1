@@ -50,17 +50,22 @@ export default function AdminLoginPage() {
         },
       });
 
-      const checkData = await checkRes.json();
+      const checkData = await checkRes.json().catch(() => null);
 
-      if (!checkData?.success) {
-        setMessage('This account is not authorized to access the admin panel.');
+      if (!checkRes.ok || !checkData?.success) {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        setMessage(
+          checkData?.message ||
+            'This account is not authorized to access the admin panel.'
+        );
         setMessageType('error');
         return;
       }
 
-      localStorage.setItem('token', token);
+      localStorage.setItem('adminToken', token);
       if (loginData?.user) {
-        localStorage.setItem('user', JSON.stringify(loginData.user));
+        localStorage.setItem('adminUser', JSON.stringify(loginData.user));
       }
 
       setMessage('Admin login successful. Redirecting...');

@@ -293,7 +293,7 @@ export default function AdminDashboardPage() {
 
   const loadAdminUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('adminToken');
       if (!token) return;
 
       const res = await fetch('/api/admin/users?limit=25', {
@@ -329,7 +329,7 @@ export default function AdminDashboardPage() {
     setRunDailyProfitMessageType('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('adminToken');
       if (!token) {
         setRunDailyProfitMessage('Not logged in');
         setRunDailyProfitMessageType('error');
@@ -368,7 +368,7 @@ export default function AdminDashboardPage() {
 
     const init = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         if (!token) {
           router.push('/admin/login');
           return;
@@ -383,8 +383,8 @@ export default function AdminDashboardPage() {
         const data = await res.json();
 
         if (!data?.success) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
           router.push('/admin/login');
           return;
         }
@@ -393,8 +393,8 @@ export default function AdminDashboardPage() {
           await loadAdminUsers();
         }
       } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
         router.push('/admin/login');
       }
     };
@@ -414,7 +414,7 @@ export default function AdminDashboardPage() {
     setCreateUserMessageType('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('adminToken');
       if (!token) {
         setCreateUserMessage('Not logged in');
         setCreateUserMessageType('error');
@@ -470,7 +470,7 @@ export default function AdminDashboardPage() {
     setAdjustMessageType('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('adminToken');
       if (!token) {
         setAdjustMessage('Not logged in');
         setAdjustMessageType('error');
@@ -569,8 +569,8 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
                 router.push('/admin/login');
               }}
               className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"

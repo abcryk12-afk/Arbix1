@@ -41,7 +41,7 @@ export default function AdminUserWalletsPage() {
 
     const run = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('adminToken');
         if (!token) {
           router.push('/admin/login');
           return;
@@ -56,8 +56,8 @@ export default function AdminUserWalletsPage() {
         const checkData = await checkRes.json();
 
         if (!checkData?.success) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
           router.push('/admin/login');
           return;
         }

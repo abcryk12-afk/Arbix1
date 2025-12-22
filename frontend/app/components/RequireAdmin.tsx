@@ -16,10 +16,15 @@ export default function RequireAdmin({ children }: RequireAdminProps) {
     let cancelled = false;
 
     const run = async () => {
-      const token = localStorage.getItem('token');
+      if ((pathname || '').startsWith('/admin/login')) {
+        if (!cancelled) setIsAllowed(true);
+        return;
+      }
+
+      const token = localStorage.getItem('adminToken');
 
       if (!token) {
-        router.replace(`/auth/login?next=${encodeURIComponent(pathname || '/')}`);
+        router.replace('/admin/login');
         return;
       }
 
@@ -32,7 +37,9 @@ export default function RequireAdmin({ children }: RequireAdminProps) {
         });
 
         if (!res.ok) {
-          router.replace('/dashboard');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          router.replace('/admin/login');
           return;
         }
 
@@ -42,10 +49,14 @@ export default function RequireAdmin({ children }: RequireAdminProps) {
             setIsAllowed(true);
             return;
           }
-          router.replace('/dashboard');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          router.replace('/admin/login');
         }
       } catch (e) {
-        router.replace('/dashboard');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        router.replace('/admin/login');
       }
     };
 
