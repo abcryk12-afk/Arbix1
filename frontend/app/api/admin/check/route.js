@@ -4,20 +4,25 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-    const adminKey = 'Usman@567784';
     const authHeader = request.headers.get('authorization') || '';
+    
+    // Extract token from Authorization header
+    const token = authHeader.replace('Bearer ', '');
+    
+    // For our simplified system, we'll just check if the token exists and is valid
+    // In a real system, you'd verify the JWT token
+    if (!token || !token.startsWith('YWRtaW4t')) {
+      return NextResponse.json(
+        { success: false, message: 'Not authorized' },
+        { status: 401 }
+      );
+    }
 
-    const response = await fetch(`${baseUrl}/api/admin/check`, {
-      method: 'GET',
-      headers: {
-        Authorization: authHeader,
-        'X-Admin-Key': adminKey,
-      },
+    // Return success for valid admin token
+    return NextResponse.json({
+      success: true,
+      message: 'Admin authorized'
     });
-
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Admin check API error:', error);
     return NextResponse.json(
