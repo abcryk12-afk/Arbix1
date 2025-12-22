@@ -5,17 +5,17 @@ export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const { email, secretCode } = body;
 
     const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
 
-    // Forward to backend admin login route
+    // Forward to backend admin login route with email + secret code
     const response = await fetch(`${baseUrl}/api/admin/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, secretCode }),
     });
 
     const data = await response.json();

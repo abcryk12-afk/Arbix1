@@ -14,7 +14,18 @@ exports.protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token
+      // If this is an admin token (issued by /api/admin/login), trust payload directly
+      if (decoded && decoded.isAdmin) {
+        req.user = {
+          id: decoded.id,
+          email: decoded.email,
+          role: 'admin',
+          account_status: 'active',
+        };
+        return next();
+      }
+
+      // For normal users, load user from database
       req.user = await User.findByPk(decoded.id, {
         attributes: { exclude: ['password_hash', 'reset_token', 'reset_token_expires_at'] },
       });

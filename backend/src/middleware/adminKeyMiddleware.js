@@ -1,4 +1,4 @@
-const ADMIN_KEY = 'Usman@567784';
+const ADMIN_KEY = process.env.ADMIN_API_KEY || 'CHANGE_ME_STRONG_KEY';
 
 exports.requireAdminKey = (req, res, next) => {
   const providedKey = req.headers['x-admin-key'];
