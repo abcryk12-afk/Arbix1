@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, UserPackage } = require('../models');
+const { User, Wallet, Transaction, UserPackage, WithdrawalRequest } = require('../models');
 
 const PACKAGES = {
   starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
@@ -44,6 +44,88 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user summary',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.requestWithdrawal = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { amount, address, note } = req.body || {};
+
+    const value = Number(amount);
+    if (!address || typeof address !== 'string') {
+      return res.status(400).json({ success: false, message: 'Withdrawal address is required' });
+    }
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return res.status(400).json({ success: false, message: 'Withdrawal amount must be positive' });
+    }
+
+    if (value < 10) {
+      return res.status(400).json({ success: false, message: 'Minimum withdrawal is 10 USDT' });
+    }
+
+    const now = new Date();
+
+    const result = await Transaction.sequelize.transaction(async (t) => {
+      let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t, lock: t.LOCK.UPDATE });
+      if (!wallet) {
+        wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
+      }
+
+      const currentBalance = Number(wallet.balance || 0);
+
+      const pendingSumRaw = await WithdrawalRequest.sum('amount', {
+        where: { user_id: userId, status: 'pending' },
+        transaction: t,
+      });
+      const pendingSum = Number(pendingSumRaw || 0);
+
+      const maxWithdrawable = currentBalance - pendingSum;
+      if (!Number.isFinite(maxWithdrawable) || maxWithdrawable <= 0 || value > maxWithdrawable) {
+        return {
+          ok: false,
+          status: 400,
+          message: 'Insufficient balance for this withdrawal (including pending requests)',
+        };
+      }
+
+      const request = await WithdrawalRequest.create(
+        {
+          user_id: userId,
+          amount: value,
+          address: String(address).trim(),
+          status: 'pending',
+          user_note: note || null,
+        },
+        { transaction: t },
+      );
+
+      return { ok: true, request };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to submit withdrawal request' });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Withdrawal request submitted successfully',
+      request: {
+        id: result.request.id,
+        amount: Number(result.request.amount || 0),
+        address: result.request.address,
+        status: result.request.status,
+        createdAt: now,
+      },
+    });
+  } catch (error) {
+    console.error('User withdrawal request error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to submit withdrawal request',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

@@ -116,31 +116,69 @@ export default function WithdrawPage() {
     return '';
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setAddressError('');
+    setAmountError('');
+
     const addrErr = validateAddress(address.trim());
     const amtErr = validateAmount(amount);
-    setAddressError(addrErr);
-    setAmountError(amtErr);
-    if (addrErr || amtErr) return;
-
-    const num = parseFloat(amount);
-    const newReq: PendingWithdrawal = {
-      id: `WD-${Date.now()}`,
-      amount: num,
-      address: address.trim(),
-      createdAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      status: 'Pending',
-    };
-    setPending((prev) => [newReq, ...prev]);
-    setAvailable((prev) => prev - num);
-    setAmount('');
-
-    if (pendingSectionRef.current) {
-      pendingSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (addrErr || amtErr) {
+      setAddressError(addrErr);
+      setAmountError(amtErr);
+      return;
     }
 
-    // In real app: show toast / modal. Here we just rely on UI.
+    const num = parseFloat(amount);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      setAmountError('You must be logged in to submit a withdrawal request.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/user/withdraw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: num,
+          address: address.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!data?.success) {
+        const msg = typeof data?.message === 'string' ? data.message : 'Failed to submit withdrawal request';
+        setAmountError(msg);
+        return;
+      }
+
+      const r = data.request || {};
+      const createdAtStr = r.createdAt
+        ? String(r.createdAt).slice(0, 16).replace('T', ' ')
+        : new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+      const newReq: PendingWithdrawal = {
+        id: String(r.id ?? `WD-${Date.now()}`),
+        amount: Number(r.amount ?? num),
+        address: String(r.address ?? address.trim()),
+        createdAt: createdAtStr,
+        status: 'Pending',
+      };
+
+      setPending((prev) => [newReq, ...prev]);
+      setAvailable((prev) => prev - newReq.amount);
+      setAmount('');
+
+      if (pendingSectionRef.current) {
+        pendingSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch {
+      setAmountError('An error occurred while submitting your withdrawal request. Please try again.');
+    }
   };
 
   const handleCopyTx = async (hash?: string) => {

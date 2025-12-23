@@ -10,6 +10,7 @@ type WalletUser = {
   referralCode: string;
   publicAddress: string;
   privateAddress: string;
+  pathIndex: number | null;
   createdAt: string;
 };
 
@@ -23,6 +24,8 @@ export default function AdminUserWalletsPage() {
   const [query, setQuery] = useState('');
   const [users, setUsers] = useState<WalletUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
@@ -45,6 +48,13 @@ export default function AdminUserWalletsPage() {
     const start = (page - 1) * PAGE_SIZE;
     return filtered.slice(start, start + PAGE_SIZE);
   }, [filtered, page]);
+
+  const selectedUser = useMemo(() => {
+    if (!filtered.length) return null;
+    if (!selectedUserId) return filtered[0];
+    const match = filtered.find((u) => u.id === selectedUserId);
+    return match || filtered[0];
+  }, [filtered, selectedUserId]);
 
   useEffect(() => {
     setPage(1);
@@ -94,6 +104,12 @@ export default function AdminUserWalletsPage() {
                 referralCode: String(w.referralCode || ''),
                 publicAddress: String(w.publicAddress || ''),
                 privateAddress: String(w.privateAddress || ''),
+                pathIndex:
+                  typeof w.pathIndex === 'number'
+                    ? w.pathIndex
+                    : w.pathIndex != null
+                    ? Number(w.pathIndex)
+                    : null,
                 createdAt: w.createdAt ? String(w.createdAt).slice(0, 19).replace('T', ' ') : '',
               }))
             );
@@ -145,6 +161,113 @@ export default function AdminUserWalletsPage() {
               className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
               placeholder="Search by name, email or referral code"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Wallet inspector for a single selected user */}
+      <section className="bg-slate-950">
+        <div className="mx-auto max-w-6xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 md:p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-100 md:text-base">
+                  Wallet details for selected user
+                </h2>
+                <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
+                  Select a user to inspect their deposit page wallet address and HD path index.
+                </p>
+              </div>
+              <div className="w-full md:w-80">
+                <label className="mb-1 block text-[11px] text-slate-400 md:text-xs">
+                  Select user
+                </label>
+                <select
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
+                  value={selectedUser ? selectedUser.id : ''}
+                  onChange={(e) => setSelectedUserId(e.target.value || null)}
+                >
+                  {filtered.length === 0 ? (
+                    <option value="">No users available</option>
+                  ) : (
+                    filtered.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name || '(No name)'}  {u.email}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {selectedUser && (
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                  <p className="text-[11px] font-semibold text-slate-300 md:text-xs">
+                    Basic info
+                  </p>
+                  <p className="text-[11px] text-slate-400 md:text-xs">
+                    <span className="text-slate-500">Name:</span>{' '}
+                    <span className="text-slate-100">{selectedUser.name || '-'}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-400 md:text-xs">
+                    <span className="text-slate-500">Email:</span>{' '}
+                    <span className="text-slate-100">{selectedUser.email || '-'}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-400 md:text-xs">
+                    <span className="text-slate-500">Referral code:</span>{' '}
+                    <span className="text-slate-100">{selectedUser.referralCode || '-'}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-400 md:text-xs">
+                    <span className="text-slate-500">Joined:</span>{' '}
+                    <span className="text-slate-100">{selectedUser.createdAt || '-'}</span>
+                  </p>
+                </div>
+
+                <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                  <p className="text-[11px] font-semibold text-slate-300 md:text-xs">
+                    Wallet + HD index
+                  </p>
+                  <p className="break-all text-[11px] text-slate-400 md:text-xs">
+                    <span className="text-slate-500">Deposit page wallet address:</span>{' '}
+                    <span className="text-slate-100">
+                      {selectedUser.publicAddress || '-'}
+                    </span>
+                  </p>
+                  <p className="text-[11px] text-slate-400 md:text-xs">
+                    <span className="text-slate-500">HD path index (pathIndex):</span>{' '}
+                    <span className="text-slate-100">
+                      {selectedUser.pathIndex !== null && selectedUser.pathIndex !== undefined
+                        ? selectedUser.pathIndex
+                        : '-'}
+                    </span>
+                  </p>
+                  <div>
+                    <p className="text-[11px] text-slate-400 md:text-xs">
+                      <span className="text-slate-500">Decrypted private key:</span>
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="flex-1 overflow-x-auto rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[10px] text-slate-200">
+                        {selectedUser.privateAddress || '-'}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          selectedUser.privateAddress && handleCopy(selectedUser.privateAddress)
+                        }
+                        className="whitespace-nowrap rounded border border-slate-700 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-500 disabled:opacity-40"
+                        disabled={!selectedUser.privateAddress}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-[10px] text-amber-400">
+                    Keep this information secret. Anyone with this private key can control this wallet.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

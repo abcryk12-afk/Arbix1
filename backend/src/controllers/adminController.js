@@ -1,4 +1,4 @@
-const { User, Wallet, Transaction, WalletKey, UserPackage, sequelize } = require('../models');
+const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
 const { runDailyProfitCredit } = require('../services/dailyProfitService');
@@ -16,6 +16,176 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check admin access',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.listWithdrawalRequests = async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit || 50), 200);
+    const status = req.query.status && String(req.query.status).toLowerCase() !== 'all'
+      ? String(req.query.status).toLowerCase()
+      : null;
+
+    const where = {};
+    if (status) {
+      where.status = status;
+    }
+
+    const requestsRaw = await WithdrawalRequest.findAll({
+      where,
+      order: [[sequelize.col('created_at'), 'DESC']],
+      limit,
+      raw: true,
+    });
+
+    const userIds = Array.from(new Set(requestsRaw.map((r) => r.user_id).filter(Boolean)));
+
+    const [users, wallets] = await Promise.all([
+      userIds.length
+        ? User.findAll({
+            where: { id: userIds },
+            raw: true,
+            attributes: ['id', 'name', 'email', 'referral_code', 'wallet_public_address'],
+          })
+        : [],
+      userIds.length
+        ? Wallet.findAll({
+            where: { user_id: userIds },
+            raw: true,
+            attributes: ['user_id', 'balance'],
+          })
+        : [],
+    ]);
+
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const walletMap = new Map(wallets.map((w) => [w.user_id, w]));
+
+    const requests = requestsRaw.map((r) => {
+      const u = userMap.get(r.user_id) || {};
+      const w = walletMap.get(r.user_id) || {};
+      return {
+        id: r.id,
+        userId: r.user_id,
+        userName: u.name || '',
+        email: u.email || '',
+        referralCode: u.referral_code || '',
+        amount: Number(r.amount || 0),
+        address: r.address,
+        status: r.status,
+        txHash: r.tx_hash || null,
+        userNote: r.user_note || null,
+        adminNote: r.admin_note || null,
+        requestTime: r.created_at,
+        walletAddress: u.wallet_public_address || null,
+        userBalance: Number(w.balance || 0),
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      requests,
+    });
+  } catch (error) {
+    console.error('Admin list withdrawal requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list withdrawal requests',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.updateWithdrawalRequestStatus = async (req, res) => {
+  try {
+    const { id, action, txHash, adminNote } = req.body || {};
+
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId) || numericId <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid withdrawal request id is required' });
+    }
+
+    const normalizedAction = String(action || '').toLowerCase();
+    if (!['approve', 'reject'].includes(normalizedAction)) {
+      return res.status(400).json({ success: false, message: 'action must be approve or reject' });
+    }
+
+    const result = await sequelize.transaction(async (t) => {
+      const request = await WithdrawalRequest.findByPk(numericId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (!request) {
+        return { ok: false, status: 404, message: 'Withdrawal request not found' };
+      }
+
+      if (request.status !== 'pending') {
+        return { ok: false, status: 400, message: 'Only pending requests can be updated' };
+      }
+
+      const userId = request.user_id;
+      const amount = Number(request.amount || 0);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return { ok: false, status: 400, message: 'Invalid withdrawal amount on request' };
+      }
+
+      if (normalizedAction === 'reject') {
+        request.status = 'rejected';
+        request.admin_note = adminNote || null;
+        await request.save({ transaction: t });
+        return { ok: true, request };
+      }
+
+      // approve
+      let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t, lock: t.LOCK.UPDATE });
+      if (!wallet) {
+        wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
+      }
+
+      const currentBalance = Number(wallet.balance || 0);
+      if (!Number.isFinite(currentBalance) || currentBalance < amount) {
+        return { ok: false, status: 400, message: 'User wallet has insufficient balance to approve this withdrawal' };
+      }
+
+      wallet.balance = currentBalance - amount;
+      await wallet.save({ transaction: t });
+
+      await Transaction.create(
+        {
+          user_id: userId,
+          type: 'withdraw',
+          amount,
+          created_by: req.user?.email || 'admin',
+          note: `User withdrawal approved (Request #${request.id})`,
+        },
+        { transaction: t },
+      );
+
+      request.status = 'approved';
+      request.tx_hash = txHash || request.tx_hash || null;
+      request.admin_note = adminNote || request.admin_note || null;
+      await request.save({ transaction: t });
+
+      return { ok: true, request };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to update withdrawal request' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Withdrawal request ${result.request.status} successfully`,
+      request: {
+        id: result.request.id,
+        status: result.request.status,
+        txHash: result.request.tx_hash || null,
+        adminNote: result.request.admin_note || null,
+      },
+    });
+  } catch (error) {
+    console.error('Admin update withdrawal request status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update withdrawal request',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -378,7 +548,7 @@ exports.getAdminStats = async (req, res) => {
         Transaction.sum('amount', { where: { type: 'deposit' } }),
         Transaction.sum('amount', { where: { type: 'withdraw' } }),
         User.count({ where: { kyc_status: 'pending' } }),
-        Transaction.count({ where: { type: 'withdraw' } }),
+        WithdrawalRequest.count({ where: { status: 'pending' } }),
       ]);
 
     res.status(200).json({

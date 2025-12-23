@@ -13,6 +13,8 @@ const {
   runDailyProfit,
   getAdminStats,
   listRecentTransactions,
+  listWithdrawalRequests,
+  updateWithdrawalRequestStatus,
 } = require('../controllers/adminController');
 
 router.get('/check', protect, requireAdminUser, checkAccess);
@@ -24,5 +26,7 @@ router.post('/withdraw', protect, requireAdminUser, withdraw);
 router.post('/run-daily-profit', protect, requireAdminUser, runDailyProfit);
 router.get('/stats', protect, requireAdminUser, getAdminStats);
 router.get('/recent-transactions', protect, requireAdminUser, listRecentTransactions);
+router.get('/withdrawal-requests', protect, requireAdminUser, listWithdrawalRequests);
+router.post('/withdrawal-requests/update', protect, requireAdminUser, updateWithdrawalRequestStatus);
 
 module.exports = router;

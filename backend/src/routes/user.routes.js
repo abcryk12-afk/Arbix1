@@ -9,6 +9,7 @@ const {
   getReferralEarnings,
   activatePackage,
   getPackages,
+  requestWithdrawal,
 } = require('../controllers/userController');
 
 router.get('/summary', protect, getSummary);
@@ -17,5 +18,6 @@ router.get('/referrals', protect, getReferrals);
 router.get('/referral-earnings', protect, getReferralEarnings);
 router.post('/activate-package', protect, activatePackage);
 router.get('/packages', protect, getPackages);
+router.post('/withdraw', protect, requestWithdrawal);
 
 module.exports = router;
