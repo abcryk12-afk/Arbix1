@@ -117,9 +117,9 @@ export default function DashboardPage() {
   const networkMonth = 0;
   const networkAll = 0;
 
-  const activePackagesCount = 0;
-  const activeCapital = 0;
-  const estimatedDailyProfit = 0;
+  const [activePackagesCount, setActivePackagesCount] = useState(0);
+  const [activeCapital, setActiveCapital] = useState(0);
+  const [estimatedDailyProfit, setEstimatedDailyProfit] = useState(0);
 
   const l1Count = teamCounts.l1;
   const l2Count = teamCounts.l2;
@@ -191,6 +191,40 @@ export default function DashboardPage() {
             l2: Number(data.counts?.l2 || 0),
             l3: Number(data.counts?.l3 || 0),
           });
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/packages', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const packagesData = await res.json();
+        if (!cancelled && packagesData?.success && Array.isArray(packagesData?.packages)) {
+          const active = packagesData.packages.filter((p: any) => p?.status === 'active');
+
+          setActivePackagesCount(active.length);
+
+          const totalCap = active.reduce(
+            (sum: number, p: any) => sum + Number(p.capital || 0),
+            0,
+          );
+          setActiveCapital(totalCap);
+
+          const totalDaily = active.reduce(
+            (sum: number, p: any) =>
+              sum + (Number(p.capital || 0) * Number(p.dailyRoi || 0)) / 100,
+            0,
+          );
+          setEstimatedDailyProfit(totalDaily);
         }
       } catch {
         // ignore
@@ -436,38 +470,26 @@ export default function DashboardPage() {
             Active Packages Overview
           </h2>
           <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-80" />
               <p className="text-[11px] text-slate-400">Total Active Packages</p>
               <p className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
                 {activePackagesCount}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent opacity-80" />
               <p className="text-[11px] text-slate-400">Total Active Capital</p>
               <p className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
                 ${activeCapital.toFixed(2)}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent opacity-80" />
               <p className="text-[11px] text-slate-400">Estimated Daily Profit</p>
               <p className="mt-1 text-base font-semibold text-emerald-400 sm:text-lg">
                 ${estimatedDailyProfit.toFixed(2)}
               </p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-2 text-[10px] text-slate-300 sm:gap-3 sm:text-[11px]">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="font-semibold text-slate-100">Gold • $500 • 3% daily</p>
-              <p className="text-slate-400">Today&apos;s profit: $15.00 • Days left: 310</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="font-semibold text-slate-100">Silver • $100 • 2% daily</p>
-              <p className="text-slate-400">Today&apos;s profit: $2.00 • Days left: 360</p>
-            </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="font-semibold text-slate-100">Starter • $50 • 1.5% daily</p>
-              <p className="text-slate-400">Today&apos;s profit: $0.75 • Days left: 365</p>
             </div>
           </div>
 

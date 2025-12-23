@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 type PendingWithdrawal = {
   id: string;
@@ -26,56 +26,73 @@ function shortHash(hash?: string) {
 }
 
 export default function WithdrawPage() {
-  // Demo balances (later from backend)
-  const [available, setAvailable] = useState(280.75);
-  const [pendingTotal] = useState(50.0);
-  const [totalWithdrawn] = useState(1250.0);
-
+  const [available, setAvailable] = useState(0);
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [saveAddress, setSaveAddress] = useState(false);
   const [addressError, setAddressError] = useState('');
   const [amountError, setAmountError] = useState('');
-  const [savedAddresses] = useState<string[]>([ // demo stored address
-    '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-  ]);
+  const [savedAddresses] = useState<string[]>([]); // demo stored address
 
-  const [pending, setPending] = useState<PendingWithdrawal[]>([
-    {
-      id: 'WD-2025-001',
-      amount: 30,
-      address: '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-      createdAt: '2025-12-01 10:45',
-      status: 'Reviewing',
-    },
-    {
-      id: 'WD-2025-002',
-      amount: 20,
-      address: '0xAbCd1234Ef567890aBCd1234Ef567890aBCd12Ef',
-      createdAt: '2025-12-01 09:30',
-      status: 'Pending',
-    },
-  ]);
+  const [pending, setPending] = useState<PendingWithdrawal[]>([]);
 
-  const [history] = useState<WithdrawalHistory[]>([
-    {
-      id: 'WD-2025-0001',
-      amount: 100,
-      address: '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-      createdAt: '2025-11-30 21:10',
-      status: 'Successful',
-      txHash: '0xbadf00d1234567890abcdeffedcba09876543210',
-    },
-    {
-      id: 'WD-2025-0002',
-      amount: 50,
-      address: '0x9a27bCDe1234567890AbCdEf1234567890AbCdEf',
-      createdAt: '2025-11-29 18:20',
-      status: 'Rejected',
-    },
-  ]);
+  const [history] = useState<WithdrawalHistory[]>([]);
+
+  const pendingTotal = useMemo(
+    () => pending.reduce((sum, w) => sum + w.amount, 0),
+    [pending]
+  );
+
+  const totalWithdrawn = useMemo(
+    () =>
+      history.reduce(
+        (sum, h) => (h.status === 'Successful' ? sum + h.amount : sum),
+        0
+      ),
+    [history]
+  );
 
   const pendingSectionRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          if (!cancelled) setAvailable(0);
+          return;
+        }
+
+        const res = await fetch('/api/user/summary', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled) {
+          if (data?.success) {
+            setAvailable(Number(data?.wallet?.balance || 0));
+          } else {
+            setAvailable(0);
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setAvailable(0);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleWithdrawAll = () => {
     setAmount(available.toFixed(2));
@@ -162,7 +179,8 @@ export default function WithdrawPage() {
             Your Withdrawable Balance
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-80" />
               <p className="text-[11px] text-slate-400">Available Balance</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
                 ${available.toFixed(2)}
@@ -171,13 +189,15 @@ export default function WithdrawPage() {
                 Includes daily rewards, referral and bonus earnings
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent opacity-80" />
               <p className="text-[11px] text-slate-400">Pending Withdrawals</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
                 ${pendingTotal.toFixed(2)}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-500/60 to-transparent opacity-80" />
               <p className="text-[11px] text-slate-400">Total Withdrawn (All Time)</p>
               <p className="mt-1 text-lg font-semibold text-slate-100">
                 ${totalWithdrawn.toFixed(2)}
@@ -197,7 +217,8 @@ export default function WithdrawPage() {
       {/* Processing time notice */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 p-4">
+          <div className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-950/80 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/80">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-500/60 to-transparent opacity-80" />
             <p className="text-[11px] font-semibold text-slate-100">
               ⏱ Withdrawal Processing Time
             </p>
@@ -217,7 +238,8 @@ export default function WithdrawPage() {
       {/* Network warning */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="rounded-2xl border border-red-500/70 bg-red-950/30 p-4">
+          <div className="group relative overflow-hidden rounded-2xl border border-red-500/70 bg-red-950/30 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-400 hover:bg-red-950/50">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-400/70 to-transparent opacity-80" />
             <p className="text-[11px] font-semibold text-red-100">
               ⚠ IMPORTANT — Network Requirement
             </p>
@@ -333,8 +355,9 @@ export default function WithdrawPage() {
               {pending.map((w) => (
                 <div
                   key={w.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-300"
+                  className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-300 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60"
                 >
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-600/70 to-transparent opacity-80" />
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-slate-100">{w.id}</p>
                     <p className="text-slate-400">{w.createdAt}</p>
@@ -372,7 +395,7 @@ export default function WithdrawPage() {
           {history.length === 0 ? (
             <p className="mt-2 text-slate-400">No withdrawal history yet.</p>
           ) : (
-            <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
+            <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 shadow-[0_0_0_1px_rgba(15,23,42,0.7)] transition-shadow duration-200 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]">
               <table className="min-w-full divide-y divide-slate-800 text-[11px]">
                 <thead className="bg-slate-950/80 text-slate-400">
                   <tr>
