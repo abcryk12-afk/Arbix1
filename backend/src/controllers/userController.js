@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, UserPackage, WithdrawalRequest } = require('../models');
+const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, sequelize } = require('../models');
+const { ensureWalletForUser } = require('../services/walletService');
 
 const PACKAGES = {
   starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
@@ -22,8 +23,10 @@ exports.getSummary = async (req, res) => {
 
     const transactions = await Transaction.findAll({
       where: { user_id: userId },
-      order: [[Transaction.sequelize.col('created_at'), 'DESC']],
+      order: [[sequelize.col('created_at'), 'DESC']],
       limit: 20,
+      raw: true,
+      attributes: ['id', 'type', 'amount', 'note', [sequelize.col('created_at'), 'createdAt']],
     });
 
     res.status(200).json({
@@ -44,6 +47,118 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user summary',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.listDepositRequests = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = Math.min(Number(req.query.limit || 50), 200);
+    const status = req.query.status ? String(req.query.status).toLowerCase() : '';
+
+    const where = { user_id: userId };
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    const requests = await DepositRequest.findAll({
+      where,
+      order: [[DepositRequest.sequelize.col('created_at'), 'DESC']],
+      limit,
+      raw: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      requests: requests.map((r) => ({
+        id: r.id,
+        amount: Number(r.amount || 0),
+        address: r.address,
+        status: r.status,
+        txHash: r.tx_hash || null,
+        userNote: r.user_note || null,
+        adminNote: r.admin_note || null,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      })),
+    });
+  } catch (error) {
+    console.error('List user deposit requests error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch deposit requests',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.requestDeposit = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { amount, note, txHash } = req.body || {};
+
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return res.status(400).json({ success: false, message: 'Deposit amount must be positive' });
+    }
+
+    if (value < 10) {
+      return res.status(400).json({ success: false, message: 'Minimum deposit is 10 USDT' });
+    }
+
+    const result = await Transaction.sequelize.transaction(async (t) => {
+      const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (!user) {
+        return { ok: false, status: 404, message: 'User not found' };
+      }
+
+      if (!user.wallet_public_address) {
+        await ensureWalletForUser(user);
+        await user.reload({ transaction: t });
+      }
+
+      const address = String(user.wallet_public_address || '').trim();
+      if (!address) {
+        return { ok: false, status: 400, message: 'Wallet address is not assigned yet. Please try again.' };
+      }
+
+      const request = await DepositRequest.create(
+        {
+          user_id: userId,
+          amount: value,
+          address,
+          status: 'pending',
+          user_note: note || null,
+          tx_hash: txHash || null,
+        },
+        { transaction: t },
+      );
+
+      return { ok: true, request };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to submit deposit request' });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Deposit request submitted successfully',
+      request: {
+        id: result.request.id,
+        amount: Number(result.request.amount || 0),
+        address: result.request.address,
+        status: result.request.status,
+        createdAt: result.request.created_at || new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('User deposit request error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to submit deposit request',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -462,7 +577,7 @@ exports.getReferrals = async (req, res) => {
       where: { referred_by_id: userId },
       raw: true,
       attributes: ['id', 'name', 'email', [User.sequelize.col('created_at'), 'createdAt']],
-      order: [[User.sequelize.col('created_at'), 'DESC']],
+      order: [[sequelize.col('created_at'), 'DESC']],
     });
 
     const level1Ids = level1.map((u) => u.id);
@@ -471,7 +586,7 @@ exports.getReferrals = async (req, res) => {
           where: { referred_by_id: level1Ids },
           raw: true,
           attributes: ['id', 'name', 'email', [User.sequelize.col('created_at'), 'createdAt'], 'referred_by_id'],
-          order: [[User.sequelize.col('created_at'), 'DESC']],
+          order: [[sequelize.col('created_at'), 'DESC']],
         })
       : [];
 
@@ -481,7 +596,7 @@ exports.getReferrals = async (req, res) => {
           where: { referred_by_id: level2Ids },
           raw: true,
           attributes: ['id', 'name', 'email', [User.sequelize.col('created_at'), 'createdAt'], 'referred_by_id'],
-          order: [[User.sequelize.col('created_at'), 'DESC']],
+          order: [[sequelize.col('created_at'), 'DESC']],
         })
       : [];
 
