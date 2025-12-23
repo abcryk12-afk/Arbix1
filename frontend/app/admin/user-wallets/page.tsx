@@ -24,6 +24,9 @@ export default function AdminUserWalletsPage() {
   const [users, setUsers] = useState<WalletUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return users;
@@ -35,6 +38,17 @@ export default function AdminUserWalletsPage() {
       );
     });
   }, [query, users]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, users.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,7 +183,7 @@ export default function AdminUserWalletsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((u) => (
+                  paginated.map((u) => (
                     <tr key={u.id}>
                       <td className="px-3 py-2 align-top">
                         <div className="font-semibold text-slate-100">{u.name}</div>
@@ -216,10 +230,64 @@ export default function AdminUserWalletsPage() {
             </table>
           </div>
 
-          <p className="mt-3 text-[10px] text-slate-500">
-            Data source (conceptual): users table — name, email, referral_code,
-            wallet_public_key, wallet_private_key; ordered by created_at DESC.
-          </p>
+          <div className="mt-3 flex flex-col gap-2 text-[11px] text-slate-400 md:flex-row md:items-center md:justify-between">
+            <div>
+              {filtered.length === 0 ? (
+                'No wallet records to display'
+              ) : (
+                (() => {
+                  const startIndex = (page - 1) * PAGE_SIZE + 1;
+                  const endIndex = Math.min(filtered.length, page * PAGE_SIZE);
+                  return (
+                    <>
+                      Showing <span className="font-semibold text-slate-100">{startIndex}</span>–
+                      <span className="font-semibold text-slate-100">{endIndex}</span> of
+                      <span className="font-semibold text-slate-100"> {filtered.length}</span> users
+                    </>
+                  );
+                })()
+              )}
+            </div>
+            {filtered.length > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:hover:border-slate-800"
+                >
+                  Prev
+                </button>
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const pageNum = idx + 1;
+                  const isActive = pageNum === page;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setPage(pageNum)}
+                      className={
+                        'min-w-[2rem] rounded-lg px-2 py-1 text-[10px] transition-colors ' +
+                        (isActive
+                          ? 'bg-slate-200 text-slate-900'
+                          : 'border border-slate-800 text-slate-300 hover:border-slate-600')
+                      }
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:hover:border-slate-800"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>

@@ -118,6 +118,8 @@ type AdminStats = {
   pendingWithdrawals: number;
 };
 
+const ADMIN_USERS_PAGE_SIZE = 5;
+
 // Demo data (to be fully replaced step-by-step)
 const WITHDRAW_REQUESTS: WithdrawRequest[] = [];
 
@@ -247,6 +249,7 @@ export default function AdminDashboardPage() {
   const [createUserMessageType, setCreateUserMessageType] = useState<'success' | 'error' | ''>('');
 
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
+  const [userPage, setUserPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustNote, setAdjustNote] = useState('');
@@ -477,6 +480,17 @@ export default function AdminDashboardPage() {
     return adminUsers.find((u) => u.id === selectedUserId) || null;
   }, [adminUsers, selectedUserId]);
 
+  const totalUserPages = Math.max(1, Math.ceil(adminUsers.length / ADMIN_USERS_PAGE_SIZE));
+
+  const paginatedAdminUsers = useMemo(() => {
+    const start = (userPage - 1) * ADMIN_USERS_PAGE_SIZE;
+    return adminUsers.slice(start, start + ADMIN_USERS_PAGE_SIZE);
+  }, [adminUsers, userPage]);
+
+  useEffect(() => {
+    setUserPage(1);
+  }, [adminUsers.length]);
+
   const handleCreateUser = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -599,41 +613,11 @@ export default function AdminDashboardPage() {
     alert(`Reject withdrawal ${id} - reason: ${reason}`);
   };
 
+  const userStartIndex = adminUsers.length === 0 ? 0 : (userPage - 1) * ADMIN_USERS_PAGE_SIZE + 1;
+  const userEndIndex = Math.min(adminUsers.length, userPage * ADMIN_USERS_PAGE_SIZE);
+
   return (
     <div className="bg-slate-950 text-slate-50 min-h-screen">
-      {/* Admin Header */}
-      <section className="border-b border-slate-800 bg-slate-950/95">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-600 text-xs font-bold text-white">
-              AD
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold tracking-tight">Admin Dashboard</p>
-              <p className="text-[11px] text-slate-400">Arbix Control Panel</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-emerald-600/20 px-2 py-1 text-[10px] text-emerald-300">
-              Super Admin
-            </span>
-            <span className="text-xs text-slate-300">Admin User</span>
-            <button
-              type="button"
-              onClick={() => {
-                localStorage.removeItem('adminToken');
-                localStorage.removeItem('adminUser');
-                router.push('/admin/login');
-              }}
-              className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* New Users + Deposit/Withdraw */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
@@ -774,7 +758,7 @@ export default function AdminDashboardPage() {
                       </td>
                     </tr>
                   ) : (
-                    adminUsers.map((u) => (
+                    paginatedAdminUsers.map((u) => (
                       <tr key={u.id}>
                         <td className="px-3 py-2">{u.createdAt ? String(u.createdAt).slice(0, 19).replace('T', ' ') : '-'}</td>
                         <td className="px-3 py-2">{u.name}</td>
@@ -786,6 +770,59 @@ export default function AdminDashboardPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div className="mt-3 flex flex-col gap-2 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                {adminUsers.length === 0 ? (
+                  'No users to display'
+                ) : (
+                  <>
+                    Showing <span className="font-semibold text-slate-100">{userStartIndex}</span>–
+                    <span className="font-semibold text-slate-100">{userEndIndex}</span> of
+                    <span className="font-semibold text-slate-100"> {adminUsers.length}</span> users
+                  </>
+                )}
+              </div>
+              {adminUsers.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                    disabled={userPage === 1}
+                    className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:hover:border-slate-800"
+                  >
+                    Prev
+                  </button>
+                  {Array.from({ length: totalUserPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    const isActive = pageNum === userPage;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setUserPage(pageNum)}
+                        className={
+                          'min-w-[2rem] rounded-lg px-2 py-1 text-[10px] transition-colors ' +
+                          (isActive
+                            ? 'bg-slate-200 text-slate-900'
+                            : 'border border-slate-800 text-slate-300 hover:border-slate-600')
+                        }
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setUserPage((p) => Math.min(totalUserPages, p + 1))}
+                    disabled={userPage === totalUserPages}
+                    className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:hover:border-slate-800"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
