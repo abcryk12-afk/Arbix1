@@ -25,6 +25,8 @@ export default function AdminUserWalletsPage() {
   const [users, setUsers] = useState<WalletUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
+
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
@@ -248,8 +250,20 @@ export default function AdminUserWalletsPage() {
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <div className="flex-1 overflow-x-auto rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[10px] text-slate-200">
-                        {selectedUser.privateAddress || '-'}
+                        {selectedUser.privateAddress
+                          ? showPrivateKey
+                            ? selectedUser.privateAddress
+                            : '••••••••••••••••••••••••••••••••'
+                          : '-'}
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowPrivateKey((v) => !v)}
+                        className="whitespace-nowrap rounded border border-slate-700 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-500 disabled:opacity-40"
+                        disabled={!selectedUser.privateAddress}
+                      >
+                        {showPrivateKey ? 'Hide' : 'View'}
+                      </button>
                       <button
                         type="button"
                         onClick={() =>
@@ -333,9 +347,9 @@ export default function AdminUserWalletsPage() {
                       </td>
                       <td className="px-3 py-2 align-top">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] text-slate-200">
-                            {u.privateAddress ? shortAddr(u.privateAddress) : '-'}
-                          </span>
+                          <div className="max-w-[180px] overflow-x-auto whitespace-nowrap rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[10px] text-slate-200 md:max-w-none">
+                            {u.privateAddress || '-'}
+                          </div>
                           <button
                             type="button"
                             onClick={() => handleCopy(u.privateAddress)}

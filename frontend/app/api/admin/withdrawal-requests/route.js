@@ -53,7 +53,7 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const response = await fetch(`${baseUrl}/api/admin/withdrawal-requests/update`, {
+    let response = await fetch(`${baseUrl}/api/admin/withdrawal-requests`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,6 +62,18 @@ export async function POST(request) {
       },
       body: JSON.stringify(body),
     });
+
+    if (response.status === 404) {
+      response = await fetch(`${baseUrl}/api/admin/withdrawal-requests/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: authHeader,
+          'X-Admin-Key': adminKey,
+        },
+        body: JSON.stringify(body),
+      });
+    }
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });

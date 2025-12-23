@@ -29,6 +29,7 @@ router.post('/run-daily-profit', protect, requireAdminUser, runDailyProfit);
 router.get('/stats', protect, requireAdminUser, getAdminStats);
 router.get('/recent-transactions', protect, requireAdminUser, listRecentTransactions);
 router.get('/withdrawal-requests', protect, requireAdminUser, listWithdrawalRequests);
+router.post('/withdrawal-requests', protect, requireAdminUser, updateWithdrawalRequestStatus);
 router.post('/withdrawal-requests/update', protect, requireAdminUser, updateWithdrawalRequestStatus);
 
 module.exports = router;
