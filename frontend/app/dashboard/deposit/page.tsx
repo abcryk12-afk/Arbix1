@@ -15,8 +15,14 @@ export default function DepositPage() {
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [addressGenerated, setAddressGenerated] = useState(false);
 
-  const pendingDeposits = 0;
-  const totalDeposited = 0;
+  const [depositRequests, setDepositRequests] = useState<any[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+  const [requestTxHash, setRequestTxHash] = useState('');
+  const [requestNote, setRequestNote] = useState('');
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitMessageType, setSubmitMessageType] = useState<'success' | 'error' | ''>('');
+  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,11 +90,39 @@ export default function DepositPage() {
           }
           setIsLoading(false);
         }
+
+        try {
+          if (!cancelled) setIsLoadingRequests(true);
+
+          const drRes = await fetch('/api/user/deposit-requests?status=all&limit=100', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const drData = await drRes.json();
+          if (!cancelled) {
+            if (drData?.success && Array.isArray(drData?.requests)) {
+              setDepositRequests(drData.requests);
+            } else {
+              setDepositRequests([]);
+            }
+          }
+        } catch {
+          if (!cancelled) {
+            setDepositRequests([]);
+          }
+        } finally {
+          if (!cancelled) setIsLoadingRequests(false);
+        }
       } catch {
         if (!cancelled) {
           setWalletBalance(0);
           setTransactions([]);
+          setDepositRequests([]);
           setIsLoading(false);
+          setIsLoadingRequests(false);
         }
       }
     };
@@ -110,7 +144,17 @@ export default function DepositPage() {
       }));
   }, [transactions]);
 
-  const handleGenerateAddress = (e: FormEvent) => {
+  const pendingDeposits = useMemo(() => {
+    return depositRequests
+      .filter((r) => String(r?.status || '').toLowerCase() === 'pending')
+      .reduce((sum, r) => sum + Number(r?.amount || 0), 0);
+  }, [depositRequests]);
+
+  const totalDeposited = useMemo(() => {
+    return depositTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  }, [depositTransactions]);
+
+  const handleGenerateAddress = async (e: FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount || '0');
     if (isNaN(value) || value < 10) {
@@ -120,6 +164,95 @@ export default function DepositPage() {
     setAmountError('');
     setConfirmedAmount(value);
     setAddressGenerated(true);
+
+    try {
+      setSubmitMessage('');
+      setSubmitMessageType('');
+      setCreatedRequestId(null);
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setSubmitMessage('Not logged in');
+        setSubmitMessageType('error');
+        return;
+      }
+
+      setIsSubmittingRequest(true);
+
+      const res = await fetch('/api/user/deposit-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: value,
+          note: requestNote || undefined,
+          txHash: requestTxHash || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        setSubmitMessage(data?.message || 'Deposit request submitted');
+        setSubmitMessageType('success');
+        if (data?.request?.id != null) {
+          setCreatedRequestId(String(data.request.id));
+        }
+        if (data?.request?.address) {
+          setWalletAddress(String(data.request.address));
+        }
+
+        setRequestTxHash('');
+        setRequestNote('');
+
+        try {
+          const meRes = await fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const meData = await meRes.json();
+          if (meData?.success && meData?.user) {
+            setWalletAddress(meData.user?.wallet_public_address || meData.user?.walletPublicAddress || '');
+            try {
+              localStorage.setItem('user', JSON.stringify(meData.user));
+            } catch {
+              // ignore
+            }
+          }
+        } catch {
+          // ignore
+        }
+
+        try {
+          setIsLoadingRequests(true);
+          const drRes = await fetch('/api/user/deposit-requests?status=all&limit=100', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const drData = await drRes.json();
+          if (drData?.success && Array.isArray(drData?.requests)) {
+            setDepositRequests(drData.requests);
+          }
+        } catch {
+          // ignore
+        } finally {
+          setIsLoadingRequests(false);
+        }
+      } else {
+        setSubmitMessage(data?.message || 'Failed to submit deposit request');
+        setSubmitMessageType('error');
+      }
+    } catch {
+      setSubmitMessage('An error occurred while submitting the request');
+      setSubmitMessageType('error');
+    } finally {
+      setIsSubmittingRequest(false);
+    }
 
     const el = document.getElementById('deposit-address-section');
     if (el) {
@@ -251,31 +384,70 @@ export default function DepositPage() {
               </div>
             </div>
 
-            <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="amount">
-                Amount (USDT)
-              </label>
-              <input
-                id="amount"
-                type="number"
-                min={10}
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                placeholder="Enter amount (minimum 10 USDT)"
-              />
-              {amountError && (
-                <p className="mt-1 text-[10px] text-red-400">{amountError}</p>
-              )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400" htmlFor="amount">
+                  Amount (USDT)
+                </label>
+                <input
+                  id="amount"
+                  type="number"
+                  min={10}
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Enter amount (minimum 10 USDT)"
+                />
+                {amountError && <p className="mt-1 text-[10px] text-red-400">{amountError}</p>}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] text-slate-400" htmlFor="txHash">
+                  Tx Hash (optional)
+                </label>
+                <input
+                  id="txHash"
+                  value={requestTxHash}
+                  onChange={(e) => setRequestTxHash(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Paste your transaction hash (optional)"
+                />
+                <label className="mb-1 mt-3 block text-[11px] text-slate-400" htmlFor="note">
+                  Note (optional)
+                </label>
+                <textarea
+                  id="note"
+                  value={requestNote}
+                  onChange={(e) => setRequestNote(e.target.value)}
+                  rows={2}
+                  className="w-full resize-none rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Any note for admin (optional)"
+                />
+              </div>
             </div>
 
             <button
               type="submit"
+              disabled={isSubmittingRequest}
               className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
             >
-              Next: Generate Deposit Address
+              {isSubmittingRequest ? 'Creating request...' : 'Generate Deposit Address'}
             </button>
+
+            {submitMessage && (
+              <div
+                className={
+                  'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
+                  (submitMessageType === 'success'
+                    ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                    : 'border-red-500/60 bg-red-950/20 text-red-200')
+                }
+              >
+                {submitMessage}
+                {createdRequestId ? ` (Request #${createdRequestId})` : ''}
+              </div>
+            )}
 
             <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-500">
               <span>Step 1: Enter amount</span>
@@ -332,6 +504,19 @@ export default function DepositPage() {
                     </p>
                   </div>
                 )}
+
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                  <p className="text-[11px] text-slate-400">Deposit Request</p>
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    A deposit request is created automatically when you generate the address.
+                    You can track it in the Deposit Requests table below.
+                  </p>
+                  {createdRequestId && (
+                    <p className="mt-2 text-[11px] text-emerald-300">
+                      Created: Request #{createdRequestId} (Pending)
+                    </p>
+                  )}
+                </div>
 
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-400">
                   <p>
@@ -415,7 +600,9 @@ export default function DepositPage() {
           <div className="mt-5 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Pending Deposits</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">0</p>
+              <p className="mt-1 text-lg font-semibold text-amber-400">
+                {depositRequests.filter((r) => String(r?.status || '').toLowerCase() === 'pending').length}
+              </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Processing</p>
@@ -433,14 +620,14 @@ export default function DepositPage() {
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Recent Deposit History
+            Deposit Requests
           </h2>
           <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
             <table className="min-w-full divide-y divide-slate-800 text-[11px]">
               <thead className="bg-slate-950/80 text-slate-400">
                 <tr>
                   <th className="px-3 py-2 text-left">Date / Time</th>
-                  <th className="px-3 py-2 text-left">Deposit ID</th>
+                  <th className="px-3 py-2 text-left">Request ID</th>
                   <th className="px-3 py-2 text-left">Amount (USDT)</th>
                   <th className="px-3 py-2 text-left">Status</th>
                   <th className="px-3 py-2 text-left">Tx Hash</th>
@@ -448,23 +635,38 @@ export default function DepositPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
-                {depositTransactions.length === 0 ? (
+                {depositRequests.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
-                      {isLoading ? 'Loading...' : 'No deposits yet'}
+                      {isLoading || isLoadingRequests ? 'Loading...' : 'No deposit requests yet'}
                     </td>
                   </tr>
                 ) : (
-                  depositTransactions.map((t) => (
-                    <tr key={t.id}>
+                  depositRequests.map((r) => (
+                    <tr key={String(r.id)}>
                       <td className="px-3 py-2">
-                        {t.createdAt ? t.createdAt.toISOString().replace('T', ' ').slice(0, 19) : '-'}
+                        {r?.createdAt ? String(r.createdAt).slice(0, 19).replace('T', ' ') : '-'}
                       </td>
-                      <td className="px-3 py-2">{t.id}</td>
-                      <td className="px-3 py-2">{t.amount.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-emerald-400">Successful</td>
-                      <td className="px-3 py-2">-</td>
-                      <td className="px-3 py-2 text-right text-slate-400">{t.note || '-'}</td>
+                      <td className="px-3 py-2">#{String(r.id)}</td>
+                      <td className="px-3 py-2">{Number(r?.amount || 0).toFixed(2)}</td>
+                      <td
+                        className={
+                          'px-3 py-2 ' +
+                          (String(r?.status || '').toLowerCase() === 'pending'
+                            ? 'text-amber-400'
+                            : String(r?.status || '').toLowerCase() === 'approved'
+                            ? 'text-emerald-400'
+                            : String(r?.status || '').toLowerCase() === 'rejected'
+                            ? 'text-red-400'
+                            : 'text-slate-300')
+                        }
+                      >
+                        {String(r?.status || '-')}
+                      </td>
+                      <td className="px-3 py-2">
+                        {r?.txHash ? String(r.txHash).slice(0, 10) + '...' + String(r.txHash).slice(-6) : '-'}
+                      </td>
+                      <td className="px-3 py-2 text-right text-slate-400">{r?.userNote || '-'}</td>
                     </tr>
                   ))
                 )}
