@@ -28,12 +28,12 @@ function KpiCard({ href, label, value, subLabel, accentClassName, loading }: Kpi
     <a
       href={href}
       className={
-        'group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 ' +
-        'hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 ' +
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none'
+        'group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 ' +
+        'hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none'
       }
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium tracking-wide text-slate-400">
@@ -68,8 +68,8 @@ type MiniStatCardProps = {
 
 function MiniStatCard({ label, value, accentClassName }: MiniStatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/40 motion-reduce:transform-none">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] motion-reduce:transform-none">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium tracking-wide text-slate-400">{label}</p>
@@ -290,7 +290,7 @@ export default function DashboardPage() {
   ]);
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-50">
       {/* Welcome Block */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
@@ -347,7 +347,8 @@ export default function DashboardPage() {
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid gap-3 text-xs text-slate-300 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)]">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
               <p className="text-[11px] font-semibold text-slate-100">
                 My Trading Earnings
               </p>
@@ -373,7 +374,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
               <p className="text-[11px] font-semibold text-slate-100">
                 My Network Earnings
               </p>
@@ -418,45 +420,45 @@ export default function DashboardPage() {
             <a
               href="/dashboard/deposit"
               className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
-                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
+                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
               }
             >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
               Deposit Funds
             </a>
             <a
               href="/dashboard/invest"
               className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
-                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
+                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
               }
             >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
               Start Investment
             </a>
             <a
               href="/dashboard/withdraw"
               className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
-                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
+                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
               }
             >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
               Withdraw Funds
             </a>
             <a
               href="/dashboard/team"
               className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-3 text-[11px] font-medium text-slate-200 ' +
-                'transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 hover:text-slate-50 ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transform-none motion-reduce:transition-none'
+                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
+                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
               }
             >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
               My Team &amp; Earnings
             </a>
           </div>
@@ -546,14 +548,16 @@ export default function DashboardPage() {
               activities.map((a) => (
                 <div
                   key={a.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"
+                  className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
                 >
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
                   <p>{a.text}</p>
                   <p className="mt-1 text-[10px] text-slate-500">{a.time}</p>
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-slate-400">
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
                 No recent activity yet.
               </div>
             )}
@@ -572,14 +576,16 @@ export default function DashboardPage() {
               announcements.map((n) => (
                 <div
                   key={n.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"
+                  className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
                 >
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
                   <p className="font-semibold text-slate-100">{n.title}</p>
                   <p className="mt-1 text-slate-400">{n.text}</p>
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-slate-400">
+              <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
                 No announcements right now.
               </div>
             )}
