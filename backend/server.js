@@ -9,6 +9,7 @@ const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const adminLoginRoutes = require('./src/routes/adminLogin.routes');
 const userRoutes = require('./src/routes/user.routes');
+const publicRoutes = require('./src/routes/public.routes');
 const db = require('./src/config/db');
 const { startDailyProfitScheduler } = require('./src/services/dailyProfitService');
 
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminLoginRoutes); // Register login routes first
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/public', publicRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

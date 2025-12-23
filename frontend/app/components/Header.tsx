@@ -1,11 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const res = await fetch('/api/public/branding', { method: 'GET' });
+        const data = await res.json();
+        if (!cancelled && data?.success) {
+          setLogoDataUrl(data?.branding?.logoDataUrl || null);
+        }
+      } catch {
+        if (!cancelled) setLogoDataUrl(null);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (
     pathname?.startsWith("/dashboard") ||
@@ -32,8 +52,13 @@ export default function Header() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:py-4">
           {/* Logo + brand */}
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white">
-              AX
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white overflow-hidden">
+              {logoDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoDataUrl} alt="Arbix" className="h-9 w-9 object-contain" />
+              ) : (
+                'AX'
+              )}
             </div>
             <div>
               <div className="text-sm font-semibold tracking-tight">Arbix</div>

@@ -18,6 +18,12 @@ const {
   updateWithdrawalRequestStatus,
 } = require('../controllers/adminController');
 
+const {
+  getAdminBranding,
+  setLogo,
+  removeLogo,
+} = require('../controllers/brandingController');
+
 router.get('/check', protect, requireAdminUser, checkAccess);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
@@ -31,5 +37,9 @@ router.get('/recent-transactions', protect, requireAdminUser, listRecentTransact
 router.get('/withdrawal-requests', protect, requireAdminUser, listWithdrawalRequests);
 router.post('/withdrawal-requests', protect, requireAdminUser, updateWithdrawalRequestStatus);
 router.post('/withdrawal-requests/update', protect, requireAdminUser, updateWithdrawalRequestStatus);
+
+router.get('/branding', protect, requireAdminUser, getAdminBranding);
+router.post('/branding/logo', protect, requireAdminUser, setLogo);
+router.delete('/branding/logo', protect, requireAdminUser, removeLogo);
 
 module.exports = router;

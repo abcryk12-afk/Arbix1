@@ -5,6 +5,7 @@ const Transaction = require('./Transaction');
 const WalletKey = require('./WalletKey');
 const UserPackage = require('./UserPackage');
 const WithdrawalRequest = require('./WithdrawalRequest');
+const SiteSetting = require('./SiteSetting');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -29,4 +30,5 @@ module.exports = {
   WalletKey,
   UserPackage,
   WithdrawalRequest,
+  SiteSetting,
 };
