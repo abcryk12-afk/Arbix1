@@ -17,8 +17,6 @@ export default function DepositPage() {
 
   const [depositRequests, setDepositRequests] = useState<any[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
-  const [requestTxHash, setRequestTxHash] = useState('');
-  const [requestNote, setRequestNote] = useState('');
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitMessageType, setSubmitMessageType] = useState<'success' | 'error' | ''>('');
@@ -162,14 +160,13 @@ export default function DepositPage() {
       return;
     }
     setAmountError('');
-    setConfirmedAmount(value);
-    setAddressGenerated(true);
+    setSubmitMessage('');
+    setSubmitMessageType('');
+    setCreatedRequestId(null);
+    setAddressGenerated(false);
+    setConfirmedAmount(null);
 
     try {
-      setSubmitMessage('');
-      setSubmitMessageType('');
-      setCreatedRequestId(null);
-
       const token = localStorage.getItem('token');
       if (!token) {
         setSubmitMessage('Not logged in');
@@ -187,13 +184,13 @@ export default function DepositPage() {
         },
         body: JSON.stringify({
           amount: value,
-          note: requestNote || undefined,
-          txHash: requestTxHash || undefined,
         }),
       });
 
       const data = await res.json();
       if (data?.success) {
+        setConfirmedAmount(value);
+        setAddressGenerated(true);
         setSubmitMessage(data?.message || 'Deposit request submitted');
         setSubmitMessageType('success');
         if (data?.request?.id != null) {
@@ -203,8 +200,12 @@ export default function DepositPage() {
           setWalletAddress(String(data.request.address));
         }
 
-        setRequestTxHash('');
-        setRequestNote('');
+        setTimeout(() => {
+          const el = document.getElementById('deposit-address-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 50);
 
         try {
           const meRes = await fetch('/api/auth/me', {
@@ -253,11 +254,6 @@ export default function DepositPage() {
     } finally {
       setIsSubmittingRequest(false);
     }
-
-    const el = document.getElementById('deposit-address-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   const handleCopy = async () => {
@@ -270,10 +266,6 @@ export default function DepositPage() {
       setCopied(false);
     }
   };
-
-  const shortAddress = walletAddress
-    ? `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}`
-    : 'Not assigned';
 
   const qrCodeUrl =
     walletAddress && addressGenerated
@@ -384,7 +376,7 @@ export default function DepositPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div>
               <div>
                 <label className="mb-1 block text-[11px] text-slate-400" htmlFor="amount">
                   Amount (USDT)
@@ -400,30 +392,6 @@ export default function DepositPage() {
                   placeholder="Enter amount (minimum 10 USDT)"
                 />
                 {amountError && <p className="mt-1 text-[10px] text-red-400">{amountError}</p>}
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400" htmlFor="txHash">
-                  Tx Hash (optional)
-                </label>
-                <input
-                  id="txHash"
-                  value={requestTxHash}
-                  onChange={(e) => setRequestTxHash(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                  placeholder="Paste your transaction hash (optional)"
-                />
-                <label className="mb-1 mt-3 block text-[11px] text-slate-400" htmlFor="note">
-                  Note (optional)
-                </label>
-                <textarea
-                  id="note"
-                  value={requestNote}
-                  onChange={(e) => setRequestNote(e.target.value)}
-                  rows={2}
-                  className="w-full resize-none rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                  placeholder="Any note for admin (optional)"
-                />
               </div>
             </div>
 
@@ -478,8 +446,8 @@ export default function DepositPage() {
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
                   <p className="text-[11px] text-slate-400">Deposit Address</p>
                   <div className="mt-1 flex items-center justify-between gap-2 text-[11px] md:text-xs">
-                    <span className="truncate text-slate-100" title={walletAddress}>
-                      {shortAddress}
+                    <span className="break-all font-mono text-[10px] text-slate-100" title={walletAddress}>
+                      {walletAddress || '-'}
                     </span>
                     <button
                       onClick={handleCopy}
@@ -630,14 +598,12 @@ export default function DepositPage() {
                   <th className="px-3 py-2 text-left">Request ID</th>
                   <th className="px-3 py-2 text-left">Amount (USDT)</th>
                   <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Tx Hash</th>
-                  <th className="px-3 py-2 text-right">Note / Explorer</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {depositRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={4} className="px-3 py-6 text-center text-slate-500">
                       {isLoading || isLoadingRequests ? 'Loading...' : 'No deposit requests yet'}
                     </td>
                   </tr>
@@ -663,10 +629,6 @@ export default function DepositPage() {
                       >
                         {String(r?.status || '-')}
                       </td>
-                      <td className="px-3 py-2">
-                        {r?.txHash ? String(r.txHash).slice(0, 10) + '...' + String(r.txHash).slice(-6) : '-'}
-                      </td>
-                      <td className="px-3 py-2 text-right text-slate-400">{r?.userNote || '-'}</td>
                     </tr>
                   ))
                 )}
@@ -686,11 +648,10 @@ export default function DepositPage() {
             If your deposit is not visible after 30–40 minutes:
           </p>
           <ul className="mt-2 space-y-1 text-slate-400">
-            <li>• Check the transaction hash on the blockchain explorer.</li>
+            <li>• Make sure you sent USDT on BNB Smart Chain (BEP20) to the correct address.</li>
             <li>• Verify the number of confirmations on BNB Smart Chain.</li>
             <li>
-              • Contact Support and share your Deposit ID (from Recent Deposit
-              History) and transaction hash.
+              • Contact Support and share your Deposit Request ID (from Deposit Requests).
             </li>
           </ul>
           <a

@@ -16,6 +16,8 @@ const {
   listRecentTransactions,
   listWithdrawalRequests,
   updateWithdrawalRequestStatus,
+  listDepositRequests,
+  updateDepositRequestStatus,
 } = require('../controllers/adminController');
 
 const {
@@ -37,6 +39,10 @@ router.get('/recent-transactions', protect, requireAdminUser, listRecentTransact
 router.get('/withdrawal-requests', protect, requireAdminUser, listWithdrawalRequests);
 router.post('/withdrawal-requests', protect, requireAdminUser, updateWithdrawalRequestStatus);
 router.post('/withdrawal-requests/update', protect, requireAdminUser, updateWithdrawalRequestStatus);
+
+router.get('/deposit-requests', protect, requireAdminUser, listDepositRequests);
+router.post('/deposit-requests', protect, requireAdminUser, updateDepositRequestStatus);
+router.post('/deposit-requests/update', protect, requireAdminUser, updateDepositRequestStatus);
 
 router.get('/branding', protect, requireAdminUser, getAdminBranding);
 router.post('/branding/logo', protect, requireAdminUser, setLogo);
