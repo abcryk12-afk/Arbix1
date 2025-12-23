@@ -52,6 +52,74 @@ exports.getSummary = async (req, res) => {
   }
 };
 
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, phone } = req.body || {};
+
+    const updates = {};
+
+    if (name !== undefined) {
+      if (name === null) {
+        updates.name = null;
+      } else if (typeof name === 'string') {
+        const trimmed = name.trim();
+        if (trimmed && trimmed.length < 2) {
+          return res.status(400).json({ success: false, message: 'Name must be at least 2 characters' });
+        }
+        updates.name = trimmed || null;
+      } else {
+        return res.status(400).json({ success: false, message: 'Invalid name' });
+      }
+    }
+
+    if (phone !== undefined) {
+      if (phone === null) {
+        updates.phone = null;
+      } else if (typeof phone === 'string') {
+        const trimmed = phone.trim();
+        if (trimmed.length > 50) {
+          return res.status(400).json({ success: false, message: 'Phone number is too long' });
+        }
+        updates.phone = trimmed || null;
+      } else {
+        return res.status(400).json({ success: false, message: 'Invalid phone number' });
+      }
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ success: false, message: 'No fields to update' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (updates.name !== undefined) user.name = updates.name;
+    if (updates.phone !== undefined) user.phone = updates.phone;
+
+    await user.save();
+
+    const cleanUser = await User.findByPk(userId, {
+      attributes: { exclude: ['password_hash', 'reset_token', 'reset_token_expires_at'] },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: cleanUser,
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.listDepositRequests = async (req, res) => {
   try {
     const userId = req.user.id;

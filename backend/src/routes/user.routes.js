@@ -4,6 +4,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const {
   getSummary,
+  updateProfile,
   getFooterStats,
   getReferrals,
   getReferralEarnings,
@@ -16,6 +17,7 @@ const {
 } = require('../controllers/userController');
 
 router.get('/summary', protect, getSummary);
+router.put('/profile', protect, updateProfile);
 router.get('/footer-stats', protect, getFooterStats);
 router.get('/referrals', protect, getReferrals);
 router.get('/referral-earnings', protect, getReferralEarnings);

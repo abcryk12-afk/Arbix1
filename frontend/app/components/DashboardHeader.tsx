@@ -18,14 +18,35 @@ export default function DashboardHeader() {
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (!storedUser) return;
-      const u = JSON.parse(storedUser);
-      setDisplayName(u?.name || u?.email || '');
-    } catch {
-      // ignore
-    }
+    const refresh = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
+          setDisplayName('');
+          return;
+        }
+        const u = JSON.parse(storedUser);
+        setDisplayName(u?.name || u?.email || '');
+      } catch {
+        // ignore
+      }
+    };
+
+    refresh();
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'user') refresh();
+    };
+
+    const onUserUpdated = () => refresh();
+
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('arbix-user-updated', onUserUpdated);
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
+    };
   }, []);
 
   useEffect(() => {

@@ -1,14 +1,22 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
 export default function ProfilePage() {
+  const router = useRouter();
   // Demo data – later map from backend
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [saveMessageType, setSaveMessageType] = useState<'success' | 'error' | ''>('');
 
   useEffect(() => {
     let cancelled = false;
@@ -99,6 +107,85 @@ export default function ProfilePage() {
     }
   };
 
+  const handleStartEdit = () => {
+    setSaveMessage('');
+    setSaveMessageType('');
+    setFormName(user?.name != null ? String(user.name) : '');
+    setFormPhone(user?.phone != null ? String(user.phone) : '');
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setSaveMessage('');
+    setSaveMessageType('');
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaveMessage('');
+      setSaveMessageType('');
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setSaveMessage('Not logged in');
+        setSaveMessageType('error');
+        return;
+      }
+
+      const payload = {
+        name: formName.trim() ? formName.trim() : null,
+        phone: formPhone.trim() ? formPhone.trim() : null,
+      };
+
+      setIsSaving(true);
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data?.success && data?.user) {
+        setUser(data.user);
+        try {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } catch {
+          // ignore
+        }
+        try {
+          window.dispatchEvent(new Event('arbix-user-updated'));
+        } catch {
+          // ignore
+        }
+        setSaveMessage(data?.message || 'Profile updated');
+        setSaveMessageType('success');
+        setIsEditing(false);
+      } else {
+        setSaveMessage(data?.message || 'Failed to update profile');
+        setSaveMessageType('error');
+      }
+    } catch {
+      setSaveMessage('An error occurred while updating your profile');
+      setSaveMessageType('error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch {
+      // ignore
+    }
+    router.replace('/auth/login');
+  };
+
   const kycBlock = (() => {
     if (kycStatus === 'approved') {
       return {
@@ -157,7 +244,7 @@ export default function ProfilePage() {
             <p className="mt-1 text-[11px] md:text-xs">{kycBlock.message}</p>
             {'buttonLabel' in kycBlock && kycBlock.buttonLabel && (
               <a
-                href="/profile/kyc"
+                href="/aml-kyc"
                 className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-1.5 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500"
               >
                 {kycBlock.buttonLabel}
@@ -174,23 +261,85 @@ export default function ProfilePage() {
             <h2 className="text-sm font-semibold text-slate-50 md:text-base">
               Personal Information
             </h2>
-            <button className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500">
-              Edit Profile
-            </button>
+            {!isEditing ? (
+              <button
+                type="button"
+                onClick={handleStartEdit}
+                className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="rounded-lg bg-primary px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500"
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            )}
           </div>
+
+          {saveMessage && (
+            <div
+              className={
+                'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
+                (saveMessageType === 'success'
+                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+              }
+            >
+              {saveMessage}
+            </div>
+          )}
+
           <div className="mt-3 space-y-2 text-[11px] md:text-xs">
-            <p>
-              <span className="text-slate-400">Full Name:</span>{' '}
-              <span className="font-semibold text-slate-100">{userName}</span>
-            </p>
-            <p>
-              <span className="text-slate-400">Email Address:</span>{' '}
-              <span className="font-semibold text-slate-100">{email}</span>
-            </p>
-            <p>
-              <span className="text-slate-400">Phone Number:</span>{' '}
-              <span className="font-semibold text-slate-100">{phone}</span>
-            </p>
+            <div>
+              <div className="text-slate-400">Full Name</div>
+              {isEditing ? (
+                <input
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Enter your name"
+                />
+              ) : (
+                <div className="mt-1 font-semibold text-slate-100">{userName}</div>
+              )}
+            </div>
+            <div>
+              <div className="text-slate-400">Email Address</div>
+              <input
+                value={email}
+                readOnly
+                className="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 text-xs text-slate-300"
+              />
+              <div className="mt-1 text-[10px] text-slate-500">Email cannot be changed.</div>
+            </div>
+            <div>
+              <div className="text-slate-400">Phone Number</div>
+              {isEditing ? (
+                <input
+                  value={formPhone}
+                  onChange={(e) => setFormPhone(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  placeholder="Enter phone number"
+                />
+              ) : (
+                <div className="mt-1 font-semibold text-slate-100">{phone}</div>
+              )}
+            </div>
             <p className="mt-1 text-[10px] text-slate-500">
               Note: Only non-sensitive fields (name and phone) should be editable.
               Email changes require support and additional verification.
@@ -349,7 +498,11 @@ export default function ProfilePage() {
       {/* Logout Section */}
       <section className="bg-slate-950">
         <div className="mx-auto max-w-3xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <button className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
+          >
             Logout
           </button>
           <p className="mt-2 text-center text-[10px] text-slate-500">
