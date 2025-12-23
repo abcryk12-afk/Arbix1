@@ -36,11 +36,17 @@ export default function WithdrawPage() {
 
   const [pending, setPending] = useState<PendingWithdrawal[]>([]);
 
-  const [history] = useState<WithdrawalHistory[]>([]);
+  const [history, setHistory] = useState<WithdrawalHistory[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
 
   const pendingTotal = useMemo(
     () => pending.reduce((sum, w) => sum + w.amount, 0),
     [pending]
+  );
+
+  const withdrawable = useMemo(
+    () => Math.max(0, available - pendingTotal),
+    [available, pendingTotal]
   );
 
   const totalWithdrawn = useMemo(
@@ -94,8 +100,82 @@ export default function WithdrawPage() {
     };
   }, []);
 
+  const loadWithdrawalRequests = async () => {
+    try {
+      setIsLoadingRequests(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setPending([]);
+        setHistory([]);
+        return;
+      }
+
+      const res = await fetch('/api/user/withdrawal-requests?limit=200', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!data?.success || !Array.isArray(data?.requests)) {
+        setPending([]);
+        setHistory([]);
+        return;
+      }
+
+      const pendingRows: PendingWithdrawal[] = [];
+      const historyRows: WithdrawalHistory[] = [];
+
+      for (const r of data.requests) {
+        const statusRaw = String(r.status || '').toLowerCase();
+        const createdAtStr = r.createdAt
+          ? String(r.createdAt).slice(0, 16).replace('T', ' ')
+          : '';
+
+        if (statusRaw === 'pending') {
+          pendingRows.push({
+            id: String(r.id),
+            amount: Number(r.amount || 0),
+            address: String(r.address || ''),
+            createdAt: createdAtStr,
+            status: 'Pending',
+          });
+          continue;
+        }
+
+        historyRows.push({
+          id: String(r.id),
+          amount: Number(r.amount || 0),
+          address: String(r.address || ''),
+          createdAt: createdAtStr,
+          status:
+            statusRaw === 'approved'
+              ? 'Successful'
+              : statusRaw === 'rejected'
+              ? 'Rejected'
+              : 'Failed',
+          txHash: r.txHash != null ? String(r.txHash) : undefined,
+        });
+      }
+
+      setPending(pendingRows);
+      setHistory(historyRows);
+    } catch {
+      setPending([]);
+      setHistory([]);
+    } finally {
+      setIsLoadingRequests(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWithdrawalRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleWithdrawAll = () => {
-    setAmount(available.toFixed(2));
+    setAmount(withdrawable.toFixed(2));
   };
 
   const validateAddress = (addr: string) => {
@@ -110,7 +190,7 @@ export default function WithdrawPage() {
     if (isNaN(num) || num < 10) {
       return 'Minimum withdrawal is 10 USDT.';
     }
-    if (num > available) {
+    if (num > withdrawable) {
       return 'Insufficient balance.';
     }
     return '';
@@ -170,8 +250,9 @@ export default function WithdrawPage() {
       };
 
       setPending((prev) => [newReq, ...prev]);
-      setAvailable((prev) => prev - newReq.amount);
       setAmount('');
+
+      await loadWithdrawalRequests();
 
       if (pendingSectionRef.current) {
         pendingSectionRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -219,9 +300,9 @@ export default function WithdrawPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Available Balance</p>
+              <p className="text-[11px] text-slate-400">Withdrawable Balance</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
-                ${available.toFixed(2)}
+                ${withdrawable.toFixed(2)}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
                 Includes daily rewards, referral and bonus earnings
@@ -357,7 +438,7 @@ export default function WithdrawPage() {
                 required
               />
               <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Available: ${available.toFixed(2)}</span>
+                <span>Withdrawable: ${withdrawable.toFixed(2)}</span>
                 <span>Minimum withdrawal: 10 USDT</span>
               </div>
               {amountError && (
@@ -386,7 +467,9 @@ export default function WithdrawPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Pending Withdrawals
           </h2>
-          {pending.length === 0 ? (
+          {isLoadingRequests ? (
+            <p className="mt-2 text-slate-400">Loading...</p>
+          ) : pending.length === 0 ? (
             <p className="mt-2 text-slate-400">You have no pending withdrawal requests.</p>
           ) : (
             <div className="mt-3 space-y-2">
@@ -430,7 +513,9 @@ export default function WithdrawPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Withdrawal History
           </h2>
-          {history.length === 0 ? (
+          {isLoadingRequests ? (
+            <p className="mt-2 text-slate-400">Loading...</p>
+          ) : history.length === 0 ? (
             <p className="mt-2 text-slate-400">No withdrawal history yet.</p>
           ) : (
             <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 shadow-[0_0_0_1px_rgba(15,23,42,0.7)] transition-shadow duration-200 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]">

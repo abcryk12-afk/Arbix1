@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
+const { deriveChildWallet } = require('../utils/hdWallet');
 const { runDailyProfitCredit } = require('../services/dailyProfitService');
 
 exports.checkAccess = async (req, res) => {
@@ -368,13 +369,6 @@ exports.runDailyProfit = async (req, res) => {
 
 exports.listWallets = async (req, res) => {
   try {
-    if (!process.env.WALLET_ENC_KEY) {
-      return res.status(500).json({
-        success: false,
-        message: 'Wallet encryption key is not configured',
-      });
-    }
-
     const limit = Math.min(Number(req.query.limit || 50), 200);
 
     const users = await User.findAll({
@@ -387,6 +381,7 @@ exports.listWallets = async (req, res) => {
         'email',
         ['referral_code', 'referralCode'],
         ['wallet_public_address', 'walletAddress'],
+        ['wallet_private_key_encrypted', 'walletPrivateKeyEncrypted'],
         [sequelize.col('created_at'), 'createdAt'],
       ],
     });
@@ -400,8 +395,29 @@ exports.listWallets = async (req, res) => {
       const address = u.walletAddress || (k ? k.address : null);
       let privateKey = null;
       if (k) {
+        if (process.env.WALLET_ENC_KEY) {
+          try {
+            privateKey = decrypt(k.privateKeyEncrypted);
+          } catch {
+            privateKey = null;
+          }
+        }
+
+        if (!privateKey && Number.isFinite(Number(k.pathIndex))) {
+          try {
+            const derived = deriveChildWallet(Number(k.pathIndex));
+            if (derived?.address && address && String(derived.address).toLowerCase() === String(address).toLowerCase()) {
+              privateKey = derived.privateKey;
+            }
+          } catch {
+            privateKey = privateKey;
+          }
+        }
+      }
+
+      if (!privateKey && process.env.WALLET_ENC_KEY && u.walletPrivateKeyEncrypted) {
         try {
-          privateKey = decrypt(k.privateKeyEncrypted);
+          privateKey = decrypt(u.walletPrivateKeyEncrypted);
         } catch {
           privateKey = null;
         }

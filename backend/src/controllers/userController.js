@@ -49,6 +49,48 @@ exports.getSummary = async (req, res) => {
   }
 };
 
+exports.listWithdrawalRequests = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = Math.min(Number(req.query.limit || 50), 200);
+    const status = req.query.status ? String(req.query.status).toLowerCase() : '';
+
+    const where = { user_id: userId };
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    const requests = await WithdrawalRequest.findAll({
+      where,
+      order: [[WithdrawalRequest.sequelize.col('created_at'), 'DESC']],
+      limit,
+      raw: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      requests: requests.map((r) => ({
+        id: r.id,
+        amount: Number(r.amount || 0),
+        address: r.address,
+        status: r.status,
+        txHash: r.tx_hash || null,
+        userNote: r.user_note || null,
+        adminNote: r.admin_note || null,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      })),
+    });
+  } catch (error) {
+    console.error('List user withdrawal requests error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch withdrawal requests',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.requestWithdrawal = async (req, res) => {
   try {
     const userId = req.user.id;

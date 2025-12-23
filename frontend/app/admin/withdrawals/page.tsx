@@ -20,10 +20,77 @@ import { useRouter } from 'next/navigation';
   userBalance: number;
 };
 
+type UserPackageRow = {
+  id: number;
+  packageId: string;
+  packageName: string;
+  capital: number;
+  dailyRoi: number;
+  dailyRevenue: number;
+  durationDays: number;
+  totalEarned: number;
+  startAt: string | null;
+  endAt: string | null;
+  status: string;
+  lastProfitAt: string | null;
+};
+
+type UserDetailsResponse = {
+  success: boolean;
+  message?: string;
+  user?: {
+    id: number;
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+    referralCode: string | null;
+    referredById: number | null;
+    kycStatus: string | null;
+    accountStatus: string | null;
+    role: string | null;
+    walletPublicAddress: string | null;
+    createdAt: string | null;
+    lastLogin: string | null;
+  };
+  wallet?: {
+    balance: number;
+    currency: string;
+  };
+  packages?: UserPackageRow[];
+  earnings?: {
+    byType: Record<string, number>;
+  };
+  referrals?: {
+    l1Count: number;
+    l2Count: number;
+    l3Count: number;
+  };
+};
+
 function shortAddr(addr: string | null | undefined) {
   if (!addr) return '-';
   if (addr.length <= 12) return addr;
   return `${addr.slice(0, 8)}...${addr.slice(-4)}`;
+}
+
+function fmtDate(value?: string | null) {
+  if (!value) return '-';
+  return String(value).slice(0, 19).replace('T', ' ');
+}
+
+function earningsRows(byType?: Record<string, number>) {
+  const src = byType || {};
+  const order = ['deposit', 'withdraw', 'package_purchase', 'profit', 'referral_profit', 'referral_bonus'];
+  const keys = Object.keys(src);
+  keys.sort((a, b) => {
+    const ia = order.indexOf(a);
+    const ib = order.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+  return keys.map((k) => ({ type: k, total: Number(src[k] || 0) }));
 }
 
 export default function AdminWithdrawalsPage() {
@@ -33,6 +100,11 @@ export default function AdminWithdrawalsPage() {
   const [filterStatus, setFilterStatus] = useState<'pending' | 'all'>('pending');
   const [actionMessage, setActionMessage] = useState('');
   const [actionType, setActionType] = useState<'success' | 'error' | ''>('');
+
+  const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequestRow | null>(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<UserDetailsResponse | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState('');
 
   const filteredRequests = useMemo(() => {
     if (filterStatus === 'pending') {
@@ -85,6 +157,45 @@ export default function AdminWithdrawalsPage() {
       setRequests([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCopy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // ignore
+    }
+  };
+
+  const loadUserDetails = async (userId: string) => {
+    try {
+      setIsLoadingDetails(true);
+      setDetailsError('');
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setDetailsError('Not logged in');
+        return;
+      }
+
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!data?.success) {
+        setSelectedUserDetails(null);
+        setDetailsError(data?.message || 'Failed to load user details');
+        return;
+      }
+      setSelectedUserDetails(data);
+    } catch {
+      setSelectedUserDetails(null);
+      setDetailsError('Failed to load user details');
+    } finally {
+      setIsLoadingDetails(false);
     }
   };
 
@@ -298,7 +409,17 @@ export default function AdminWithdrawalsPage() {
                         <span className="font-semibold text-emerald-400">${r.amount.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <div className="font-mono text-[10px] text-slate-200">{shortAddr(r.address)}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-mono text-[10px] text-slate-200">{shortAddr(r.address)}</div>
+                          <button
+                            type="button"
+                            onClick={() => r.address && handleCopy(r.address)}
+                            className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                            disabled={!r.address}
+                          >
+                            Copy
+                          </button>
+                        </div>
                         {r.walletAddress && (
                           <div className="mt-0.5 text-[10px] text-slate-500">
                             User wallet: {shortAddr(r.walletAddress)}
@@ -336,6 +457,16 @@ export default function AdminWithdrawalsPage() {
                           <div className="flex flex-col items-end gap-1">
                             <button
                               type="button"
+                              onClick={async () => {
+                                setSelectedRequest(r);
+                                await loadUserDetails(r.userId);
+                              }}
+                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                            >
+                              View Details
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => handleAction(r.id, 'approve')}
                               className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-1 text-[10px] font-medium text-white hover:bg-emerald-500"
                             >
@@ -350,7 +481,19 @@ export default function AdminWithdrawalsPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-slate-500">No actions</span>
+                          <div className="flex flex-col items-end gap-1">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                setSelectedRequest(r);
+                                await loadUserDetails(r.userId);
+                              }}
+                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                            >
+                              View Details
+                            </button>
+                            <span className="text-[10px] text-slate-500">No actions</span>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -358,6 +501,149 @@ export default function AdminWithdrawalsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 pb-8 text-xs text-slate-300 md:text-sm">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
+            <div className="border-b border-slate-800 px-4 py-3">
+              <h2 className="text-sm font-semibold text-slate-100">Withdrawal Request Details</h2>
+              <p className="mt-0.5 text-[11px] text-slate-500">View selected request + user details.</p>
+            </div>
+
+            {!selectedRequest ? (
+              <div className="px-4 py-10 text-center text-[12px] text-slate-500">
+                Select a request and click View Details
+              </div>
+            ) : isLoadingDetails ? (
+              <div className="px-4 py-10 text-center text-[12px] text-slate-500">Loading details...</div>
+            ) : detailsError ? (
+              <div className="px-4 py-8 text-center text-[12px] text-red-300">{detailsError}</div>
+            ) : (
+              <div className="p-4 space-y-4">
+                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                  <div className="text-[11px] font-semibold text-slate-200">Request</div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-3 text-[11px] text-slate-300">
+                    <div><span className="text-slate-500">Request ID:</span> #{selectedRequest.id}</div>
+                    <div><span className="text-slate-500">Status:</span> {selectedRequest.status}</div>
+                    <div><span className="text-slate-500">Amount:</span> ${selectedRequest.amount.toFixed(2)}</div>
+                    <div className="md:col-span-3 break-all">
+                      <span className="text-slate-500">Withdrawal Address:</span> {selectedRequest.address}{' '}
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(selectedRequest.address)}
+                        className="ml-2 rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <div><span className="text-slate-500">Requested At:</span> {selectedRequest.requestTime || '-'}</div>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="text-[11px] font-semibold text-slate-200">User</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
+                      <div><span className="text-slate-500">Name:</span> {selectedUserDetails?.user?.name || '-'}</div>
+                      <div><span className="text-slate-500">Email:</span> {selectedUserDetails?.user?.email || '-'}</div>
+                      <div><span className="text-slate-500">Phone:</span> {selectedUserDetails?.user?.phone || '-'}</div>
+                      <div><span className="text-slate-500">Account:</span> {selectedUserDetails?.user?.accountStatus || '-'}</div>
+                      <div><span className="text-slate-500">KYC:</span> {selectedUserDetails?.user?.kycStatus || '-'}</div>
+                      <div><span className="text-slate-500">Joined:</span> {fmtDate(selectedUserDetails?.user?.createdAt || null)}</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="text-[11px] font-semibold text-slate-200">Wallet + Referrals</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
+                      <div className="break-all"><span className="text-slate-500">Wallet Address:</span> {selectedUserDetails?.user?.walletPublicAddress || '-'}</div>
+                      <div>
+                        <span className="text-slate-500">Balance:</span>{' '}
+                        <span className="text-emerald-400 font-semibold">
+                          ${Number(selectedUserDetails?.wallet?.balance || 0).toFixed(2)}
+                        </span>
+                        <span className="text-slate-500"> {selectedUserDetails?.wallet?.currency || 'USDT'}</span>
+                      </div>
+                      <div><span className="text-slate-500">Referral Code:</span> {selectedUserDetails?.user?.referralCode || '-'}</div>
+                      <div><span className="text-slate-500">Referrals:</span> L1 {selectedUserDetails?.referrals?.l1Count ?? 0} / L2 {selectedUserDetails?.referrals?.l2Count ?? 0} / L3 {selectedUserDetails?.referrals?.l3Count ?? 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
+                  <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
+                    <div className="text-[11px] font-semibold text-slate-200">Packages</div>
+                    <div className="text-[10px] text-slate-500">Total: {Array.isArray(selectedUserDetails?.packages) ? selectedUserDetails!.packages!.length : 0}</div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
+                      <thead className="text-slate-400">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Package</th>
+                          <th className="px-3 py-2 text-left">Capital</th>
+                          <th className="px-3 py-2 text-left">Daily ROI</th>
+                          <th className="px-3 py-2 text-left">Daily Rev</th>
+                          <th className="px-3 py-2 text-left">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        {Array.isArray(selectedUserDetails?.packages) && selectedUserDetails!.packages!.length ? (
+                          selectedUserDetails!.packages!.map((p) => (
+                            <tr key={p.id}>
+                              <td className="px-3 py-2">
+                                <div className="font-semibold text-slate-100">{p.packageName}</div>
+                                <div className="text-[10px] text-slate-500">{p.packageId} · #{p.id}</div>
+                              </td>
+                              <td className="px-3 py-2">${Number(p.capital || 0).toFixed(2)}</td>
+                              <td className="px-3 py-2">{Number(p.dailyRoi || 0).toFixed(2)}%</td>
+                              <td className="px-3 py-2 text-emerald-400">${Number(p.dailyRevenue || 0).toFixed(4)}</td>
+                              <td className="px-3 py-2">{p.status}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} className="px-3 py-4 text-center text-slate-500">No packages found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
+                  <div className="border-b border-slate-800 px-3 py-2">
+                    <div className="text-[11px] font-semibold text-slate-200">Earnings Breakdown</div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
+                      <thead className="text-slate-400">
+                        <tr>
+                          <th className="px-3 py-2 text-left">Type</th>
+                          <th className="px-3 py-2 text-left">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                        {earningsRows(selectedUserDetails?.earnings?.byType).length ? (
+                          earningsRows(selectedUserDetails?.earnings?.byType).map((row) => (
+                            <tr key={row.type}>
+                              <td className="px-3 py-2">{row.type}</td>
+                              <td className="px-3 py-2">${row.total.toFixed(4)}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={2} className="px-3 py-4 text-center text-slate-500">No earnings data.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
