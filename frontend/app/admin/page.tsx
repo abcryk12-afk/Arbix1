@@ -105,8 +105,19 @@ type AdminUserRow = {
   name: string;
   email: string;
   referralCode: string;
+  walletPublicAddress?: string | null;
+  kycStatus?: string | null;
   createdAt: string;
   balance: number;
+};
+
+type ManageUserListRow = {
+  id: string;
+  name: string;
+  email: string;
+  userId: string;
+  referralCode: string;
+  kycStatus: string;
 };
 
 type AdminStats = {
@@ -120,117 +131,14 @@ type AdminStats = {
 
 const ADMIN_USERS_PAGE_SIZE = 5;
 
-// Demo data (to be fully replaced step-by-step)
-const WITHDRAW_REQUESTS: WithdrawRequest[] = [];
+const KYC_PENDING: KycPending[] = [];
 
-const KYC_PENDING: KycPending[] = [
-  {
-    id: 'u1',
-    userName: 'Rehan Khan',
-    email: 'rehan.khan@example.com',
-    signupDate: '2025-12-06',
-  },
-];
+const ADMIN_LOGS: AdminLog[] = [];
 
-const LATEST_USERS: RecentUser[] = [];
-
-const RECENT_DEPOSITS: RecentDeposit[] = [];
-
-const RECENT_WITHDRAWALS: RecentWithdrawal[] = [];
-
-const ADMIN_LOGS: AdminLog[] = [
-  {
-    id: 'l1',
-    time: '2025-12-07 10:15 AM',
-    adminName: 'Super Admin',
-    action: 'VIEW_WITHDRAWAL_REQUESTS',
-    details: 'Viewed pending withdrawal requests',
-  },
-];
-
-// Demo users for search
-const ALL_USERS: UserDetail[] = [
-  {
-    id: 'u1',
-    name: 'Ali Raza',
-    email: 'ali.raza@example.com',
-    userId: 'ARBX-2345',
-    kycStatus: 'approved',
-    accountStatus: 'active',
-    joinDate: '2025-01-15',
-    phone: '+971500000001',
-    cnic: '12345-6789012-1',
-    referralCode: 'ABX123',
-    publicAddress: '0x4F3C8b12A1dE90c7187cBf9a2bCE13F29C9A9A27',
-    privateKey: '0xprivkey1-demo-abcdef1234567890',
-    availableBalance: 280.75,
-    totalDeposited: 1000.0,
-    totalWithdrawn: 150.0,
-    tradingProfits: 890.25,
-    referralEarnings: 340.5,
-    networkToday: 12.5,
-    networkTotal: 340.5,
-    l1Count: 5,
-    l2Count: 8,
-    l3Count: 12,
-  },
-  {
-    id: 'u2',
-    name: 'Sana Malik',
-    email: 'sana.malik@example.com',
-    userId: 'ARBX-2346',
-    kycStatus: 'pending',
-    accountStatus: 'active',
-    joinDate: '2025-02-20',
-    phone: '+971500000002',
-    cnic: '23456-7890123-2',
-    referralCode: 'SNM456',
-    publicAddress: '0x98De45c1200e89fCbA3dfb22CEF56712AbCdE321',
-    privateKey: '0xprivkey2-demo-0987654321fedcba',
-    availableBalance: 120.5,
-    totalDeposited: 500.0,
-    totalWithdrawn: 0.0,
-    tradingProfits: 210.75,
-    referralEarnings: 85.0,
-    networkToday: 5.0,
-    networkTotal: 85.0,
-    l1Count: 2,
-    l2Count: 4,
-    l3Count: 6,
-  },
-];
-
-const DEMO_TRANSACTIONS: UserTransaction[] = [
-  { id: 't1', date: '2025-12-07', type: 'deposit', amount: 100.0, status: 'success' },
-  { id: 't2', date: '2025-12-06', type: 'profit', amount: 18.25, status: 'success' },
-  { id: 't3', date: '2025-12-05', type: 'withdraw', amount: 50.0, status: 'pending' },
-];
-
-const DEMO_INVESTMENTS: UserInvestment[] = [
-  {
-    id: 'i1',
-    packageName: 'Gold',
-    capital: 500.0,
-    dailyRoi: 3.0,
-    status: 'active',
-    startDate: '2025-11-01',
-    daysLeft: 310,
-  },
-  {
-    id: 'i2',
-    packageName: 'Silver',
-    capital: 100.0,
-    dailyRoi: 2.0,
-    status: 'active',
-    startDate: '2025-11-15',
-    daysLeft: 345,
-  },
-];
-
-function shortAddr(addr: string) {
+const shortAddr = (addr: string) => {
   if (addr.length <= 12) return addr;
   return `${addr.slice(0, 8)}...${addr.slice(-4)}`;
-}
+};
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -238,6 +146,11 @@ export default function AdminDashboardPage() {
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
+
+  const [manageUsers, setManageUsers] = useState<ManageUserListRow[]>([]);
+  const [isLoadingManageUsers, setIsLoadingManageUsers] = useState(false);
+  const [selectedUserInvestments, setSelectedUserInvestments] = useState<UserInvestment[]>([]);
+  const [selectedUserEarnings, setSelectedUserEarnings] = useState<Array<{ type: string; total: number }>>([]);
 
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -284,6 +197,8 @@ export default function AdminDashboardPage() {
             name: String(u.name || ''),
             email: String(u.email || ''),
             referralCode: String(u.referralCode || ''),
+            walletPublicAddress: u.walletPublicAddress != null ? String(u.walletPublicAddress) : null,
+            kycStatus: u.kycStatus != null ? String(u.kycStatus) : null,
             createdAt: String(u.createdAt || ''),
             balance: Number(u.balance || 0),
           }))
@@ -294,6 +209,141 @@ export default function AdminDashboardPage() {
       }
     } catch {
       // ignore
+    }
+  };
+
+  const loadManageUsers = async (q: string) => {
+    try {
+      setIsLoadingManageUsers(true);
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const params = new URLSearchParams();
+      params.set('limit', q && q.trim() ? '10' : '5');
+      if (q && q.trim()) {
+        params.set('q', q.trim());
+      }
+
+      const res = await fetch(`/api/admin/users?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data?.success && Array.isArray(data?.users)) {
+        setManageUsers(
+          data.users.map((u: any) => ({
+            id: String(u.id),
+            name: String(u.name || ''),
+            email: String(u.email || ''),
+            userId: String(u.id),
+            referralCode: String(u.referralCode || ''),
+            kycStatus: String(u.kycStatus || 'pending'),
+          })),
+        );
+      } else {
+        setManageUsers([]);
+      }
+    } catch {
+      setManageUsers([]);
+    } finally {
+      setIsLoadingManageUsers(false);
+    }
+  };
+
+  const loadSelectedUserDetails = async (userId: string) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      setShowPrivateKey(false);
+
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!data?.success) {
+        setSelectedUser(null);
+        setSelectedUserInvestments([]);
+        setSelectedUserEarnings([]);
+        return;
+      }
+
+      const u = data.user || {};
+      const wallet = data.wallet || {};
+      const byType = (data.earnings && data.earnings.byType) || {};
+      const referrals = data.referrals || {};
+      const pkgs = Array.isArray(data.packages) ? data.packages : [];
+
+      const joinDate = u.createdAt ? String(u.createdAt).slice(0, 10) : '';
+      const totalDeposited = Number(byType.deposit || 0);
+      const totalWithdrawn = Number(byType.withdraw || 0);
+      const tradingProfits = Number(byType.profit || 0);
+      const referralProfit = Number(byType.referral_profit || 0);
+      const referralBonus = Number(byType.referral_bonus || 0);
+
+      setSelectedUser({
+        id: String(u.id ?? userId),
+        name: String(u.name || ''),
+        email: String(u.email || ''),
+        userId: String(u.id ?? userId),
+        kycStatus: String(u.kycStatus || 'pending') as any,
+        accountStatus: String(u.accountStatus || 'hold') as any,
+        joinDate,
+        phone: String(u.phone || ''),
+        cnic: String(u.cnicPassport || ''),
+        referralCode: String(u.referralCode || ''),
+        publicAddress: String(u.walletPublicAddress || ''),
+        privateKey: 'N/A',
+        availableBalance: Number(wallet.balance || 0),
+        totalDeposited,
+        totalWithdrawn,
+        tradingProfits,
+        referralEarnings: referralProfit + referralBonus,
+        networkToday: 0,
+        networkTotal: 0,
+        l1Count: Number(referrals.l1Count || 0),
+        l2Count: Number(referrals.l2Count || 0),
+        l3Count: Number(referrals.l3Count || 0),
+      });
+
+      const now = new Date();
+      setSelectedUserInvestments(
+        pkgs.map((p: any) => {
+          const endAt = p.endAt ? new Date(p.endAt) : null;
+          const daysLeft = endAt ? Math.max(0, Math.ceil((endAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000))) : 0;
+          return {
+            id: String(p.id),
+            packageName: String(p.packageName || ''),
+            capital: Number(p.capital || 0),
+            dailyRoi: Number(p.dailyRoi || 0),
+            status: String(p.status || 'active') as any,
+            startDate: p.startAt ? String(p.startAt).slice(0, 10) : '',
+            daysLeft,
+          };
+        }),
+      );
+
+      const order = ['deposit', 'withdraw', 'package_purchase', 'profit', 'referral_profit', 'referral_bonus'];
+      const keys = Object.keys(byType);
+      keys.sort((a, b) => {
+        const ia = order.indexOf(a);
+        const ib = order.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+      setSelectedUserEarnings(keys.map((k) => ({ type: k, total: Number(byType[k] || 0) })));
+    } catch {
+      setSelectedUser(null);
+      setSelectedUserInvestments([]);
+      setSelectedUserEarnings([]);
     }
   };
 
@@ -439,6 +489,7 @@ export default function AdminDashboardPage() {
 
         if (!cancelled) {
           await loadAdminUsers();
+          await loadManageUsers('');
           await loadAdminStats();
           await loadRecentTransactions();
         }
@@ -465,20 +516,33 @@ export default function AdminDashboardPage() {
   }, [withdrawFilter, recentWithdrawals]);
 
   const filteredUsers = useMemo(() => {
-    const q = userSearchQuery.trim().toLowerCase();
-    if (!q) return ALL_USERS.slice(0, 5);
-    return ALL_USERS.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.userId.toLowerCase().includes(q) ||
-        u.referralCode.toLowerCase().includes(q)
-    ).slice(0, 5);
+    return manageUsers;
+  }, [manageUsers]);
+
+  const latestRegisteredUsers = useMemo(() => {
+    return adminUsers.slice(0, 5).map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      referralCode: u.referralCode || '-',
+      publicAddress: u.walletPublicAddress || '-',
+      signupDate: u.createdAt ? String(u.createdAt).slice(0, 10) : '-',
+    }));
+  }, [adminUsers]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadManageUsers(userSearchQuery);
+    }, 250);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userSearchQuery]);
 
   const selectedAdminUser = useMemo(() => {
     return adminUsers.find((u) => u.id === selectedUserId) || null;
   }, [adminUsers, selectedUserId]);
+
+  // ... rest of the code remains the same ...
 
   const totalUserPages = Math.max(1, Math.ceil(adminUsers.length / ADMIN_USERS_PAGE_SIZE));
 
@@ -1133,7 +1197,7 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
-                {LATEST_USERS.map((user) => (
+                {latestRegisteredUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-3 py-2">{user.name}</td>
                     <td className="px-3 py-2">{user.email}</td>
@@ -1156,8 +1220,6 @@ export default function AdminDashboardPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
             Find & Manage User
           </h2>
-          
-          {/* User Search + List */}
           <div className="mb-4">
             <input
               type="text"
@@ -1167,7 +1229,6 @@ export default function AdminDashboardPage() {
               placeholder="Search by name, email, user ID, or referral code"
             />
           </div>
-          
           <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 mb-4">
             <table className="min-w-full divide-y divide-slate-800 text-[11px]">
               <thead className="bg-slate-950/90 text-slate-400">
@@ -1179,39 +1240,52 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
-                {filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className={`cursor-pointer hover:bg-slate-800/50 ${
-                      selectedUser?.id === user.id ? 'bg-slate-800/70' : ''
-                    }`}
-                    onClick={() => setSelectedUser(user)}
-                  >
-                    <td className="px-3 py-2">{user.name}</td>
-                    <td className="px-3 py-2">{user.email}</td>
-                    <td className="px-3 py-2">{user.userId}</td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] ${
-                          user.kycStatus === 'approved'
-                            ? 'bg-emerald-600/20 text-emerald-300'
-                            : user.kycStatus === 'rejected'
-                            ? 'bg-red-600/20 text-red-300'
-                            : 'bg-amber-600/20 text-amber-300'
-                        }`}
-                      >
-                        {user.kycStatus}
-                      </span>
+                {isLoadingManageUsers ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-slate-500">
+                      Loading...
                     </td>
                   </tr>
-                ))}
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-slate-500">
+                      No users found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr
+                      key={user.id}
+                      className={`cursor-pointer hover:bg-slate-800/50 ${
+                        selectedUser?.id === user.id ? 'bg-slate-800/70' : ''
+                      }`}
+                      onClick={() => loadSelectedUserDetails(user.id)}
+                    >
+                      <td className="px-3 py-2">{user.name}</td>
+                      <td className="px-3 py-2">{user.email}</td>
+                      <td className="px-3 py-2">{user.userId}</td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] ${
+                            user.kycStatus === 'approved'
+                              ? 'bg-emerald-600/20 text-emerald-300'
+                              : user.kycStatus === 'rejected'
+                              ? 'bg-red-600/20 text-red-300'
+                              : 'bg-amber-600/20 text-amber-300'
+                          }`}
+                        >
+                          {user.kycStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
           {selectedUser && (
             <div className="space-y-4">
-              {/* Selected User Summary Header */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -1255,7 +1329,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Password Reset / Account Recovery */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Password Reset / Account Recovery</h4>
                 <div className="space-y-2">
@@ -1271,7 +1344,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Wallet Information */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Wallet Information</h4>
                 <div className="space-y-2 text-[11px]">
@@ -1316,7 +1388,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Balance & Earnings Summary */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Balance & Earnings</h4>
                 <div className="grid gap-2 text-[11px] sm:grid-cols-2">
@@ -1343,7 +1414,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Network / Team Summary */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Network Overview</h4>
                 <div className="space-y-2 text-[11px]">
@@ -1376,7 +1446,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* User Investments */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <h4 className="text-[11px] font-semibold text-slate-100 mb-3">User Investments</h4>
                 <div className="overflow-x-auto">
@@ -1391,70 +1460,70 @@ export default function AdminDashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 text-slate-300">
-                      {DEMO_INVESTMENTS.map((inv) => (
-                        <tr key={inv.id}>
-                          <td className="px-2 py-1">{inv.packageName}</td>
-                          <td className="px-2 py-1">${inv.capital.toFixed(2)}</td>
-                          <td className="px-2 py-1">{inv.dailyRoi}%</td>
-                          <td className="px-2 py-1">
-                            <span
-                              className={`rounded-full px-1 py-0.5 text-[10px] ${
-                                inv.status === 'active'
-                                  ? 'bg-emerald-600/20 text-emerald-300'
-                                  : 'bg-slate-600/20 text-slate-300'
-                              }`}
-                            >
-                              {inv.status}
-                            </span>
+                      {selectedUserInvestments.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-2 py-3 text-center text-slate-500">
+                            No packages found.
                           </td>
-                          <td className="px-2 py-1">{inv.daysLeft}</td>
                         </tr>
-                      ))}
+                      ) : (
+                        selectedUserInvestments.map((inv) => (
+                          <tr key={inv.id}>
+                            <td className="px-2 py-1">{inv.packageName}</td>
+                            <td className="px-2 py-1">${inv.capital.toFixed(2)}</td>
+                            <td className="px-2 py-1">{inv.dailyRoi}%</td>
+                            <td className="px-2 py-1">
+                              <span
+                                className={`rounded-full px-1 py-0.5 text-[10px] ${
+                                  inv.status === 'active'
+                                    ? 'bg-emerald-600/20 text-emerald-300'
+                                    : 'bg-slate-600/20 text-slate-300'
+                                }`}
+                              >
+                                {inv.status}
+                              </span>
+                            </td>
+                            <td className="px-2 py-1">{inv.daysLeft}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              {/* Transactions & Withdrawals */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
                 <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Recent Transactions</h4>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-slate-800 text-[11px]">
                     <thead className="bg-slate-950/90 text-slate-400">
                       <tr>
-                        <th className="px-2 py-1 text-left">Date</th>
                         <th className="px-2 py-1 text-left">Type</th>
-                        <th className="px-2 py-1 text-left">Amount</th>
-                        <th className="px-2 py-1 text-left">Status</th>
+                        <th className="px-2 py-1 text-left">Total</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 text-slate-300">
-                      {DEMO_TRANSACTIONS.map((tx) => (
-                        <tr key={tx.id}>
-                          <td className="px-2 py-1">{tx.date}</td>
-                          <td className="px-2 py-1 capitalize">{tx.type}</td>
-                          <td className="px-2 py-1">${tx.amount.toFixed(2)}</td>
-                          <td className="px-2 py-1">
-                            <span
-                              className={`rounded-full px-1 py-0.5 text-[10px] ${
-                                tx.status === 'success'
-                                  ? 'bg-emerald-600/20 text-emerald-300'
-                                  : 'bg-amber-600/20 text-amber-300'
-                              }`}
-                            >
-                              {tx.status}
-                            </span>
+                      {selectedUserEarnings.length === 0 ? (
+                        <tr>
+                          <td colSpan={2} className="px-2 py-3 text-center text-slate-500">
+                            No transaction totals.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        selectedUserEarnings.map((row) => (
+                          <tr key={row.type}>
+                            <td className="px-2 py-1">{row.type}</td>
+                            <td className="px-2 py-1">${row.total.toFixed(4)}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              {/* KYC & Profile Info */}
               <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Profile & KYC</h4>
+                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">KYC & Profile Info</h4>
                 <div className="space-y-2 text-[11px]">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Full Name:</span>

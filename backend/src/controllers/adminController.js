@@ -37,6 +37,7 @@ exports.getUserDetails = async (req, res) => {
         'name',
         'email',
         'phone',
+        ['cnic_passport', 'cnicPassport'],
         ['referral_code', 'referralCode'],
         ['referred_by_id', 'referredById'],
         ['kyc_status', 'kycStatus'],
@@ -132,6 +133,7 @@ exports.getUserDetails = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone || null,
+        cnicPassport: user.cnicPassport || null,
         referralCode: user.referralCode || null,
         referredById: user.referredById || null,
         kycStatus: user.kycStatus || null,
@@ -465,6 +467,7 @@ exports.listUsers = async (req, res) => {
       }
       or.push({ name: { [Op.like]: `%${q}%` } });
       or.push({ email: { [Op.like]: `%${q}%` } });
+      or.push({ referral_code: { [Op.like]: `%${q}%` } });
       where[Op.or] = or;
     }
 
@@ -478,8 +481,10 @@ exports.listUsers = async (req, res) => {
         'id',
         'name',
         'email',
+        ['kyc_status', 'kycStatus'],
         ['account_status', 'accountStatus'],
         ['referral_code', 'referralCode'],
+        ['wallet_public_address', 'walletPublicAddress'],
         [sequelize.col('created_at'), 'createdAt'],
       ],
     });
@@ -497,6 +502,8 @@ exports.listUsers = async (req, res) => {
           name: u.name,
           email: u.email,
           referralCode: u.referralCode,
+          walletPublicAddress: u.walletPublicAddress || null,
+          kycStatus: u.kycStatus || null,
           accountStatus: u.accountStatus,
           createdAt: u.createdAt,
           balance: w ? Number(w.balance) : 0,
