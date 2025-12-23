@@ -6,9 +6,12 @@ const jwt = require('jsonwebtoken');
 router.post('/login', async (req, res) => {
   try {
     const { email, secretCode } = req.body;
-    
-    // Check if email is the admin email
-    if (email !== 'wanum01234@gmail.com') {
+
+    const adminEmail = 'wanum01234@gmail.com';
+    const normalizedEmail = (email || '').trim().toLowerCase();
+
+    // Check if email is the admin email (case-insensitive, trimmed)
+    if (normalizedEmail !== adminEmail.toLowerCase()) {
       return res.status(401).json({
         success: false,
         message: 'Not authorized'
@@ -25,10 +28,10 @@ router.post('/login', async (req, res) => {
     
     // Create JWT token
     const token = jwt.sign(
-      { 
-        id: 13, 
-        email: email, 
-        isAdmin: true 
+      {
+        id: 13,
+        email: adminEmail,
+        isAdmin: true,
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
