@@ -8,6 +8,7 @@ export default function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [adminName, setAdminName] = useState<string>("");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -20,7 +21,21 @@ export default function AdminHeader() {
     }
   }, []);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   if ((pathname || "").startsWith("/admin/login")) return null;
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+    } catch {
+      // ignore
+    }
+    router.push("/admin/login");
+  };
 
   const isActive = (href: string) => {
     if (!pathname) return false;
@@ -84,26 +99,92 @@ export default function AdminHeader() {
           </div>
           <button
             type="button"
-            onClick={() => {
-              try {
-                localStorage.removeItem("adminToken");
-                localStorage.removeItem("adminUser");
-              } catch {
-              }
-              router.push("/admin/login");
-            }}
+            onClick={handleLogout}
             className="hidden rounded-lg border border-rose-700/70 bg-rose-500/10 px-3 py-1.5 text-[11px] font-medium text-rose-100 transition-colors duration-150 hover:border-rose-500 hover:bg-rose-500/20 md:inline-flex"
           >
             Logout
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60"
+            className="hidden rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60 md:inline-flex"
           >
             View Site
           </Link>
+          <div className="flex items-center gap-2 md:hidden">
+            <Link
+              href="/"
+              className="rounded-lg border border-slate-700 bg-slate-950/40 px-2 py-1 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60"
+            >
+              Site
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/80 text-slate-100"
+              aria-label="Toggle admin menu"
+            >
+              <span className="flex flex-col gap-0.5">
+                <span
+                  className={
+                    "h-0.5 w-4 rounded bg-slate-200 transition-transform duration-200 " +
+                    (mobileOpen ? "translate-y-[3px] rotate-45" : "")
+                  }
+                />
+                <span
+                  className={
+                    "h-0.5 w-4 rounded bg-slate-200 transition-opacity duration-200 " +
+                    (mobileOpen ? "opacity-0" : "opacity-100")
+                  }
+                />
+                <span
+                  className={
+                    "h-0.5 w-4 rounded bg-slate-200 transition-transform duration-200 " +
+                    (mobileOpen ? "-translate-y-[3px] -rotate-45" : "")
+                  }
+                />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div className="border-t border-slate-900/80 bg-slate-950/98 md:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-2">
+            <nav className="flex flex-col gap-1 text-[12px] text-slate-100">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={
+                    "flex items-center justify-between rounded-md px-2 py-1.5 text-left " +
+                    (isActive(item.href)
+                      ? "bg-slate-900 text-slate-50"
+                      : "text-slate-300 hover:bg-slate-900/70 hover:text-white")
+                  }
+                >
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+            <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-slate-300">
+              <div>
+                <div className="font-medium text-slate-100">
+                  {adminName || "Admin"}
+                </div>
+                <div className="text-slate-500">Secure access</div>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex rounded-lg border border-rose-700/70 bg-rose-500/10 px-3 py-1.5 text-[11px] font-medium text-rose-100 transition-colors duration-150 hover:border-rose-500 hover:bg-rose-500/20"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="border-t border-slate-900/80 bg-slate-950/90">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-[10px] text-slate-400">
