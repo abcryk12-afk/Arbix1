@@ -12,6 +12,9 @@ export default function DepositPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
+  const [addressGenerated, setAddressGenerated] = useState(false);
+
   const pendingDeposits = 0;
   const totalDeposited = 0;
 
@@ -115,6 +118,9 @@ export default function DepositPage() {
       return;
     }
     setAmountError('');
+    setConfirmedAmount(value);
+    setAddressGenerated(true);
+
     const el = document.getElementById('deposit-address-section');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
@@ -135,6 +141,13 @@ export default function DepositPage() {
   const shortAddress = walletAddress
     ? `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}`
     : 'Not assigned';
+
+  const qrCodeUrl =
+    walletAddress && addressGenerated
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+          walletAddress
+        )}`
+      : '';
 
   return (
     <div className="bg-slate-950 text-slate-50">
@@ -274,56 +287,88 @@ export default function DepositPage() {
       </section>
 
       {/* Deposit Address + QR */}
-      <section
-        id="deposit-address-section"
-        className="border-b border-slate-800 bg-slate-950"
-      >
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Send USDT (BEP20) to Your Address
-          </h2>
-          <p className="mt-2 text-xs text-slate-400 md:text-sm">
-            This is your unique Arbix deposit address. You can use the same address
-            for all future deposits.
-          </p>
+      {addressGenerated && (
+        <section
+          id="deposit-address-section"
+          className="border-b border-slate-800 bg-slate-950"
+        >
+          <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+              Send USDT (BEP20) to Your Address
+            </h2>
+            <p className="mt-2 text-xs text-slate-400 md:text-sm">
+              This is your unique Arbix deposit address. You can use the same
+              address for all future deposits.
+            </p>
 
-          <div className="mt-4 grid gap-4 text-xs text-slate-300 md:grid-cols-[2fr,1fr]">
-            <div className="space-y-3">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-                <p className="text-[11px] text-slate-400">Deposit Address</p>
-                <div className="mt-1 flex items-center justify-between gap-2 text-[11px] md:text-xs">
-                  <span className="truncate text-slate-100" title={walletAddress}>
-                    {shortAddress}
-                  </span>
-                  <button
-                    onClick={handleCopy}
-                    className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-500"
-                    type="button"
-                    disabled={!walletAddress}
-                  >
-                    {copied ? 'Copied!' : 'Copy'}
-                  </button>
+            <div className="mt-4 grid gap-4 text-xs text-slate-300 md:grid-cols-[2fr,1fr]">
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                  <p className="text-[11px] text-slate-400">Deposit Address</p>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[11px] md:text-xs">
+                    <span className="truncate text-slate-100" title={walletAddress}>
+                      {shortAddress}
+                    </span>
+                    <button
+                      onClick={handleCopy}
+                      className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-500"
+                      type="button"
+                      disabled={!walletAddress}
+                    >
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+
+                {confirmedAmount !== null && (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                    <p className="text-[11px] text-slate-400">Amount to send</p>
+                    <p className="mt-1 text-lg font-semibold text-emerald-400">
+                      {confirmedAmount.toFixed(2)} USDT
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      Send exactly this amount in a single transaction to avoid
+                      delays.
+                    </p>
+                  </div>
+                )}
+
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-400">
+                  <p>
+                    Scan this address in your wallet app (Trust Wallet, Binance,
+                    MetaMask, etc.) and send only USDT on BNB Smart Chain (BEP20).
+                  </p>
+                  {confirmedAmount !== null && (
+                    <p className="mt-1">
+                      Make sure the on-chain amount matches{' '}
+                      <span className="font-semibold text-slate-100">
+                        {confirmedAmount.toFixed(2)} USDT
+                      </span>{' '}
+                      to ensure faster confirmation.
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-400">
-                <p>
-                  Scan this address in your wallet app (Trust Wallet, Binance,
-                  MetaMask, etc.) and send only USDT on BNB Smart Chain (BEP20).
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center">
-              <div className="flex h-32 w-32 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/70 text-[10px] text-slate-500">
-                QR CODE
-                <br />
-                (placeholder)
+              <div className="flex items-center justify-center">
+                <div className="flex h-32 w-32 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/70">
+                  {qrCodeUrl ? (
+                    <img
+                      src={qrCodeUrl}
+                      alt="Deposit address QR code"
+                      className="h-28 w-28 rounded-md"
+                    />
+                  ) : (
+                    <span className="text-center text-[10px] text-slate-500">
+                      QR code will appear here
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Critical Instructions */}
       <section className="border-b border-slate-800 bg-slate-950">
@@ -395,16 +440,17 @@ export default function DepositPage() {
               <thead className="bg-slate-950/80 text-slate-400">
                 <tr>
                   <th className="px-3 py-2 text-left">Date / Time</th>
+                  <th className="px-3 py-2 text-left">Deposit ID</th>
                   <th className="px-3 py-2 text-left">Amount (USDT)</th>
                   <th className="px-3 py-2 text-left">Status</th>
                   <th className="px-3 py-2 text-left">Tx Hash</th>
-                  <th className="px-3 py-2 text-right">Explorer</th>
+                  <th className="px-3 py-2 text-right">Note / Explorer</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {depositTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
                       {isLoading ? 'Loading...' : 'No deposits yet'}
                     </td>
                   </tr>
@@ -414,6 +460,7 @@ export default function DepositPage() {
                       <td className="px-3 py-2">
                         {t.createdAt ? t.createdAt.toISOString().replace('T', ' ').slice(0, 19) : '-'}
                       </td>
+                      <td className="px-3 py-2">{t.id}</td>
                       <td className="px-3 py-2">{t.amount.toFixed(2)}</td>
                       <td className="px-3 py-2 text-emerald-400">Successful</td>
                       <td className="px-3 py-2">-</td>
@@ -439,7 +486,10 @@ export default function DepositPage() {
           <ul className="mt-2 space-y-1 text-slate-400">
             <li>• Check the transaction hash on the blockchain explorer.</li>
             <li>• Verify the number of confirmations on BNB Smart Chain.</li>
-            <li>• Contact Support and share your transaction hash and details.</li>
+            <li>
+              • Contact Support and share your Deposit ID (from Recent Deposit
+              History) and transaction hash.
+            </li>
           </ul>
           <a
             href="/contact"

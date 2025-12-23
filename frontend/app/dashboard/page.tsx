@@ -106,16 +106,16 @@ export default function DashboardPage() {
     return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
   }, []);
 
-  const todayEarnings = 0;
-  const networkToday = 0;
-  const totalEarnings = 0;
+  const [todayEarnings, setTodayEarnings] = useState(0);
+  const [networkToday, setNetworkToday] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
 
-  const myTradingToday = 0;
+  const [myTradingToday, setMyTradingToday] = useState(0);
   const myTradingMonth = 0;
-  const myTradingAll = 0;
+  const [myTradingAll, setMyTradingAll] = useState(0);
 
   const networkMonth = 0;
-  const networkAll = 0;
+  const [networkAll, setNetworkAll] = useState(0);
 
   const [activePackagesCount, setActivePackagesCount] = useState(0);
   const [activeCapital, setActiveCapital] = useState(0);
@@ -124,7 +124,7 @@ export default function DashboardPage() {
   const l1Count = teamCounts.l1;
   const l2Count = teamCounts.l2;
   const l3Count = teamCounts.l3;
-  const teamTodayEarnings = 0;
+  const teamTodayEarnings = networkToday;
 
   const activities: Activity[] = [];
   const announcements: Announcement[] = [];
@@ -133,6 +133,11 @@ export default function DashboardPage() {
     let cancelled = false;
 
     const run = async () => {
+      let myTradingTodayValue = 0;
+      let myTradingAllValue = 0;
+      let networkTodayValue = 0;
+      let networkAllValue = 0;
+
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -164,12 +169,10 @@ export default function DashboardPage() {
           } else {
             setAvailableBalance(0);
           }
-          setIsLoading(false);
         }
       } catch {
         if (!cancelled) {
           setAvailableBalance(0);
-          setIsLoading(false);
         }
       }
 
@@ -225,9 +228,47 @@ export default function DashboardPage() {
             0,
           );
           setEstimatedDailyProfit(totalDaily);
+
+          myTradingTodayValue = totalDaily;
+
+          const totalEarnedAll = packagesData.packages.reduce(
+            (sum: number, p: any) => sum + Number(p.totalEarned || 0),
+            0,
+          );
+          myTradingAllValue = totalEarnedAll;
         }
       } catch {
         // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/referral-earnings', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const earningsData = await res.json();
+        if (!cancelled && earningsData?.success && earningsData?.earnings) {
+          networkTodayValue = Number(earningsData.earnings?.today || 0);
+          networkAllValue = Number(earningsData.earnings?.allTime || 0);
+        }
+      } catch {
+        // ignore
+      }
+
+      if (!cancelled) {
+        setMyTradingToday(myTradingTodayValue);
+        setMyTradingAll(myTradingAllValue);
+        setNetworkToday(networkTodayValue);
+        setNetworkAll(networkAllValue);
+        setTodayEarnings(myTradingTodayValue);
+        setTotalEarnings(myTradingAllValue + networkAllValue);
+        setIsLoading(false);
       }
     };
 
