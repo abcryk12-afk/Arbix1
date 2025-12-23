@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
@@ -16,6 +17,156 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check admin access',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getUserDetails = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isFinite(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid user id' });
+    }
+
+    const user = await User.findByPk(userId, {
+      raw: true,
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'phone',
+        ['referral_code', 'referralCode'],
+        ['referred_by_id', 'referredById'],
+        ['kyc_status', 'kycStatus'],
+        ['account_status', 'accountStatus'],
+        'role',
+        ['wallet_public_address', 'walletPublicAddress'],
+        [sequelize.col('created_at'), 'createdAt'],
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const [wallet, packagesRaw, txTotalsRaw, referralsL1] = await Promise.all([
+      Wallet.findOne({ where: { user_id: userId }, raw: true, attributes: ['user_id', 'balance', 'currency'] }),
+      UserPackage.findAll({
+        where: { user_id: userId },
+        order: [[sequelize.col('created_at'), 'DESC']],
+        raw: true,
+        attributes: [
+          'id',
+          ['package_id', 'packageId'],
+          ['package_name', 'packageName'],
+          'capital',
+          ['daily_roi', 'dailyRoi'],
+          ['duration_days', 'durationDays'],
+          ['total_earned', 'totalEarned'],
+          ['start_at', 'startAt'],
+          ['end_at', 'endAt'],
+          'status',
+          ['last_profit_at', 'lastProfitAt'],
+        ],
+      }),
+      Transaction.findAll({
+        where: { user_id: userId },
+        attributes: ['type', [sequelize.fn('SUM', sequelize.col('amount')), 'total']],
+        group: ['type'],
+        raw: true,
+      }),
+      User.findAll({
+        where: { referred_by_id: userId },
+        order: [[sequelize.col('created_at'), 'DESC']],
+        raw: true,
+        attributes: [
+          'id',
+          'name',
+          'email',
+          ['account_status', 'accountStatus'],
+          ['referral_code', 'referralCode'],
+          [sequelize.col('created_at'), 'createdAt'],
+        ],
+      }),
+    ]);
+
+    const packages = (packagesRaw || []).map((p) => {
+      const capital = Number(p.capital || 0);
+      const dailyRoi = Number(p.dailyRoi || 0);
+      const dailyRevenue = (Number.isFinite(capital) && Number.isFinite(dailyRoi)) ? (capital * dailyRoi) / 100 : 0;
+      return {
+        id: p.id,
+        packageId: p.packageId,
+        packageName: p.packageName,
+        capital: Number(capital || 0),
+        dailyRoi: Number(dailyRoi || 0),
+        dailyRevenue: Number(dailyRevenue || 0),
+        durationDays: Number(p.durationDays || 0),
+        totalEarned: Number(p.totalEarned || 0),
+        startAt: p.startAt,
+        endAt: p.endAt,
+        status: p.status,
+        lastProfitAt: p.lastProfitAt,
+      };
+    });
+
+    const txTotalsByType = {};
+    for (const row of txTotalsRaw || []) {
+      txTotalsByType[String(row.type)] = Number(row.total || 0);
+    }
+
+    const l1Ids = referralsL1.map((r) => r.id);
+    const referralsL2 = l1Ids.length
+      ? await User.findAll({ where: { referred_by_id: l1Ids }, raw: true, attributes: ['id'] })
+      : [];
+    const l2Ids = referralsL2.map((r) => r.id);
+    const l2Count = l2Ids.length;
+    const l3Count = l2Ids.length ? await User.count({ where: { referred_by_id: l2Ids } }) : 0;
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone || null,
+        referralCode: user.referralCode || null,
+        referredById: user.referredById || null,
+        kycStatus: user.kycStatus || null,
+        accountStatus: user.accountStatus || null,
+        role: user.role || null,
+        walletPublicAddress: user.walletPublicAddress || null,
+        createdAt: user.createdAt || null,
+        lastLogin: null,
+      },
+      wallet: {
+        balance: wallet ? Number(wallet.balance || 0) : 0,
+        currency: wallet?.currency || 'USDT',
+      },
+      packages,
+      earnings: {
+        byType: txTotalsByType,
+      },
+      referrals: {
+        l1Count: referralsL1.length,
+        l2Count,
+        l3Count: Number(l3Count || 0),
+        l1: referralsL1.map((r) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          accountStatus: r.accountStatus,
+          referralCode: r.referralCode,
+          createdAt: r.createdAt,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Admin get user details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user details',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -285,15 +436,33 @@ exports.listWallets = async (req, res) => {
 exports.listUsers = async (req, res) => {
   try {
     const limit = Math.min(Number(req.query.limit || 20), 100);
+    const page = Math.max(1, Number(req.query.page || 1));
+    const offset = Math.max(0, Number(req.query.offset || (page - 1) * limit));
+    const q = req.query.q ? String(req.query.q).trim() : '';
+
+    const where = {};
+    if (q) {
+      const maybeId = Number(q);
+      const or = [];
+      if (Number.isFinite(maybeId) && maybeId > 0) {
+        or.push({ id: maybeId });
+      }
+      or.push({ name: { [Op.like]: `%${q}%` } });
+      or.push({ email: { [Op.like]: `%${q}%` } });
+      where[Op.or] = or;
+    }
 
     const users = await User.findAll({
+      where,
       order: [[sequelize.col('created_at'), 'DESC']],
       limit,
+      offset,
       raw: true,
       attributes: [
         'id',
         'name',
         'email',
+        ['account_status', 'accountStatus'],
         ['referral_code', 'referralCode'],
         [sequelize.col('created_at'), 'createdAt'],
       ],
@@ -312,6 +481,7 @@ exports.listUsers = async (req, res) => {
           name: u.name,
           email: u.email,
           referralCode: u.referralCode,
+          accountStatus: u.accountStatus,
           createdAt: u.createdAt,
           balance: w ? Number(w.balance) : 0,
         };
