@@ -41,5 +41,7 @@ router.post('/withdrawal-requests/update', protect, requireAdminUser, updateWith
 router.get('/branding', protect, requireAdminUser, getAdminBranding);
 router.post('/branding/logo', protect, requireAdminUser, setLogo);
 router.delete('/branding/logo', protect, requireAdminUser, removeLogo);
+router.post('/branding', protect, requireAdminUser, setLogo);
+router.delete('/branding', protect, requireAdminUser, removeLogo);
 
 module.exports = router;

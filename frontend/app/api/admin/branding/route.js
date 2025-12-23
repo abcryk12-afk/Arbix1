@@ -46,7 +46,7 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const response = await fetch(`${baseUrl}/api/admin/branding/logo`, {
+    let response = await fetch(`${baseUrl}/api/admin/branding`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -55,6 +55,18 @@ export async function POST(request) {
       },
       body: JSON.stringify(body),
     });
+
+    if (response.status === 404) {
+      response = await fetch(`${baseUrl}/api/admin/branding/logo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: authHeader,
+          'X-Admin-Key': adminKey,
+        },
+        body: JSON.stringify(body),
+      });
+    }
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
@@ -77,13 +89,23 @@ export async function DELETE(request) {
       );
     }
 
-    const response = await fetch(`${baseUrl}/api/admin/branding/logo`, {
+    let response = await fetch(`${baseUrl}/api/admin/branding`, {
       method: 'DELETE',
       headers: {
         Authorization: authHeader,
         'X-Admin-Key': adminKey,
       },
     });
+
+    if (response.status === 404) {
+      response = await fetch(`${baseUrl}/api/admin/branding/logo`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: authHeader,
+          'X-Admin-Key': adminKey,
+        },
+      });
+    }
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
