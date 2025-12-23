@@ -55,7 +55,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12 overflow-hidden network-grid-bg">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
       <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
       <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full filter blur-3xl"></div>
