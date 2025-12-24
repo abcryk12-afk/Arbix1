@@ -2,10 +2,21 @@ const { ethers } = require('ethers');
 
 let masterNode;
 
+function walletConfigError(message, code) {
+  const err = new Error(message);
+  err.code = code || 'WALLET_CONFIG_ERROR';
+  return err;
+}
+
 function getMasterNode() {
-  const mnemonic = process.env.MASTER_WALLET_MNEMONIC;
+  const mnemonicRaw = process.env.MASTER_WALLET_MNEMONIC;
+  const mnemonic = String(mnemonicRaw || '').trim().replace(/\s+/g, ' ');
   if (!mnemonic) {
-    throw new Error('MASTER_WALLET_MNEMONIC is not configured');
+    throw walletConfigError('MASTER_WALLET_MNEMONIC is not configured', 'MASTER_WALLET_MNEMONIC_MISSING');
+  }
+
+  if (!ethers.utils.isValidMnemonic(mnemonic)) {
+    throw walletConfigError('MASTER_WALLET_MNEMONIC is invalid (check your 12/24 words)', 'MASTER_WALLET_MNEMONIC_INVALID');
   }
   if (!masterNode) {
     masterNode = ethers.utils.HDNode.fromMnemonic(mnemonic);

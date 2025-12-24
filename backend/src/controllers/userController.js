@@ -59,6 +59,40 @@ exports.listNotifications = async (req, res) => {
 
     const pickCol = (colsSet, candidates) => candidates.find((c) => colsSet.has(c)) || null;
 
+    try {
+      const qi = sequelize.getQueryInterface();
+      const desc = await qi.describeTable('notifications');
+      const colsSet = new Set(Object.keys(desc || {}));
+
+      const userCol = pickCol(colsSet, ['user_id', 'userId']);
+      const createdAtCol = pickCol(colsSet, ['created_at', 'createdAt']);
+      const isReadCol = pickCol(colsSet, ['is_read', 'isRead']);
+
+      if (userCol) {
+        const selectParts = ['id', 'title', 'message'];
+        if (isReadCol) selectParts.push(`${isReadCol} as isRead`);
+        if (createdAtCol) selectParts.push(`${createdAtCol} as createdAt`);
+
+        const orderCol = createdAtCol || 'id';
+        const raw = await sequelize.query(
+          `SELECT ${selectParts.join(', ')} FROM notifications WHERE ${userCol} = :userId ORDER BY ${orderCol} DESC LIMIT :limit`,
+          { replacements: { userId, limit } },
+        );
+
+        const items = Array.isArray(raw) ? raw[0] : [];
+        return res.status(200).json({
+          success: true,
+          notifications: (items || []).map((n) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            isRead: Boolean(n.isRead),
+            createdAt: n.createdAt || null,
+          })),
+        });
+      }
+    } catch (e) {}
+
     const fetchRows = async () => {
       return Notification.findAll({
         where: { user_id: userId },

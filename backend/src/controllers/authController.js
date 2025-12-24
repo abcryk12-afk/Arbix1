@@ -3,7 +3,7 @@ const { Op } = require('sequelize');
 const { generateOTP, generateSecureToken } = require('../utils/otpGenerator');
 const { sendOTPEmail, sendWelcomeEmail, sendPasswordResetEmail } = require('../config/email');
 const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { User, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 
 // @desc    Register a new user (OTP-based email verification)
@@ -42,26 +42,36 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create user with email verification pending
-    const user = await User.create({
-      name,
-      email,
-      password_hash: password, // Use password_hash field
-      phone,
-      referred_by_id: referredById, // Store referrer user id
-      kyc_status: 'pending', // Use kyc_status field
-      account_status: 'hold', // Use 'hold' instead of 'pending_verification'
-      reset_token: null, // Use reset_token field for verification
-      reset_token_expires_at: null, // Use reset_token_expires_at for expiry
-    });
+    const t = await sequelize.transaction();
+    let user;
+    let otp;
+    try {
+      // Create user with email verification pending
+      user = await User.create({
+        name,
+        email,
+        password_hash: password, // Use password_hash field
+        phone,
+        referred_by_id: referredById, // Store referrer user id
+        kyc_status: 'pending', // Use kyc_status field
+        account_status: 'hold', // Use 'hold' instead of 'pending_verification'
+        reset_token: null, // Use reset_token field for verification
+        reset_token_expires_at: null, // Use reset_token_expires_at for expiry
+      }, { transaction: t });
 
-    await ensureWalletForUser(user);
+      await ensureWalletForUser(user, { transaction: t });
 
-    // Generate OTP and send verification email
-    const otp = generateOTP();
-    user.reset_token = otp; // Use reset_token field
-    user.reset_token_expires_at = new Date(Date.now() + 10 * 60 * 1000); // Use reset_token_expires_at field
-    await user.save();
+      otp = generateOTP();
+      user.reset_token = otp; // Use reset_token field
+      user.reset_token_expires_at = new Date(Date.now() + 10 * 60 * 1000); // Use reset_token_expires_at field
+      await user.save({ transaction: t });
+
+      await t.commit();
+    } catch (err) {
+      await t.rollback();
+      throw err;
+    }
+
     await sendOTPEmail(email, otp, name);
 
     res.status(201).json({
@@ -71,9 +81,25 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    const code = error?.code || undefined;
+    const safeWalletCodes = new Set([
+      'MASTER_WALLET_MNEMONIC_MISSING',
+      'MASTER_WALLET_MNEMONIC_INVALID',
+      'WALLET_ENC_KEY_INVALID',
+      'WALLET_DERIVATION_FAILED',
+      'WALLET_ENCRYPTION_FAILED',
+      'ER_NO_SUCH_TABLE',
+      'ER_BAD_FIELD_ERROR',
+    ]);
+
+    const walletMessage = safeWalletCodes.has(code)
+      ? `Registration failed: wallet system issue (${code}). Please ensure MASTER_WALLET_MNEMONIC and WALLET_ENC_KEY are set correctly on the backend server.`
+      : null;
+
     res.status(500).json({
       success: false,
-      message: 'Error registering user',
+      message: walletMessage || 'Error registering user',
+      code,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

@@ -4,9 +4,12 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96-bit IV for GCM
 
 function getKey() {
-  const key = process.env.WALLET_ENC_KEY;
+  const keyRaw = process.env.WALLET_ENC_KEY;
+  const key = String(keyRaw || '').trim();
   if (!key || key.length < 32) {
-    throw new Error('WALLET_ENC_KEY must be set and at least 32 characters long');
+    const err = new Error('WALLET_ENC_KEY must be set and at least 32 characters long');
+    err.code = 'WALLET_ENC_KEY_INVALID';
+    throw err;
   }
   return Buffer.from(key.slice(0, 32));
 }
