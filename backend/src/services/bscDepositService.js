@@ -1,6 +1,165 @@
+const https = require('https');
 const { ethers } = require('ethers');
 
 let provider;
+
+const latestBlockCache = {
+  value: null,
+  fetchedAt: 0,
+};
+
+function getScanMode() {
+  const raw = String(process.env.DEPOSIT_SCAN_MODE || 'explorer').trim().toLowerCase();
+  return raw === 'rpc' ? 'rpc' : 'explorer';
+}
+
+function getExplorerBaseUrl() {
+  const raw = String(process.env.EXPLORER_API_BASE_URL || 'https://api.etherscan.io/v2/api').trim();
+  return raw || 'https://api.etherscan.io/v2/api';
+}
+
+function getExplorerApiKey() {
+  const raw = String(process.env.EXPLORER_API_KEY || process.env.BSCSCAN_API_KEY || '').trim();
+  if (!raw) {
+    const err = new Error('EXPLORER_API_KEY is not configured');
+    err.code = 'EXPLORER_API_KEY_MISSING';
+    throw err;
+  }
+  return raw;
+}
+
+function getExplorerChainId() {
+  const raw = process.env.BSC_CHAIN_ID;
+  const n = raw == null ? 56 : Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 56;
+}
+
+function getLatestBlockCacheMs() {
+  const raw = process.env.EXPLORER_LATEST_BLOCK_CACHE_MS;
+  const n = raw == null ? 8000 : Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 8000;
+}
+
+function httpGetJson(url, redirectsLeft = 2) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, (res) => {
+      const status = Number(res.statusCode || 0);
+
+      if ((status === 301 || status === 302 || status === 307 || status === 308) && redirectsLeft > 0) {
+        const loc = res.headers.location;
+        if (loc) {
+          res.resume();
+          return resolve(httpGetJson(loc, redirectsLeft - 1));
+        }
+      }
+
+      let raw = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        raw += chunk;
+      });
+      res.on('end', () => {
+        try {
+          const data = JSON.parse(raw || '{}');
+          if (status >= 400) {
+            const err = new Error(data?.result || data?.message || `HTTP ${status}`);
+            err.code = 'EXPLORER_HTTP_ERROR';
+            reject(err);
+            return;
+          }
+          resolve(data);
+        } catch (e) {
+          const err = new Error(`Failed to parse explorer response (HTTP ${status})`);
+          err.code = 'EXPLORER_PARSE_ERROR';
+          reject(err);
+        }
+      });
+    });
+
+    req.on('error', (e) => {
+      const err = new Error(e?.message || 'Explorer request failed');
+      err.code = e?.code || 'EXPLORER_REQUEST_FAILED';
+      reject(err);
+    });
+  });
+}
+
+async function explorerRequest(params) {
+  const baseUrl = getExplorerBaseUrl();
+  const apiKey = getExplorerApiKey();
+  const chainid = getExplorerChainId();
+
+  const u = new URL(baseUrl);
+  u.searchParams.set('chainid', String(chainid));
+  u.searchParams.set('apikey', apiKey);
+  for (const [k, v] of Object.entries(params || {})) {
+    if (v === undefined || v === null || v === '') continue;
+    u.searchParams.set(k, String(v));
+  }
+
+  const data = await httpGetJson(u.toString());
+
+  if (data && typeof data === 'object' && data.status === '0') {
+    const msg = String(data.message || data.result || 'Explorer NOTOK');
+    const msgLower = msg.toLowerCase();
+
+    const result = data.result;
+    if (Array.isArray(result) && result.length === 0) {
+      return data;
+    }
+
+    if (msgLower.includes('no records') || msgLower.includes('no transactions')) {
+      return data;
+    }
+
+    const err = new Error(String(result || msg));
+    if (msgLower.includes('rate limit') || msgLower.includes('max rate')) err.code = 'EXPLORER_RATE_LIMIT';
+    else if (msgLower.includes('too many') || msgLower.includes('query returned more than')) err.code = 'EXPLORER_TOO_MANY_RESULTS';
+    else err.code = 'EXPLORER_NOTOK';
+    throw err;
+  }
+
+  return data;
+}
+
+async function explorerGetLatestBlockNumber() {
+  const now = Date.now();
+  const ttl = getLatestBlockCacheMs();
+  if (latestBlockCache.value && now - latestBlockCache.fetchedAt < ttl) {
+    return latestBlockCache.value;
+  }
+
+  const data = await explorerRequest({ module: 'proxy', action: 'eth_blockNumber' });
+  const hex = data?.result;
+  const n = typeof hex === 'string' ? parseInt(hex, 16) : NaN;
+  if (!Number.isFinite(n) || n <= 0) {
+    const err = new Error('Failed to fetch latest block number from explorer');
+    err.code = 'EXPLORER_LATEST_BLOCK_FAILED';
+    throw err;
+  }
+
+  latestBlockCache.value = n;
+  latestBlockCache.fetchedAt = now;
+  return n;
+}
+
+async function explorerGetTransferLogs({ token, fromBlock, toBlock, toTopic }) {
+  const data = await explorerRequest({
+    module: 'logs',
+    action: 'getLogs',
+    address: token,
+    fromBlock,
+    toBlock,
+    topic0: ethers.utils.id('Transfer(address,address,uint256)'),
+    topic0_2_opr: 'and',
+    topic2: toTopic,
+    page: 1,
+    offset: 1000,
+  });
+
+  const result = data?.result;
+  return Array.isArray(result) ? result : [];
+}
 
 function getProvider() {
   const rpcUrl = String(process.env.BSC_RPC_URL || '').trim();
@@ -218,6 +377,8 @@ async function scanAndCreditUserUsdtDeposits({
     token: 'USDT',
   };
 
+  const scanMode = getScanMode();
+
   let provider;
   let token;
   let decimals;
@@ -225,7 +386,11 @@ async function scanAndCreditUserUsdtDeposits({
   let maxBlocks;
 
   try {
-    provider = getProvider();
+    if (scanMode === 'rpc') {
+      provider = getProvider();
+    } else {
+      getExplorerApiKey();
+    }
     token = getUsdtContract();
     decimals = getTokenDecimals();
     confirmations = getConfirmations();
@@ -252,7 +417,7 @@ async function scanAndCreditUserUsdtDeposits({
   let latest;
   let safeToBlock;
   try {
-    latest = await provider.getBlockNumber();
+    latest = scanMode === 'rpc' ? await provider.getBlockNumber() : await explorerGetLatestBlockNumber();
     safeToBlock = Math.max(0, latest - confirmations);
   } catch (e) {
     try {
@@ -262,7 +427,7 @@ async function scanAndCreditUserUsdtDeposits({
           status: 'error',
           confirmations,
           duration_ms: Date.now() - startedAt,
-          error_code: e?.code || 'RPC_ERROR',
+          error_code: e?.code || (scanMode === 'rpc' ? 'RPC_ERROR' : 'EXPLORER_ERROR'),
           error_message: e?.message || String(e),
         });
       }
@@ -315,12 +480,16 @@ async function scanAndCreditUserUsdtDeposits({
 
     let logs;
     try {
-      logs = await provider.getLogs({
-        address: token,
-        fromBlock: currentFrom,
-        toBlock: currentTo,
-        topics: [topic0, null, topicTo],
-      });
+      if (scanMode === 'rpc') {
+        logs = await provider.getLogs({
+          address: token,
+          fromBlock: currentFrom,
+          toBlock: currentTo,
+          topics: [topic0, null, topicTo],
+        });
+      } else {
+        logs = await explorerGetTransferLogs({ token, fromBlock: currentFrom, toBlock: currentTo, toTopic: topicTo });
+      }
     } catch (e) {
       try {
         if (DepositScanLog) {
@@ -338,7 +507,7 @@ async function scanAndCreditUserUsdtDeposits({
             logs_found: logsFound,
             credited_events: creditedCount,
             duration_ms: Date.now() - startedAt,
-            error_code: e?.code || 'RPC_GETLOGS_ERROR',
+            error_code: e?.code || (scanMode === 'rpc' ? 'RPC_GETLOGS_ERROR' : 'EXPLORER_GETLOGS_ERROR'),
             error_message: e?.message || String(e),
           });
         }
@@ -350,12 +519,18 @@ async function scanAndCreditUserUsdtDeposits({
 
     for (const log of logs) {
       const txHash = log.transactionHash;
-      const logIndex = log.logIndex;
-      const blockNumber = log.blockNumber;
+      const logIndexRaw = typeof log.logIndex === 'string' ? parseInt(log.logIndex, 16) : log.logIndex;
+      const logIndex = Number.isFinite(logIndexRaw) ? logIndexRaw : 0;
+
+      const blockNumberRaw = typeof log.blockNumber === 'string' ? parseInt(log.blockNumber, 16) : log.blockNumber;
+      const blockNumber = Number.isFinite(blockNumberRaw) ? blockNumberRaw : null;
+      const dataField = log.data;
+
+      if (!txHash || !blockNumber || !Number.isFinite(blockNumber)) continue;
 
       let parsed;
       try {
-        parsed = ethers.utils.defaultAbiCoder.decode(['uint256'], log.data);
+        parsed = ethers.utils.defaultAbiCoder.decode(['uint256'], dataField);
       } catch {
         continue;
       }

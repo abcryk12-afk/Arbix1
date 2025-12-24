@@ -19,6 +19,7 @@ const {
   listDepositRequests,
   updateDepositRequestStatus,
   sendNotification,
+  listDepositScanLogs,
 } = require('../controllers/adminController');
 
 const {
@@ -44,6 +45,8 @@ router.post('/withdrawal-requests/update', protect, requireAdminUser, updateWith
 router.get('/deposit-requests', protect, requireAdminUser, listDepositRequests);
 router.post('/deposit-requests', protect, requireAdminUser, updateDepositRequestStatus);
 router.post('/deposit-requests/update', protect, requireAdminUser, updateDepositRequestStatus);
+
+router.get('/deposit-scan-logs', protect, requireAdminUser, listDepositScanLogs);
 
 router.post('/notifications', protect, requireAdminUser, sendNotification);
 
