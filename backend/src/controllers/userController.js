@@ -52,6 +52,187 @@ exports.getSummary = async (req, res) => {
   }
 };
 
+exports.getActivity = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = Math.min(Number(req.query.limit || 30), 200);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const [txsRaw, depositRequestsRaw, withdrawalRequestsRaw] = await Promise.all([
+      Transaction.findAll({
+        where: { user_id: userId },
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+        attributes: ['id', 'type', 'amount', 'note', [sequelize.col('created_at'), 'createdAt']],
+      }),
+      DepositRequest.findAll({
+        where: { user_id: userId },
+        order: [[DepositRequest.sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+        attributes: [
+          'id',
+          'amount',
+          'address',
+          'status',
+          ['tx_hash', 'txHash'],
+          ['user_note', 'userNote'],
+          ['admin_note', 'adminNote'],
+          [DepositRequest.sequelize.col('created_at'), 'createdAt'],
+        ],
+      }),
+      WithdrawalRequest.findAll({
+        where: { user_id: userId },
+        order: [[WithdrawalRequest.sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+        attributes: [
+          'id',
+          'amount',
+          'address',
+          'status',
+          ['tx_hash', 'txHash'],
+          ['user_note', 'userNote'],
+          ['admin_note', 'adminNote'],
+          [WithdrawalRequest.sequelize.col('created_at'), 'createdAt'],
+        ],
+      }),
+    ]);
+
+    const fromUserIds = new Set();
+
+    const txItems = (txsRaw || []).map((t) => {
+      const note = String(t.note || '');
+      const amount = Number(t.amount || 0);
+      const createdAt = t.createdAt;
+
+      const levelMatch = note.match(/\bL([123])\b/i);
+      const level = levelMatch ? Number(levelMatch[1]) : null;
+
+      const fromUserMatch = note.match(/from user\s+(\d+)/i);
+      const fromUserId = fromUserMatch ? Number(fromUserMatch[1]) : null;
+      if (fromUserId && Number.isFinite(fromUserId)) fromUserIds.add(fromUserId);
+
+      const isDepositCommission = note.startsWith('Referral commission') || note.startsWith('Referral commission ');
+
+      const direction = t.type === 'withdraw' || t.type === 'package_purchase' ? 'out' : 'in';
+
+      let label = 'Transaction';
+      if (isDepositCommission) label = 'Deposit Commission';
+      else if (t.type === 'referral_profit') label = 'Referral Profit';
+      else if (t.type === 'referral_bonus') label = 'Referral Bonus';
+      else if (t.type === 'profit') label = 'Trading Profit';
+      else if (t.type === 'deposit') label = 'Deposit';
+      else if (t.type === 'withdraw') label = 'Withdraw';
+      else if (t.type === 'package_purchase') label = 'Package Purchase';
+
+      return {
+        id: `tx-${t.id}`,
+        kind: 'transaction',
+        txId: t.id,
+        txType: t.type,
+        category: isDepositCommission ? 'deposit_commission' : t.type,
+        amount: Number.isFinite(amount) ? amount : 0,
+        direction,
+        label,
+        note: note || null,
+        level,
+        fromUserId,
+        createdAt,
+      };
+    });
+
+    const reqItems = [];
+    for (const r of depositRequestsRaw || []) {
+      reqItems.push({
+        id: `dr-${r.id}`,
+        kind: 'deposit_request',
+        requestId: r.id,
+        amount: Number(r.amount || 0),
+        address: r.address,
+        status: r.status,
+        txHash: r.txHash || null,
+        userNote: r.userNote || null,
+        adminNote: r.adminNote || null,
+        createdAt: r.createdAt,
+      });
+    }
+
+    for (const r of withdrawalRequestsRaw || []) {
+      reqItems.push({
+        id: `wr-${r.id}`,
+        kind: 'withdrawal_request',
+        requestId: r.id,
+        amount: Number(r.amount || 0),
+        address: r.address,
+        status: r.status,
+        txHash: r.txHash || null,
+        userNote: r.userNote || null,
+        adminNote: r.adminNote || null,
+        createdAt: r.createdAt,
+      });
+    }
+
+    const fromUsersRaw = fromUserIds.size
+      ? await User.findAll({
+          where: { id: Array.from(fromUserIds) },
+          raw: true,
+          attributes: ['id', 'name', 'email'],
+        })
+      : [];
+
+    const fromUsers = new Map((fromUsersRaw || []).map((u) => [u.id, u]));
+
+    const enrichedTxItems = txItems.map((item) => {
+      const u = item.fromUserId ? fromUsers.get(item.fromUserId) : null;
+      return {
+        ...item,
+        fromUser: u
+          ? { id: u.id, name: u.name || null, email: u.email || null }
+          : item.fromUserId
+            ? { id: item.fromUserId, name: null, email: null }
+            : null,
+      };
+    });
+
+    const allItems = [...enrichedTxItems, ...reqItems]
+      .filter((i) => i.createdAt)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+
+    const todayByLevel = { 1: 0, 2: 0, 3: 0 };
+    for (const item of enrichedTxItems) {
+      if (!item.createdAt) continue;
+      const created = new Date(item.createdAt);
+      if (created < startOfToday) continue;
+      if (!item.level) continue;
+      if (!['referral_profit', 'referral_bonus', 'deposit_commission'].includes(String(item.category))) continue;
+      todayByLevel[item.level] += Number(item.amount || 0);
+    }
+
+    return res.status(200).json({
+      success: true,
+      summary: {
+        todayByLevel: {
+          l1: Number(todayByLevel[1] || 0),
+          l2: Number(todayByLevel[2] || 0),
+          l3: Number(todayByLevel[3] || 0),
+        },
+      },
+      items: allItems,
+    });
+  } catch (error) {
+    console.error('Get user activity error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch activity',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;

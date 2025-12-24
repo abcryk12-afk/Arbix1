@@ -4,8 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 type Activity = {
   id: string;
-  text: string;
-  time: string;
+  label: string;
+  description: string;
+  amount: number;
+  direction: 'in' | 'out' | 'neutral';
+  createdAt: string;
 };
 
 type Announcement = {
@@ -93,6 +96,8 @@ export default function DashboardPage() {
   const [availableBalance, setAvailableBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [teamCounts, setTeamCounts] = useState({ l1: 0, l2: 0, l3: 0 });
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activitySummary, setActivitySummary] = useState<{ todayByLevel: { l1: number; l2: number; l3: number } } | null>(null);
   const [kpiHasAnimated, setKpiHasAnimated] = useState(false);
   const [kpiDisplay, setKpiDisplay] = useState({
     availableBalance: 0,
@@ -125,8 +130,6 @@ export default function DashboardPage() {
   const l2Count = teamCounts.l2;
   const l3Count = teamCounts.l3;
   const teamTodayEarnings = networkToday;
-
-  const activities: Activity[] = [];
   const announcements: Announcement[] = [];
 
   useEffect(() => {
@@ -256,6 +259,82 @@ export default function DashboardPage() {
         if (!cancelled && earningsData?.success && earningsData?.earnings) {
           networkTodayValue = Number(earningsData.earnings?.today || 0);
           networkAllValue = Number(earningsData.earnings?.allTime || 0);
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/activity?limit=30', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success && Array.isArray(data?.items)) {
+          const toDisplayName = (u: any) => u?.name || u?.email || (u?.id ? `User #${u.id}` : 'Unknown user');
+          const shortAddress = (addr: string) => {
+            const a = String(addr || '');
+            if (a.length <= 16) return a;
+            return `${a.slice(0, 10)}...${a.slice(-6)}`;
+          };
+
+          setActivitySummary(data?.summary?.todayByLevel ? { todayByLevel: data.summary.todayByLevel } : null);
+
+          const mapped: Activity[] = data.items.map((it: any) => {
+            if (it.kind === 'transaction') {
+              const from = it.fromUser ? toDisplayName(it.fromUser) : '';
+              const level = it.level ? `L${it.level}` : '';
+              const extra = level && from ? `${level} from ${from}` : level ? level : from ? `from ${from}` : '';
+              const description = extra || (it.note ? String(it.note) : '');
+              return {
+                id: String(it.id),
+                label: String(it.label || 'Transaction'),
+                description,
+                amount: Number(it.amount || 0),
+                direction: (it.direction === 'in' || it.direction === 'out') ? it.direction : 'neutral',
+                createdAt: String(it.createdAt),
+              };
+            }
+
+            if (it.kind === 'deposit_request') {
+              return {
+                id: String(it.id),
+                label: 'Deposit Request',
+                description: `${String(it.status || '').toUpperCase()} • Send USDT to ${shortAddress(it.address)}`,
+                amount: Number(it.amount || 0),
+                direction: 'neutral',
+                createdAt: String(it.createdAt),
+              };
+            }
+
+            if (it.kind === 'withdrawal_request') {
+              return {
+                id: String(it.id),
+                label: 'Withdrawal Request',
+                description: `${String(it.status || '').toUpperCase()} • To ${shortAddress(it.address)}`,
+                amount: Number(it.amount || 0),
+                direction: 'neutral',
+                createdAt: String(it.createdAt),
+              };
+            }
+
+            return {
+              id: String(it.id || Math.random()),
+              label: 'Activity',
+              description: '',
+              amount: Number(it.amount || 0),
+              direction: 'neutral',
+              createdAt: String(it.createdAt || new Date().toISOString()),
+            };
+          });
+
+          setActivities(mapped);
         }
       } catch {
         // ignore
@@ -584,6 +663,22 @@ export default function DashboardPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Recent Activity
           </h2>
+          {activitySummary ? (
+            <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
+                <div className="text-slate-400">Today L1</div>
+                <div className="mt-1 font-semibold text-emerald-300">${Number(activitySummary.todayByLevel.l1 || 0).toFixed(2)}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
+                <div className="text-slate-400">Today L2</div>
+                <div className="mt-1 font-semibold text-sky-300">${Number(activitySummary.todayByLevel.l2 || 0).toFixed(2)}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
+                <div className="text-slate-400">Today L3</div>
+                <div className="mt-1 font-semibold text-violet-300">${Number(activitySummary.todayByLevel.l3 || 0).toFixed(2)}</div>
+              </div>
+            </div>
+          ) : null}
           <div className="mt-3 space-y-2 text-[11px] text-slate-300">
             {activities.length ? (
               activities.map((a) => (
@@ -592,8 +687,25 @@ export default function DashboardPage() {
                   className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
                 >
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
-                  <p>{a.text}</p>
-                  <p className="mt-1 text-[10px] text-slate-500">{a.time}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-100">{a.label}</p>
+                      {a.description ? <p className="mt-1 text-slate-400">{a.description}</p> : null}
+                    </div>
+                    <div
+                      className={
+                        'shrink-0 text-right font-semibold ' +
+                        (a.direction === 'in'
+                          ? 'text-emerald-300'
+                          : a.direction === 'out'
+                            ? 'text-rose-300'
+                            : 'text-slate-200')
+                      }
+                    >
+                      {(a.direction === 'in' ? '+' : a.direction === 'out' ? '-' : '') + `$${Number(a.amount || 0).toFixed(2)}`}
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-500">{new Date(a.createdAt).toLocaleString()}</p>
                 </div>
               ))
             ) : (
