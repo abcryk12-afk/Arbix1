@@ -57,13 +57,29 @@ exports.listNotifications = async (req, res) => {
     const userId = req.user.id;
     const limit = Math.min(Number(req.query.limit || 10), 50);
 
-    const rows = await Notification.findAll({
-      where: { user_id: userId },
-      order: [[Notification.sequelize.col('created_at'), 'DESC']],
-      limit,
-      raw: true,
-      attributes: ['id', 'title', 'message', ['is_read', 'isRead'], [Notification.sequelize.col('created_at'), 'createdAt']],
-    });
+    const fetchRows = async () => {
+      return Notification.findAll({
+        where: { user_id: userId },
+        order: [[Notification.sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+        attributes: ['id', 'title', 'message', ['is_read', 'isRead'], [Notification.sequelize.col('created_at'), 'createdAt']],
+      });
+    };
+
+    let rows;
+    try {
+      rows = await fetchRows();
+    } catch (err) {
+      const code = err?.original?.code || err?.parent?.code || err?.code;
+      const msg = String(err?.original?.message || err?.message || '');
+      if (code === 'ER_NO_SUCH_TABLE' || msg.toLowerCase().includes('notifications')) {
+        await Notification.sync();
+        rows = await fetchRows();
+      } else {
+        throw err;
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -77,9 +93,11 @@ exports.listNotifications = async (req, res) => {
     });
   } catch (error) {
     console.error('List user notifications error:', error);
+    const code = error?.original?.code || error?.parent?.code || error?.code || undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch notifications',
+      code,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

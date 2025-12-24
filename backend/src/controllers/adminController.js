@@ -24,6 +24,22 @@ exports.checkAccess = async (req, res) => {
 };
 
 exports.sendNotification = async (req, res) => {
+  const isMissingNotificationsTableError = (err) => {
+    const code = err?.original?.code || err?.parent?.code || err?.code;
+    const msg = String(err?.original?.message || err?.message || '');
+    return code === 'ER_NO_SUCH_TABLE' || msg.toLowerCase().includes('notifications');
+  };
+
+  const createOne = async ({ userId, title, message, createdBy }) => {
+    return Notification.create({
+      user_id: userId,
+      title,
+      message,
+      created_by: createdBy,
+      is_read: false,
+    });
+  };
+
   try {
     const { userId, sendToAll, title, message } = req.body || {};
 
@@ -52,13 +68,17 @@ exports.sendNotification = async (req, res) => {
         return res.status(404).json({ success: false, message: 'User not found' });
       }
 
-      const notif = await Notification.create({
-        user_id: numericUserId,
-        title: cleanTitle,
-        message: cleanMessage,
-        created_by: createdBy,
-        is_read: false,
-      });
+      let notif;
+      try {
+        notif = await createOne({ userId: numericUserId, title: cleanTitle, message: cleanMessage, createdBy });
+      } catch (err) {
+        if (isMissingNotificationsTableError(err)) {
+          await Notification.sync();
+          notif = await createOne({ userId: numericUserId, title: cleanTitle, message: cleanMessage, createdBy });
+        } else {
+          throw err;
+        }
+      }
 
       return res.status(201).json({
         success: true,
@@ -77,15 +97,32 @@ exports.sendNotification = async (req, res) => {
       return res.status(200).json({ success: true, message: 'No users to notify', created: 0 });
     }
 
-    await Notification.bulkCreate(
-      ids.map((id) => ({
-        user_id: id,
-        title: cleanTitle,
-        message: cleanMessage,
-        created_by: createdBy,
-        is_read: false,
-      })),
-    );
+    try {
+      await Notification.bulkCreate(
+        ids.map((id) => ({
+          user_id: id,
+          title: cleanTitle,
+          message: cleanMessage,
+          created_by: createdBy,
+          is_read: false,
+        })),
+      );
+    } catch (err) {
+      if (isMissingNotificationsTableError(err)) {
+        await Notification.sync();
+        await Notification.bulkCreate(
+          ids.map((id) => ({
+            user_id: id,
+            title: cleanTitle,
+            message: cleanMessage,
+            created_by: createdBy,
+            is_read: false,
+          })),
+        );
+      } else {
+        throw err;
+      }
+    }
 
     return res.status(201).json({
       success: true,
@@ -94,10 +131,12 @@ exports.sendNotification = async (req, res) => {
     });
   } catch (error) {
     console.error('Admin send notification error:', error);
+    const code = error?.original?.code || error?.parent?.code || error?.code || undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to send notification',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      code,
+      error: process.env.NODE_ENV === 'development' ? (error?.original?.message || error.message) : undefined,
     });
   }
 };

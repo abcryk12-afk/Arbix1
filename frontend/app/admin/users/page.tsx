@@ -303,7 +303,8 @@ export default function AdminUsersPage() {
 
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.success) {
-        const msg = data?.message || `Failed (HTTP ${res.status})`;
+        const details = data?.error || data?.code || '';
+        const msg = (data?.message || `Failed (HTTP ${res.status})`) + (details ? ` (${details})` : '');
         if (toAll) {
           setBroadcastStatus('error');
           setBroadcastStatusText(msg);

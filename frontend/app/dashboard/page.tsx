@@ -761,35 +761,73 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : null}
-          <div className="mt-3 space-y-2 text-[11px] text-slate-300">
+          <div className="mt-3 text-[11px] text-slate-300">
             {visibleActivities.length ? (
-              visibleActivities.map((a) => (
-                <div
-                  key={a.id}
-                  className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
-                >
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium text-slate-100">{a.label}</p>
-                      {a.description ? <p className="mt-1 text-slate-400">{a.description}</p> : null}
-                    </div>
-                    <div
-                      className={
-                        'shrink-0 text-right font-semibold ' +
-                        (a.direction === 'in'
-                          ? 'text-emerald-300'
-                          : a.direction === 'out'
-                            ? 'text-rose-300'
-                            : 'text-slate-200')
-                      }
-                    >
-                      {(a.direction === 'in' ? '+' : a.direction === 'out' ? '-' : '') + `$${Number(a.amount || 0).toFixed(2)}`}
-                    </div>
+              <>
+                <div className="md:hidden overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
+                  <div className="grid grid-cols-[1fr_92px] gap-2 border-b border-slate-800 px-3 py-2 text-[10px] text-slate-400">
+                    <div>Activity</div>
+                    <div className="text-right">Amount</div>
                   </div>
-                  <p className="mt-2 text-[10px] text-slate-500">{new Date(a.createdAt).toLocaleString()}</p>
+                  <div className="divide-y divide-slate-800">
+                    {visibleActivities.map((a) => (
+                      <div key={a.id} className="grid grid-cols-[1fr_92px] gap-2 px-3 py-2">
+                        <div className="min-w-0">
+                          <div className="truncate font-medium text-slate-100">{a.label}</div>
+                          {a.description ? (
+                            <div className="mt-0.5 truncate text-[10px] text-slate-400">{a.description}</div>
+                          ) : null}
+                          <div className="mt-0.5 truncate text-[10px] text-slate-500">{new Date(a.createdAt).toLocaleString()}</div>
+                        </div>
+                        <div
+                          className={
+                            'text-right font-semibold ' +
+                            (a.direction === 'in'
+                              ? 'text-emerald-300'
+                              : a.direction === 'out'
+                                ? 'text-rose-300'
+                                : 'text-slate-200')
+                          }
+                        >
+                          {(a.direction === 'in' ? '+' : a.direction === 'out' ? '-' : '') +
+                            `$${Number(a.amount || 0).toFixed(2)}`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))
+
+                <div className="hidden md:block space-y-2">
+                  {visibleActivities.map((a) => (
+                    <div
+                      key={a.id}
+                      className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-2.5 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
+                    >
+                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-slate-100">{a.label}</p>
+                          {a.description ? <p className="mt-1 text-slate-400">{a.description}</p> : null}
+                        </div>
+                        <div
+                          className={
+                            'shrink-0 text-right font-semibold ' +
+                            (a.direction === 'in'
+                              ? 'text-emerald-300'
+                              : a.direction === 'out'
+                                ? 'text-rose-300'
+                                : 'text-slate-200')
+                          }
+                        >
+                          {(a.direction === 'in' ? '+' : a.direction === 'out' ? '-' : '') +
+                            `$${Number(a.amount || 0).toFixed(2)}`}
+                        </div>
+                      </div>
+                      <p className="mt-2 text-[10px] text-slate-500">{new Date(a.createdAt).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
