@@ -34,8 +34,14 @@ transporter.verify((error, success) => {
  */
 const sendEmail = async (options) => {
   try {
+    const fromEnv = process.env.EMAIL_FROM;
+    const fromUser = process.env.EMAIL_USER;
+    const from = fromEnv
+      ? String(fromEnv)
+      : (fromUser ? `Arbix Platform <${String(fromUser)}>` : 'Arbix Platform');
+
     const mailOptions = {
-      from: 'Arbix Platform <wanum01234@gmail.com>',
+      from,
       to: options.to,
       subject: options.subject,
       text: options.text,
