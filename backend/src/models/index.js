@@ -7,6 +7,7 @@ const UserPackage = require('./UserPackage');
 const WithdrawalRequest = require('./WithdrawalRequest');
 const SiteSetting = require('./SiteSetting');
 const DepositRequest = require('./DepositRequest');
+const Notification = require('./Notification');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -26,6 +27,9 @@ WithdrawalRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(DepositRequest, { foreignKey: 'user_id', as: 'depositRequests' });
 DepositRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+User.hasMany(Notification, { foreignKey: 'user_id', as: 'notifications' });
+Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -36,4 +40,5 @@ module.exports = {
   WithdrawalRequest,
   SiteSetting,
   DepositRequest,
+  Notification,
 };

@@ -223,7 +223,7 @@ export default function SignupPage() {
             <span className="text-white font-bold text-2xl">A</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Your Arbix Account</h1>
-          <p className="text-slate-400">صرف چند آسان steps میں سائن اپ کریں، اپنی email verify کریں اور arbitrage trading سے earning شروع کریں۔</p>
+          <p className="text-slate-400">Sign up in a few easy steps, verify your email, and start earning with arbitrage trading.</p>
         </div>
 
         <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">

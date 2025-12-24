@@ -101,6 +101,18 @@ export default function AdminUsersPage() {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
 
+  const [notifyTitle, setNotifyTitle] = useState('');
+  const [notifyMessage, setNotifyMessage] = useState('');
+  const [notifyStatus, setNotifyStatus] = useState<'success' | 'error' | ''>('');
+  const [notifyStatusText, setNotifyStatusText] = useState('');
+  const [isSendingNotify, setIsSendingNotify] = useState(false);
+
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastStatus, setBroadcastStatus] = useState<'success' | 'error' | ''>('');
+  const [broadcastStatusText, setBroadcastStatusText] = useState('');
+  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
+
   const visibleUsers = useMemo(() => users, [users]);
 
   const activePackages = useMemo(() => packages.filter((p) => String(p.status).toLowerCase() === 'active'), [packages]);
@@ -253,6 +265,80 @@ export default function AdminUsersPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId]);
+
+  const sendNotification = async ({ toAll }: { toAll: boolean }) => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      router.push('/admin/login');
+      return;
+    }
+
+    if (toAll) {
+      setIsSendingBroadcast(true);
+      setBroadcastStatus('');
+      setBroadcastStatusText('');
+    } else {
+      setIsSendingNotify(true);
+      setNotifyStatus('');
+      setNotifyStatusText('');
+    }
+
+    try {
+      const title = (toAll ? broadcastTitle : notifyTitle).trim();
+      const message = (toAll ? broadcastMessage : notifyMessage).trim();
+
+      const res = await fetch('/api/admin/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sendToAll: toAll,
+          userId: toAll ? undefined : selectedUserId,
+          title,
+          message,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        const msg = data?.message || `Failed (HTTP ${res.status})`;
+        if (toAll) {
+          setBroadcastStatus('error');
+          setBroadcastStatusText(msg);
+        } else {
+          setNotifyStatus('error');
+          setNotifyStatusText(msg);
+        }
+        return;
+      }
+
+      const okMsg = data?.message || (toAll ? 'Broadcast sent' : 'Notification sent');
+      if (toAll) {
+        setBroadcastStatus('success');
+        setBroadcastStatusText(okMsg);
+        setBroadcastTitle('');
+        setBroadcastMessage('');
+      } else {
+        setNotifyStatus('success');
+        setNotifyStatusText(okMsg);
+        setNotifyTitle('');
+        setNotifyMessage('');
+      }
+    } catch {
+      if (toAll) {
+        setBroadcastStatus('error');
+        setBroadcastStatusText('Network error. Please try again.');
+      } else {
+        setNotifyStatus('error');
+        setNotifyStatusText('Network error. Please try again.');
+      }
+    } finally {
+      if (toAll) setIsSendingBroadcast(false);
+      else setIsSendingNotify(false);
+    }
+  };
 
   const earningsRows = useMemo(() => {
     const keys = Object.keys(earningsByType || {});
@@ -409,6 +495,100 @@ export default function AdminUsersPage() {
                       </div>
                       <div>
                         <span className="text-slate-500">Referred By (User ID):</span> {userDetails?.referredById ?? '-'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="text-[11px] font-semibold text-slate-200">Send Notification</div>
+                    <p className="mt-1 text-[10px] text-slate-500">
+                      Selected user: <span className="text-slate-300">{userDetails?.email || `ID ${selectedUserId}`}</span>
+                    </p>
+
+                    <div className="mt-3 space-y-2">
+                      <input
+                        value={notifyTitle}
+                        onChange={(e) => setNotifyTitle(e.target.value)}
+                        className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        placeholder="Title"
+                      />
+                      <textarea
+                        value={notifyMessage}
+                        onChange={(e) => setNotifyMessage(e.target.value)}
+                        className="min-h-[90px] w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        placeholder="Write your message..."
+                      />
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          disabled={!selectedUserId || isSendingNotify}
+                          onClick={() => sendNotification({ toAll: false })}
+                          className={
+                            'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
+                            (!selectedUserId || isSendingNotify
+                              ? 'border-slate-800 text-slate-600'
+                              : 'border-emerald-500/40 text-emerald-200 hover:border-emerald-400')
+                          }
+                        >
+                          {isSendingNotify ? 'Sending...' : 'Send'}
+                        </button>
+                        {notifyStatusText ? (
+                          <div className={
+                            'text-[11px] ' + (notifyStatus === 'success' ? 'text-emerald-300' : 'text-rose-300')
+                          }>
+                            {notifyStatusText}
+                          </div>
+                        ) : (
+                          <div />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="text-[11px] font-semibold text-slate-200">Broadcast to All Users</div>
+                    <p className="mt-1 text-[10px] text-slate-500">
+                      This will send the same notification to every user.
+                    </p>
+
+                    <div className="mt-3 space-y-2">
+                      <input
+                        value={broadcastTitle}
+                        onChange={(e) => setBroadcastTitle(e.target.value)}
+                        className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        placeholder="Title"
+                      />
+                      <textarea
+                        value={broadcastMessage}
+                        onChange={(e) => setBroadcastMessage(e.target.value)}
+                        className="min-h-[90px] w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        placeholder="Write your broadcast message..."
+                      />
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          disabled={isSendingBroadcast}
+                          onClick={() => sendNotification({ toAll: true })}
+                          className={
+                            'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
+                            (isSendingBroadcast
+                              ? 'border-slate-800 text-slate-600'
+                              : 'border-sky-500/40 text-sky-200 hover:border-sky-400')
+                          }
+                        >
+                          {isSendingBroadcast ? 'Sending...' : 'Send to All'}
+                        </button>
+                        {broadcastStatusText ? (
+                          <div className={
+                            'text-[11px] ' + (broadcastStatus === 'success' ? 'text-emerald-300' : 'text-rose-300')
+                          }>
+                            {broadcastStatusText}
+                          </div>
+                        ) : (
+                          <div />
+                        )}
                       </div>
                     </div>
                   </div>

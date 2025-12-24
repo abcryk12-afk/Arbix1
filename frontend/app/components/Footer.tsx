@@ -12,8 +12,8 @@ export default function Footer() {
   return (
     <footer className="border-t border-slate-800 bg-slate-950/95">
       <div className="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-400">
-        <div className="grid gap-6 md:grid-cols-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div className="col-span-2 space-y-2 md:col-span-1">
             <div className="text-sm font-semibold text-slate-100">Arbix</div>
             <p className="text-[11px] leading-relaxed">
               Automated arbitrage &amp; managed passive income platform with a
@@ -90,7 +90,7 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          <div>
+          <div className="col-span-2 md:col-span-1">
             <div className="text-sm font-semibold text-slate-100">
               Contact &amp; Support
             </div>

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, sequelize } = require('../models');
+const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
 const { deriveChildWallet } = require('../utils/hdWallet');
@@ -18,6 +18,85 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check admin access',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.sendNotification = async (req, res) => {
+  try {
+    const { userId, sendToAll, title, message } = req.body || {};
+
+    const cleanTitle = String(title || '').trim();
+    const cleanMessage = String(message || '').trim();
+
+    if (!cleanTitle || cleanTitle.length < 2) {
+      return res.status(400).json({ success: false, message: 'Notification title is required' });
+    }
+
+    if (!cleanMessage || cleanMessage.length < 2) {
+      return res.status(400).json({ success: false, message: 'Notification message is required' });
+    }
+
+    const createdBy = req.user?.email || 'admin';
+    const isBroadcast = Boolean(sendToAll);
+
+    if (!isBroadcast) {
+      const numericUserId = Number(userId);
+      if (!Number.isFinite(numericUserId) || numericUserId <= 0) {
+        return res.status(400).json({ success: false, message: 'Valid userId is required (or set sendToAll=true)' });
+      }
+
+      const user = await User.findByPk(numericUserId, { attributes: ['id'] });
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const notif = await Notification.create({
+        user_id: numericUserId,
+        title: cleanTitle,
+        message: cleanMessage,
+        created_by: createdBy,
+        is_read: false,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Notification sent',
+        created: 1,
+        notification: {
+          id: notif.id,
+          userId: numericUserId,
+        },
+      });
+    }
+
+    const users = await User.findAll({ raw: true, attributes: ['id'] });
+    const ids = (users || []).map((u) => Number(u.id)).filter((v) => Number.isFinite(v) && v > 0);
+    if (!ids.length) {
+      return res.status(200).json({ success: true, message: 'No users to notify', created: 0 });
+    }
+
+    await Notification.bulkCreate(
+      ids.map((id) => ({
+        user_id: id,
+        title: cleanTitle,
+        message: cleanMessage,
+        created_by: createdBy,
+        is_read: false,
+      })),
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Broadcast sent',
+      created: ids.length,
+    });
+  } catch (error) {
+    console.error('Admin send notification error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to send notification',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

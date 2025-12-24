@@ -5,6 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 const {
   getSummary,
   getActivity,
+  listNotifications,
   updateProfile,
   getFooterStats,
   getReferrals,
@@ -19,6 +20,7 @@ const {
 
 router.get('/summary', protect, getSummary);
 router.get('/activity', protect, getActivity);
+router.get('/notifications', protect, listNotifications);
 router.put('/profile', protect, updateProfile);
 router.get('/footer-stats', protect, getFooterStats);
 router.get('/referrals', protect, getReferrals);

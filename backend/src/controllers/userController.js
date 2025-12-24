@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, sequelize } = require('../models');
+const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 
 const PACKAGES = {
@@ -47,6 +47,39 @@ exports.getSummary = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user summary',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.listNotifications = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = Math.min(Number(req.query.limit || 10), 50);
+
+    const rows = await Notification.findAll({
+      where: { user_id: userId },
+      order: [[Notification.sequelize.col('created_at'), 'DESC']],
+      limit,
+      raw: true,
+      attributes: ['id', 'title', 'message', ['is_read', 'isRead'], [Notification.sequelize.col('created_at'), 'createdAt']],
+    });
+
+    return res.status(200).json({
+      success: true,
+      notifications: rows.map((n) => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        isRead: Boolean(n.isRead),
+        createdAt: n.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error('List user notifications error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch notifications',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

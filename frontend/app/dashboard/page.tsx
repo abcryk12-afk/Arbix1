@@ -15,6 +15,8 @@ type Announcement = {
   id: string;
   title: string;
   text: string;
+  createdAt?: string;
+  isRead?: boolean;
 };
 
 type KpiCardProps = {
@@ -98,6 +100,8 @@ export default function DashboardPage() {
   const [teamCounts, setTeamCounts] = useState({ l1: 0, l2: 0, l3: 0 });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitySummary, setActivitySummary] = useState<{ todayByLevel: { l1: number; l2: number; l3: number } } | null>(null);
+  const [activityPage, setActivityPage] = useState(0);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [kpiHasAnimated, setKpiHasAnimated] = useState(false);
   const [kpiDisplay, setKpiDisplay] = useState({
     availableBalance: 0,
@@ -130,7 +134,19 @@ export default function DashboardPage() {
   const l2Count = teamCounts.l2;
   const l3Count = teamCounts.l3;
   const teamTodayEarnings = networkToday;
-  const announcements: Announcement[] = [];
+
+  const activityPageSize = 8;
+  const activityPageCount = Math.max(1, Math.ceil(activities.length / activityPageSize));
+  const visibleActivities = activities.slice(
+    activityPage * activityPageSize,
+    activityPage * activityPageSize + activityPageSize,
+  );
+
+  useEffect(() => {
+    if (activityPage <= 0) return;
+    if (activityPage * activityPageSize < activities.length) return;
+    setActivityPage(0);
+  }, [activities.length, activityPage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -335,6 +351,33 @@ export default function DashboardPage() {
           });
 
           setActivities(mapped);
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/notifications?limit=10', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success && Array.isArray(data?.notifications)) {
+          setAnnouncements(
+            data.notifications.map((n: any) => ({
+              id: String(n.id),
+              title: String(n.title || 'Announcement'),
+              text: String(n.message || n.text || ''),
+              createdAt: n.createdAt ? String(n.createdAt) : undefined,
+              isRead: Boolean(n.isRead),
+            })),
+          );
         }
       } catch {
         // ignore
@@ -679,9 +722,48 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : null}
+          {activities.length > activityPageSize ? (
+            <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
+              <div className="text-slate-500">
+                Showing {Math.min(activityPage * activityPageSize + 1, activities.length)}-
+                {Math.min((activityPage + 1) * activityPageSize, activities.length)} of {activities.length}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={activityPage <= 0}
+                  onClick={() => setActivityPage((p) => Math.max(0, p - 1))}
+                  className={
+                    'rounded-lg border px-3 py-1 text-[11px] ' +
+                    (activityPage <= 0
+                      ? 'border-slate-800 text-slate-600'
+                      : 'border-slate-700 text-slate-200 hover:border-slate-500')
+                  }
+                >
+                  Prev
+                </button>
+                <div className="text-slate-500">
+                  Page {activityPage + 1} / {activityPageCount}
+                </div>
+                <button
+                  type="button"
+                  disabled={activityPage + 1 >= activityPageCount}
+                  onClick={() => setActivityPage((p) => Math.min(activityPageCount - 1, p + 1))}
+                  className={
+                    'rounded-lg border px-3 py-1 text-[11px] ' +
+                    (activityPage + 1 >= activityPageCount
+                      ? 'border-slate-800 text-slate-600'
+                      : 'border-slate-700 text-slate-200 hover:border-slate-500')
+                  }
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="mt-3 space-y-2 text-[11px] text-slate-300">
-            {activities.length ? (
-              activities.map((a) => (
+            {visibleActivities.length ? (
+              visibleActivities.map((a) => (
                 <div
                   key={a.id}
                   className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
@@ -734,6 +816,9 @@ export default function DashboardPage() {
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
                   <p className="font-semibold text-slate-100">{n.title}</p>
                   <p className="mt-1 text-slate-400">{n.text}</p>
+                  {n.createdAt ? (
+                    <p className="mt-2 text-[10px] text-slate-500">{new Date(n.createdAt).toLocaleString()}</p>
+                  ) : null}
                 </div>
               ))
             ) : (
