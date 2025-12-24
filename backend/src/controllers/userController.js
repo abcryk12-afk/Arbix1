@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
+const { scanAndCreditUserUsdtDeposits } = require('../services/bscDepositService');
 
 const PACKAGES = {
   starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
@@ -15,6 +16,21 @@ const PACKAGES = {
 exports.getSummary = async (req, res) => {
   try {
     const userId = req.user.id;
+
+    try {
+      const user = await User.findByPk(userId, { attributes: ['id', 'wallet_public_address'] });
+      if (user && !user.wallet_public_address) {
+        await ensureWalletForUser(user);
+      }
+
+      const addr = String(user?.wallet_public_address || '').trim();
+      if (addr) {
+        try {
+          const models = require('../models');
+          await scanAndCreditUserUsdtDeposits({ models, userId, address: addr, reason: 'summary', maxRounds: 2 });
+        } catch {}
+      }
+    } catch {}
 
     let wallet = await Wallet.findOne({ where: { user_id: userId } });
     if (!wallet) {

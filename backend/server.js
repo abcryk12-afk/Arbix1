@@ -12,6 +12,7 @@ const userRoutes = require('./src/routes/user.routes');
 const publicRoutes = require('./src/routes/public.routes');
 const db = require('./src/config/db');
 const { startDailyProfitScheduler } = require('./src/services/dailyProfitService');
+const { startBscDepositScannerScheduler } = require('./src/services/bscDepositService');
 
 const app = express();
 
@@ -84,6 +85,8 @@ const ensureSchema = async () => {
     Transaction: models.Transaction,
     UserPackage: models.UserPackage,
   });
+
+  startBscDepositScannerScheduler({ models });
 };
 
 ensureSchema()
