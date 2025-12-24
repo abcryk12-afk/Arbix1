@@ -57,6 +57,8 @@ exports.listNotifications = async (req, res) => {
     const userId = req.user.id;
     const limit = Math.min(Number(req.query.limit || 10), 50);
 
+    const pickCol = (colsSet, candidates) => candidates.find((c) => colsSet.has(c)) || null;
+
     const fetchRows = async () => {
       return Notification.findAll({
         where: { user_id: userId },
@@ -73,9 +75,57 @@ exports.listNotifications = async (req, res) => {
     } catch (err) {
       const code = err?.original?.code || err?.parent?.code || err?.code;
       const msg = String(err?.original?.message || err?.message || '');
-      if (code === 'ER_NO_SUCH_TABLE' || msg.toLowerCase().includes('notifications')) {
-        await Notification.sync();
-        rows = await fetchRows();
+      if (
+        code === 'ER_NO_SUCH_TABLE' ||
+        code === 'ER_BAD_FIELD_ERROR' ||
+        msg.toLowerCase().includes('notifications') ||
+        msg.toLowerCase().includes('unknown column')
+      ) {
+        await Notification.sync({ alter: true });
+        try {
+          rows = await fetchRows();
+        } catch (err2) {
+          const code2 = err2?.original?.code || err2?.parent?.code || err2?.code;
+          const msg2 = String(err2?.original?.message || err2?.message || '');
+          if (
+            code2 === 'ER_BAD_FIELD_ERROR' ||
+            msg2.toLowerCase().includes('unknown column')
+          ) {
+            const qi = sequelize.getQueryInterface();
+            const desc = await qi.describeTable('notifications');
+            const colsSet = new Set(Object.keys(desc || {}));
+
+            const userCol = pickCol(colsSet, ['user_id', 'userId']);
+            const createdAtCol = pickCol(colsSet, ['created_at', 'createdAt']);
+            const isReadCol = pickCol(colsSet, ['is_read', 'isRead']);
+
+            const selectParts = ['id', 'title', 'message'];
+            if (isReadCol) selectParts.push(`${isReadCol} as isRead`);
+            if (createdAtCol) selectParts.push(`${createdAtCol} as createdAt`);
+
+            const whereCol = userCol || 'user_id';
+            const orderCol = createdAtCol || 'id';
+
+            const raw = await sequelize.query(
+              `SELECT ${selectParts.join(', ')} FROM notifications WHERE ${whereCol} = :userId ORDER BY ${orderCol} DESC LIMIT :limit`,
+              { replacements: { userId, limit } },
+            );
+
+            const items = Array.isArray(raw) ? raw[0] : [];
+            return res.status(200).json({
+              success: true,
+              notifications: (items || []).map((n) => ({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                isRead: Boolean(n.isRead),
+                createdAt: n.createdAt || null,
+              })),
+            });
+          }
+
+          throw err2;
+        }
       } else {
         throw err;
       }
@@ -94,10 +144,12 @@ exports.listNotifications = async (req, res) => {
   } catch (error) {
     console.error('List user notifications error:', error);
     const code = error?.original?.code || error?.parent?.code || error?.code || undefined;
+    const dbMessage = error?.original?.sqlMessage || error?.parent?.sqlMessage || undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch notifications',
       code,
+      dbMessage,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

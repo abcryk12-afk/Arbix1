@@ -5,6 +5,8 @@ const { decrypt } = require('../utils/encryption');
 const { deriveChildWallet } = require('../utils/hdWallet');
 const { runDailyProfitCredit } = require('../services/dailyProfitService');
 
+let notificationsColumnsCache = null;
+
 exports.checkAccess = async (req, res) => {
   try {
     res.status(200).json({
@@ -24,10 +26,96 @@ exports.checkAccess = async (req, res) => {
 };
 
 exports.sendNotification = async (req, res) => {
-  const isMissingNotificationsTableError = (err) => {
+  const isNotificationsSchemaError = (err) => {
     const code = err?.original?.code || err?.parent?.code || err?.code;
     const msg = String(err?.original?.message || err?.message || '');
-    return code === 'ER_NO_SUCH_TABLE' || msg.toLowerCase().includes('notifications');
+    return (
+      code === 'ER_NO_SUCH_TABLE' ||
+      code === 'ER_BAD_FIELD_ERROR' ||
+      msg.toLowerCase().includes('notifications') ||
+      msg.toLowerCase().includes('unknown column')
+    );
+  };
+
+  const extractUnknownColumn = (err) => {
+    const msg = String(err?.original?.sqlMessage || err?.original?.message || err?.message || '');
+    const match = msg.match(/Unknown column '([^']+)'/i);
+    return match ? match[1] : null;
+  };
+
+  const pickCol = (colsSet, candidates) => candidates.find((c) => colsSet.has(c)) || null;
+
+  const getNotificationsColumns = async () => {
+    if (notificationsColumnsCache) return notificationsColumnsCache;
+    const qi = sequelize.getQueryInterface();
+    const desc = await qi.describeTable('notifications');
+    notificationsColumnsCache = Object.keys(desc || {});
+    return notificationsColumnsCache;
+  };
+
+  const rawInsertNotification = async ({ userId, title, message, createdBy }) => {
+    const now = new Date();
+    let cols;
+    try {
+      cols = await getNotificationsColumns();
+    } catch (err) {
+      if (isNotificationsSchemaError(err)) {
+        await Notification.sync({ alter: true });
+        notificationsColumnsCache = null;
+        cols = await getNotificationsColumns();
+      } else {
+        throw err;
+      }
+    }
+
+    const colsSet = new Set(cols);
+
+    const userCol = pickCol(colsSet, ['user_id', 'userId']);
+    const titleCol = pickCol(colsSet, ['title']);
+    const messageCol = pickCol(colsSet, ['message', 'text']);
+    const createdByCol = pickCol(colsSet, ['created_by', 'createdBy']);
+    const isReadCol = pickCol(colsSet, ['is_read', 'isRead']);
+    const createdAtCol = pickCol(colsSet, ['created_at', 'createdAt']);
+    const updatedAtCol = pickCol(colsSet, ['updated_at', 'updatedAt']);
+
+    if (!userCol || !titleCol || !messageCol) {
+      const e = new Error('notifications table schema incompatible');
+      e.code = 'NOTIFICATIONS_SCHEMA_INCOMPATIBLE';
+      throw e;
+    }
+
+    const replacements = {
+      [userCol]: userId,
+      [titleCol]: title,
+      [messageCol]: message,
+    };
+
+    if (createdByCol) replacements[createdByCol] = createdBy;
+    if (isReadCol) replacements[isReadCol] = 0;
+    if (createdAtCol) replacements[createdAtCol] = now;
+    if (updatedAtCol) replacements[updatedAtCol] = now;
+
+    const insertCols = Object.keys(replacements);
+    const sql = `INSERT INTO notifications (${insertCols.join(', ')}) VALUES (${insertCols
+      .map((c) => `:${c}`)
+      .join(', ')})`;
+
+    try {
+      await sequelize.query(sql, { replacements });
+      return true;
+    } catch (err) {
+      const unknown = extractUnknownColumn(err);
+      if (unknown && replacements[unknown] !== undefined) {
+        delete replacements[unknown];
+        const cols2 = Object.keys(replacements);
+        const sql2 = `INSERT INTO notifications (${cols2.join(', ')}) VALUES (${cols2
+          .map((c) => `:${c}`)
+          .join(', ')})`;
+        await sequelize.query(sql2, { replacements });
+        return true;
+      }
+      throw err;
+    }
   };
 
   const createOne = async ({ userId, title, message, createdBy }) => {
@@ -72,9 +160,25 @@ exports.sendNotification = async (req, res) => {
       try {
         notif = await createOne({ userId: numericUserId, title: cleanTitle, message: cleanMessage, createdBy });
       } catch (err) {
-        if (isMissingNotificationsTableError(err)) {
-          await Notification.sync();
-          notif = await createOne({ userId: numericUserId, title: cleanTitle, message: cleanMessage, createdBy });
+        if (isNotificationsSchemaError(err)) {
+          await Notification.sync({ alter: true });
+          notificationsColumnsCache = null;
+          try {
+            notif = await createOne({ userId: numericUserId, title: cleanTitle, message: cleanMessage, createdBy });
+          } catch (err2) {
+            if (!isNotificationsSchemaError(err2)) throw err2;
+
+            await rawInsertNotification({ userId: numericUserId, title: cleanTitle, message: cleanMessage, createdBy });
+            return res.status(201).json({
+              success: true,
+              message: 'Notification sent',
+              created: 1,
+              notification: {
+                id: null,
+                userId: numericUserId,
+              },
+            });
+          }
         } else {
           throw err;
         }
@@ -108,17 +212,28 @@ exports.sendNotification = async (req, res) => {
         })),
       );
     } catch (err) {
-      if (isMissingNotificationsTableError(err)) {
-        await Notification.sync();
-        await Notification.bulkCreate(
-          ids.map((id) => ({
-            user_id: id,
-            title: cleanTitle,
-            message: cleanMessage,
-            created_by: createdBy,
-            is_read: false,
-          })),
-        );
+      if (isNotificationsSchemaError(err)) {
+        await Notification.sync({ alter: true });
+        notificationsColumnsCache = null;
+        try {
+          await Notification.bulkCreate(
+            ids.map((id) => ({
+              user_id: id,
+              title: cleanTitle,
+              message: cleanMessage,
+              created_by: createdBy,
+              is_read: false,
+            })),
+          );
+        } catch (err2) {
+          if (!isNotificationsSchemaError(err2)) throw err2;
+
+          const results = await Promise.allSettled(
+            ids.map((id) => rawInsertNotification({ userId: id, title: cleanTitle, message: cleanMessage, createdBy })),
+          );
+          const created = results.filter((r) => r.status === 'fulfilled').length;
+          return res.status(201).json({ success: true, message: 'Broadcast sent', created });
+        }
       } else {
         throw err;
       }
@@ -132,10 +247,12 @@ exports.sendNotification = async (req, res) => {
   } catch (error) {
     console.error('Admin send notification error:', error);
     const code = error?.original?.code || error?.parent?.code || error?.code || undefined;
+    const dbMessage = error?.original?.sqlMessage || error?.parent?.sqlMessage || undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to send notification',
       code,
+      dbMessage,
       error: process.env.NODE_ENV === 'development' ? (error?.original?.message || error.message) : undefined,
     });
   }

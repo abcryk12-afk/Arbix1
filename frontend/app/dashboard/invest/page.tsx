@@ -309,7 +309,8 @@ export default function StartInvestmentPage() {
             Your Arbix Wallet
           </h2>
           <div className="mt-4 grid gap-3 text-xs text-slate-300 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_24px_70px_rgba(16,185,129,0.15)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
               <p className="text-[11px] text-slate-400">Available Balance</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
                 {isLoading ? '—' : `${availableBalance.toFixed(2)} USDT`}
@@ -318,7 +319,8 @@ export default function StartInvestmentPage() {
                 Available to purchase new packages
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_24px_70px_rgba(245,158,11,0.15)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-amber-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
               <p className="text-[11px] text-slate-400">Daily Earnings</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
                 {isLoading ? '—' : `${dailyRewards.toFixed(2)} USDT`}
@@ -327,7 +329,8 @@ export default function StartInvestmentPage() {
                 Earned from active packages (today)
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/40 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.35),0_24px_70px_rgba(56,189,248,0.15)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
               <p className="text-[11px] text-slate-400">Total Active Capital</p>
               <p className="mt-1 text-lg font-semibold text-slate-100">
                 {isLoading ? '—' : `${totalActiveCapital.toFixed(2)} USDT`}
@@ -350,7 +353,7 @@ export default function StartInvestmentPage() {
             always start small and grow over time.
           </p>
 
-          <div className="mt-4 grid gap-4 text-xs text-slate-300 md:grid-cols-2">
+          <div className="mt-4 grid gap-4 text-xs text-slate-300 sm:grid-cols-2">
             {PACKAGES.map((pkg) => {
               const capLabel =
                 pkg.capital === 'flex'
@@ -373,8 +376,24 @@ export default function StartInvestmentPage() {
               return (
                 <div
                   key={pkg.id}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
+                  className={
+                    'group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-gradient-to-b p-4 ' +
+                    'shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)] transition-all duration-300 ' +
+                    'hover:-translate-y-1 active:translate-y-0 ' +
+                    (pkg.id === 'starter'
+                      ? 'border-blue-500/25 from-blue-500/10 via-slate-950/70 to-slate-950 hover:border-blue-400/50 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.35),0_28px_90px_rgba(59,130,246,0.14)]'
+                      : pkg.id === 'gold'
+                        ? 'border-amber-500/25 from-amber-500/10 via-slate-950/70 to-slate-950 hover:border-amber-400/50 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_28px_90px_rgba(245,158,11,0.14)]'
+                        : pkg.id === 'elite_plus'
+                          ? 'border-slate-300/20 from-slate-100/10 via-slate-950/70 to-slate-950 hover:border-slate-200/35 hover:shadow-[0_0_0_1px_rgba(226,232,240,0.18),0_28px_90px_rgba(148,163,184,0.12)]'
+                          : 'border-slate-800/80 from-slate-900/70 via-slate-950/70 to-slate-950 hover:border-sky-500/30 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.25),0_28px_90px_rgba(56,189,248,0.10)]')
+                  }
                 >
+                  <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    <div className="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl" />
+                    <div className="absolute -bottom-20 -right-16 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl" />
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent" />
+                  </div>
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-sm font-semibold text-slate-100">
@@ -421,7 +440,7 @@ export default function StartInvestmentPage() {
                   <button
                     type="button"
                     onClick={() => handleActivateClick(pkg.id)}
-                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-[0_10px_30px_rgba(37,99,235,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0"
                   >
                     Activate Package
                   </button>
@@ -443,7 +462,10 @@ export default function StartInvestmentPage() {
           className="border-b border-slate-800 bg-slate-950"
         >
           <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/80 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)]">
+              <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full bg-sky-500/10 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-20 -right-16 h-56 w-56 rounded-full bg-violet-500/10 blur-3xl" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent" />
               <h2 className="text-sm font-semibold text-slate-50 md:text-base">
                 Activate Package: {selectedConfig.name}
               </h2>
@@ -467,7 +489,7 @@ export default function StartInvestmentPage() {
                         onChange={(e) => setEliteCapital(Number(e.target.value || 0))}
                         type="number"
                         min={1000}
-                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100"
+                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-sky-500/60"
                       />
                     </div>
                   )}
@@ -523,14 +545,14 @@ export default function StartInvestmentPage() {
                   <button
                     type="button"
                     onClick={handleConfirmActivation}
-                    className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-sm hover:bg-blue-500"
+                    className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-[0_12px_40px_rgba(37,99,235,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0"
                   >
                     Confirm Activation
                   </button>
                 ) : (
                   <a
                     href="/dashboard/deposit"
-                    className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-sm hover:bg-blue-500"
+                    className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-[0_12px_40px_rgba(37,99,235,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0"
                   >
                     Deposit Now
                   </a>
@@ -538,7 +560,7 @@ export default function StartInvestmentPage() {
                 <button
                   type="button"
                   onClick={() => setShowActivation(false)}
-                  className="rounded-lg border border-slate-700 px-5 py-2 text-slate-100 hover:border-slate-500"
+                  className="rounded-lg border border-slate-700 px-5 py-2 text-slate-100 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 active:translate-y-0"
                 >
                   Cancel
                 </button>
@@ -562,12 +584,14 @@ export default function StartInvestmentPage() {
               get started.
             </p>
           ) : (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               {activePackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
+                  className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/25 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.25),0_28px_90px_rgba(16,185,129,0.12)]"
                 >
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-70" />
+                  <div className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full bg-emerald-500/10 blur-3xl opacity-70" />
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-slate-100">
@@ -589,7 +613,7 @@ export default function StartInvestmentPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2 md:grid-cols-3">
+                  <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2">
                     <p>
                       <span className="text-slate-400">Capital:</span>{' '}
                       <span className="font-semibold text-slate-100">
@@ -634,23 +658,25 @@ export default function StartInvestmentPage() {
             Daily Earnings Wallet
           </h2>
           <div className="mt-4 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.22),0_24px_70px_rgba(16,185,129,0.10)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl" />
               <p className="text-slate-400">Today&apos;s Earnings</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
                 {dailyRewards.toFixed(2)} USDT
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/30 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22),0_24px_70px_rgba(56,189,248,0.10)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl" />
               <p className="text-slate-400">Daily Earnings Wallet Balance</p>
               <p className="mt-1 text-lg font-semibold text-slate-100">
                 {dailyRewards.toFixed(2)} USDT
               </p>
             </div>
             <div className="flex flex-col justify-center gap-2">
-              <button className="rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500">
+              <button className="rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-[0_12px_40px_rgba(37,99,235,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0">
                 Withdraw
               </button>
-              <button className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-100 hover:border-slate-500">
+              <button className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-100 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 active:translate-y-0">
                 Reinvest to Packages
               </button>
             </div>
