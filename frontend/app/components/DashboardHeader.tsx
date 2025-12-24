@@ -72,6 +72,7 @@ export default function DashboardHeader() {
     () => [
       { label: 'Dashboard', href: '/dashboard', match: 'exact' },
       { label: 'Deposit', href: '/dashboard/deposit', match: 'prefix' },
+      { label: 'Packages', href: '/dashboard/packages', match: 'prefix' },
       { label: 'Invest', href: '/dashboard/invest', match: 'prefix' },
       { label: 'Team', href: '/dashboard/team', match: 'prefix' },
       { label: 'Withdraw', href: '/dashboard/withdraw', match: 'prefix' },

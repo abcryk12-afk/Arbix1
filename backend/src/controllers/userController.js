@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, sequelize } = require('../models');
+const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, DepositScanLog, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { scanAndCreditUserUsdtDeposits } = require('../services/bscDepositService');
 
@@ -11,6 +11,53 @@ const PACKAGES = {
   gold: { name: 'Gold', capital: 500, dailyRoi: 3, durationDays: 365 },
   platinum: { name: 'Platinum', capital: 1000, dailyRoi: 4, durationDays: 365 },
   elite_plus: { name: 'Elite+', capital: 'flex', minCapital: 1000, dailyRoi: 4.5, durationDays: 365 },
+};
+
+exports.listDepositScanLogs = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = Math.min(Number(req.query.limit || 50), 200);
+
+    const logs = await DepositScanLog.findAll({
+      where: { user_id: userId },
+      order: [[DepositScanLog.sequelize.col('created_at'), 'DESC']],
+      limit,
+      raw: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      logs: (logs || []).map((l) => ({
+        id: l.id,
+        chain: l.chain,
+        token: l.token,
+        address: l.address,
+        reason: l.reason || null,
+        status: l.status,
+        latestBlock: l.latest_block ?? null,
+        confirmations: l.confirmations ?? null,
+        safeToBlock: l.safe_to_block ?? null,
+        cursorBefore: l.cursor_before ?? null,
+        cursorAfter: l.cursor_after ?? null,
+        fromBlock: l.from_block ?? null,
+        toBlock: l.to_block ?? null,
+        rounds: l.rounds ?? null,
+        logsFound: Number(l.logs_found || 0),
+        creditedEvents: Number(l.credited_events || 0),
+        durationMs: l.duration_ms ?? null,
+        errorCode: l.error_code || null,
+        errorMessage: l.error_message || null,
+        createdAt: l.created_at,
+      })),
+    });
+  } catch (error) {
+    console.error('List deposit scan logs error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch deposit scan logs',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
 };
 
 exports.getSummary = async (req, res) => {

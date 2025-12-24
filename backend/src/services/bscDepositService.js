@@ -186,54 +186,167 @@ async function scanAndCreditUserUsdtDeposits({
   reason,
   maxRounds,
 }) {
-  const { sequelize, SiteSetting, Wallet, Transaction, DepositRequest, ChainDepositEvent } = models;
+  const { sequelize, SiteSetting, Wallet, Transaction, DepositRequest, ChainDepositEvent, DepositScanLog } = models;
 
   if (!userId || !address) return { scanned: false, reason: 'missing_params' };
 
   const last = scanState.lastScanAtByUserId.get(userId) || 0;
   const now = Date.now();
   if (now - last < getMinScanIntervalMs()) {
+    try {
+      if (DepositScanLog) {
+        await DepositScanLog.create({
+          user_id: userId,
+          address: String(address),
+          reason: reason || null,
+          status: 'skipped',
+          error_code: 'RATE_LIMITED',
+          error_message: 'Scan skipped due to rate limit',
+        });
+      }
+    } catch {}
     return { scanned: false, reason: 'rate_limited' };
   }
   scanState.lastScanAtByUserId.set(userId, now);
 
-  const provider = getProvider();
-  const token = getUsdtContract();
-  const decimals = getTokenDecimals();
-  const confirmations = getConfirmations();
-  const maxBlocks = getMaxBlocksPerScan();
+  const startedAt = Date.now();
+  const logBase = {
+    user_id: userId,
+    address: String(address),
+    reason: reason || null,
+    chain: 'BSC',
+    token: 'USDT',
+  };
+
+  let provider;
+  let token;
+  let decimals;
+  let confirmations;
+  let maxBlocks;
+
+  try {
+    provider = getProvider();
+    token = getUsdtContract();
+    decimals = getTokenDecimals();
+    confirmations = getConfirmations();
+    maxBlocks = getMaxBlocksPerScan();
+  } catch (e) {
+    try {
+      if (DepositScanLog) {
+        await DepositScanLog.create({
+          ...logBase,
+          status: 'error',
+          duration_ms: Date.now() - startedAt,
+          error_code: e?.code || 'SCAN_CONFIG_ERROR',
+          error_message: e?.message || String(e),
+        });
+      }
+    } catch {}
+    throw e;
+  }
 
   const normalizedTo = ethers.utils.getAddress(address);
   const topic0 = ethers.utils.id('Transfer(address,address,uint256)');
   const topicTo = ethers.utils.hexZeroPad(normalizedTo, 32);
 
-  const latest = await provider.getBlockNumber();
-  const safeToBlock = Math.max(0, latest - confirmations);
+  let latest;
+  let safeToBlock;
+  try {
+    latest = await provider.getBlockNumber();
+    safeToBlock = Math.max(0, latest - confirmations);
+  } catch (e) {
+    try {
+      if (DepositScanLog) {
+        await DepositScanLog.create({
+          ...logBase,
+          status: 'error',
+          confirmations,
+          duration_ms: Date.now() - startedAt,
+          error_code: e?.code || 'RPC_ERROR',
+          error_message: e?.message || String(e),
+        });
+      }
+    } catch {}
+    throw e;
+  }
+
+  const rounds = Number.isFinite(maxRounds) && maxRounds > 0 ? Math.floor(maxRounds) : 1;
 
   let cursor = await getAddressCursor({ SiteSetting, address: normalizedTo });
   if (cursor == null) {
-    cursor = Math.max(0, safeToBlock - maxBlocks);
+    cursor = Math.max(0, safeToBlock - maxBlocks * rounds);
   }
 
   let fromBlock = Math.max(0, cursor + 1);
   if (fromBlock > safeToBlock) {
     await setAddressCursor({ SiteSetting, address: normalizedTo, blockNumber: safeToBlock });
+    try {
+      if (DepositScanLog) {
+        await DepositScanLog.create({
+          ...logBase,
+          status: 'up_to_date',
+          latest_block: latest,
+          confirmations,
+          safe_to_block: safeToBlock,
+          cursor_before: cursor,
+          cursor_after: safeToBlock,
+          from_block: fromBlock,
+          to_block: safeToBlock,
+          rounds: 0,
+          logs_found: 0,
+          credited_events: 0,
+          duration_ms: Date.now() - startedAt,
+        });
+      }
+    } catch {}
     return { scanned: true, credited: 0, reason: 'up_to_date' };
   }
 
-  const rounds = Number.isFinite(maxRounds) && maxRounds > 0 ? Math.floor(maxRounds) : 1;
   let creditedCount = 0;
   let currentFrom = fromBlock;
+  let logsFound = 0;
+  let cursorAfter = cursor;
+  let lastToBlock = null;
 
   for (let i = 0; i < rounds; i++) {
     const currentTo = Math.min(safeToBlock, currentFrom + maxBlocks - 1);
 
-    const logs = await provider.getLogs({
-      address: token,
-      fromBlock: currentFrom,
-      toBlock: currentTo,
-      topics: [topic0, null, topicTo],
-    });
+    lastToBlock = currentTo;
+
+    let logs;
+    try {
+      logs = await provider.getLogs({
+        address: token,
+        fromBlock: currentFrom,
+        toBlock: currentTo,
+        topics: [topic0, null, topicTo],
+      });
+    } catch (e) {
+      try {
+        if (DepositScanLog) {
+          await DepositScanLog.create({
+            ...logBase,
+            status: 'error',
+            latest_block: latest,
+            confirmations,
+            safe_to_block: safeToBlock,
+            cursor_before: cursor,
+            cursor_after: cursorAfter,
+            from_block: currentFrom,
+            to_block: currentTo,
+            rounds: i + 1,
+            logs_found: logsFound,
+            credited_events: creditedCount,
+            duration_ms: Date.now() - startedAt,
+            error_code: e?.code || 'RPC_GETLOGS_ERROR',
+            error_message: e?.message || String(e),
+          });
+        }
+      } catch {}
+      throw e;
+    }
+
+    logsFound += Array.isArray(logs) ? logs.length : 0;
 
     for (const log of logs) {
       const txHash = log.transactionHash;
@@ -273,11 +386,33 @@ async function scanAndCreditUserUsdtDeposits({
 
     await setAddressCursor({ SiteSetting, address: normalizedTo, blockNumber: currentTo });
 
+    cursorAfter = currentTo;
+
     if (currentTo >= safeToBlock) break;
     currentFrom = currentTo + 1;
   }
 
-  return { scanned: true, credited: creditedCount, reason: reason || 'manual' };
+  try {
+    if (DepositScanLog) {
+      await DepositScanLog.create({
+        ...logBase,
+        status: 'success',
+        latest_block: latest,
+        confirmations,
+        safe_to_block: safeToBlock,
+        cursor_before: cursor,
+        cursor_after: cursorAfter,
+        from_block: fromBlock,
+        to_block: lastToBlock,
+        rounds,
+        logs_found: logsFound,
+        credited_events: creditedCount,
+        duration_ms: Date.now() - startedAt,
+      });
+    }
+  } catch {}
+
+  return { scanned: true, credited: creditedCount, logsFound, reason: reason || 'manual' };
 }
 
 function startBscDepositScannerScheduler({ models }) {
