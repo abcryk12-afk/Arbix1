@@ -10,15 +10,33 @@ const adminRoutes = require('./src/routes/admin.routes');
 const adminLoginRoutes = require('./src/routes/adminLogin.routes');
 const userRoutes = require('./src/routes/user.routes');
 const publicRoutes = require('./src/routes/public.routes');
+const moralisRoutes = require('./src/routes/moralis.routes');
 const db = require('./src/config/db');
 const { startDailyProfitScheduler } = require('./src/services/dailyProfitService');
-const { startBscDepositScannerScheduler } = require('./src/services/bscDepositService');
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    try {
+      req.rawBody = buf.toString('utf8');
+    } catch {}
+  },
+}));
+
+app.use((err, req, res, next) => {
+  const url = String(req.originalUrl || '');
+  if (url.startsWith('/api/moralis/webhook') && err && err.type === 'entity.parse.failed') {
+    return res.status(200).json({
+      success: true,
+      ready: true,
+      message: 'Moralis webhook endpoint is ready. Set MORALIS_STREAM_SECRET (or MORALIS_STREAMS_SECRET) to enable signature verification and ingestion.',
+    });
+  }
+  return next(err);
+});
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
@@ -29,6 +47,7 @@ app.use('/api/admin', adminLoginRoutes); // Register login routes first
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/moralis', moralisRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
@@ -85,8 +104,6 @@ const ensureSchema = async () => {
     Transaction: models.Transaction,
     UserPackage: models.UserPackage,
   });
-
-  startBscDepositScannerScheduler({ models });
 };
 
 ensureSchema()

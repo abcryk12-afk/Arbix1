@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type AdminUserListItem = {
@@ -45,24 +45,6 @@ type UserDetailsResponse = {
   message?: string;
 };
 
-type DepositScanLogRow = {
-  id: number;
-  userId: number;
-  chain: string;
-  token: string;
-  address: string;
-  reason: string | null;
-  status: string;
-  fromBlock: number | null;
-  toBlock: number | null;
-  logsFound: number;
-  creditedEvents: number;
-  durationMs: number | null;
-  errorCode: string | null;
-  errorMessage: string | null;
-  createdAt: string;
-};
-
 function fmtDate(value?: string | null) {
   if (!value) return '-';
   return String(value).slice(0, 19).replace('T', ' ');
@@ -88,10 +70,7 @@ export default function AdminPackagesPage() {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
 
-  const [scanLogs, setScanLogs] = useState<DepositScanLogRow[]>([]);
-  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
-
-  const fetchUsers = async (q: string) => {
+  const fetchUsers = useCallback(async (q: string) => {
     try {
       setIsLoadingUsers(true);
       const token = localStorage.getItem('adminToken');
@@ -125,17 +104,17 @@ export default function AdminPackagesPage() {
         }))
       );
 
-      if (!selectedUserId && rows.length) {
-        setSelectedUserId(String(rows[0].id));
+      if (rows.length) {
+        setSelectedUserId((prev) => prev || String(rows[0].id));
       }
     } catch {
       setUsers([]);
     } finally {
       setIsLoadingUsers(false);
     }
-  };
+  }, [router]);
 
-  const fetchUserDetails = async (id: string) => {
+  const fetchUserDetails = useCallback(async (id: string) => {
     try {
       setIsLoadingDetails(true);
       setDetailsError('');
@@ -172,53 +151,23 @@ export default function AdminPackagesPage() {
     } finally {
       setIsLoadingDetails(false);
     }
-  };
-
-  const fetchDepositScanLogs = async (id: string) => {
-    try {
-      setIsLoadingLogs(true);
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        router.push('/admin/login');
-        return;
-      }
-
-      const qs = new URLSearchParams();
-      qs.set('userId', String(id));
-      qs.set('limit', '100');
-
-      const res = await fetch(`/api/admin/deposit-scan-logs?${qs.toString()}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setScanLogs(data?.success && Array.isArray(data?.logs) ? data.logs : []);
-    } catch {
-      setScanLogs([]);
-    } finally {
-      setIsLoadingLogs(false);
-    }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchUsers('');
-  }, []);
+  }, [fetchUsers]);
 
   useEffect(() => {
     if (!selectedUserId) return;
     fetchUserDetails(selectedUserId);
-    fetchDepositScanLogs(selectedUserId);
-  }, [selectedUserId]);
+  }, [selectedUserId, fetchUserDetails]);
 
   useEffect(() => {
     const t = setTimeout(() => {
       fetchUsers(query);
     }, 350);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, fetchUsers]);
 
   const activePackages = useMemo(
     () => packages.filter((p) => String(p.status).toLowerCase() === 'active'),
@@ -387,76 +336,6 @@ export default function AdminPackagesPage() {
             </table>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Deposit Detection Logs</div>
-                <div className="text-xs text-slate-500">Explorer/RPC scan attempts for this user.</div>
-              </div>
-              <div className="text-[11px] text-slate-500">{isLoadingLogs ? 'Loading…' : `${scanLogs.length} logs`}</div>
-            </div>
-
-            <div className="mt-3 overflow-x-auto rounded-xl border border-slate-800">
-              <table className="min-w-[1100px] w-full border-collapse text-left text-xs">
-                <thead>
-                  <tr className="bg-slate-950 text-slate-400">
-                    <th className="px-3 py-2">Time</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Reason</th>
-                    <th className="px-3 py-2">Address</th>
-                    <th className="px-3 py-2">Blocks</th>
-                    <th className="px-3 py-2">Found</th>
-                    <th className="px-3 py-2">Credited</th>
-                    <th className="px-3 py-2">Error</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!isLoadingLogs && scanLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-3 py-4 text-slate-500">No scan logs found for this user yet.</td>
-                    </tr>
-                  ) : (
-                    scanLogs.map((l) => (
-                      <tr key={l.id} className="border-t border-slate-800/80 text-slate-200">
-                        <td className="px-3 py-2 whitespace-nowrap">{fmtDate(l.createdAt)}</td>
-                        <td className="px-3 py-2">
-                          <span
-                            className={
-                              'rounded-full border px-2 py-1 text-[11px] ' +
-                              (String(l.status).toLowerCase() === 'success'
-                                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                                : String(l.status).toLowerCase() === 'up_to_date'
-                                  ? 'border-sky-500/20 bg-sky-500/10 text-sky-200'
-                                  : String(l.status).toLowerCase() === 'skipped'
-                                    ? 'border-slate-700 bg-slate-900/30 text-slate-200'
-                                    : 'border-rose-500/20 bg-rose-500/10 text-rose-200')
-                            }
-                          >
-                            {l.status}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2">{l.reason || '—'}</td>
-                        <td className="px-3 py-2 font-mono text-[11px]">{l.address}</td>
-                        <td className="px-3 py-2">{l.fromBlock != null && l.toBlock != null ? `${l.fromBlock} → ${l.toBlock}` : '—'}</td>
-                        <td className="px-3 py-2">{Number(l.logsFound || 0)}</td>
-                        <td className="px-3 py-2">{Number(l.creditedEvents || 0)}</td>
-                        <td className="px-3 py-2">
-                          {l.errorCode ? (
-                            <div>
-                              <div className="text-rose-200">{l.errorCode}</div>
-                              <div className="text-[11px] text-slate-500 line-clamp-2">{l.errorMessage || ''}</div>
-                            </div>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </section>
       </div>
     </main>

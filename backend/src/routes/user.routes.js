@@ -16,7 +16,6 @@ const {
   listWithdrawalRequests,
   requestDeposit,
   listDepositRequests,
-  listDepositScanLogs,
 } = require('../controllers/userController');
 
 router.get('/summary', protect, getSummary);
@@ -33,8 +32,6 @@ router.get('/withdrawal-requests', protect, listWithdrawalRequests);
 
 router.post('/deposit-requests', protect, requestDeposit);
 router.get('/deposit-requests', protect, listDepositRequests);
-
-router.get('/deposit-scan-logs', protect, listDepositScanLogs);
 
 router.post('/deposit_requests', protect, requestDeposit);
 router.get('/deposit_requests', protect, listDepositRequests);

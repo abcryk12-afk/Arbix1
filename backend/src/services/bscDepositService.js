@@ -692,6 +692,10 @@ function startBscDepositScannerScheduler({ models }) {
 }
 
 module.exports = {
-  scanAndCreditUserUsdtDeposits,
-  startBscDepositScannerScheduler,
+  scanAndCreditUserUsdtDeposits: async () => {
+    const err = new Error('Legacy deposit scanner is disabled (migrated to Moralis Streams).');
+    err.code = 'DEPOSIT_SCANNER_DISABLED';
+    throw err;
+  },
+  startBscDepositScannerScheduler: () => {},
 };

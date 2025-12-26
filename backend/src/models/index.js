@@ -9,7 +9,6 @@ const SiteSetting = require('./SiteSetting');
 const DepositRequest = require('./DepositRequest');
 const Notification = require('./Notification');
 const ChainDepositEvent = require('./ChainDepositEvent');
-const DepositScanLog = require('./DepositScanLog');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -35,9 +34,6 @@ Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(ChainDepositEvent, { foreignKey: 'user_id', as: 'chainDepositEvents' });
 ChainDepositEvent.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
-User.hasMany(DepositScanLog, { foreignKey: 'user_id', as: 'depositScanLogs' });
-DepositScanLog.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-
 module.exports = {
   sequelize,
   User,
@@ -50,5 +46,4 @@ module.exports = {
   DepositRequest,
   Notification,
   ChainDepositEvent,
-  DepositScanLog,
 };

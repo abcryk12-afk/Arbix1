@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, ChainDepositEvent, DepositScanLog, SiteSetting, sequelize } = require('../models');
+const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, ChainDepositEvent, SiteSetting, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
 const { deriveChildWallet } = require('../utils/hdWallet');
@@ -92,50 +92,10 @@ exports.setAdminNotificationEmails = async (req, res) => {
 };
 
 exports.listDepositScanLogs = async (req, res) => {
-  try {
-    const limit = Math.min(Number(req.query.limit || 100), 500);
-    const userId = req.query.userId != null ? Number(req.query.userId) : null;
-
-    const where = {};
-    if (userId && Number.isFinite(userId)) {
-      where.user_id = userId;
-    }
-
-    const logs = await DepositScanLog.findAll({
-      where,
-      order: [[DepositScanLog.sequelize.col('created_at'), 'DESC']],
-      limit,
-      raw: true,
-    });
-
-    return res.status(200).json({
-      success: true,
-      logs: (logs || []).map((l) => ({
-        id: l.id,
-        userId: l.user_id,
-        chain: l.chain,
-        token: l.token,
-        address: l.address,
-        reason: l.reason || null,
-        status: l.status,
-        fromBlock: l.from_block ?? null,
-        toBlock: l.to_block ?? null,
-        logsFound: Number(l.logs_found || 0),
-        creditedEvents: Number(l.credited_events || 0),
-        durationMs: l.duration_ms ?? null,
-        errorCode: l.error_code || null,
-        errorMessage: l.error_message || null,
-        createdAt: l.created_at,
-      })),
-    });
-  } catch (error) {
-    console.error('Admin list deposit scan logs error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to list deposit scan logs',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
-  }
+  return res.status(410).json({
+    success: false,
+    message: 'Deposit scan logs are no longer available (deposit detection migrated to Moralis Streams).',
+  });
 };
 
 exports.sendNotification = async (req, res) => {
