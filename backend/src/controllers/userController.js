@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, DepositScanLog, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { scanAndCreditUserUsdtDeposits } = require('../services/bscDepositService');
+const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
 
 const PACKAGES = {
   starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
@@ -585,12 +586,36 @@ exports.requestDeposit = async (req, res) => {
         { transaction: t },
       );
 
-      return { ok: true, request };
+      return {
+        ok: true,
+        request,
+        user: {
+          id: user.id,
+          name: user.name || null,
+          email: user.email || null,
+          phone: user.phone || null,
+        },
+      };
     });
 
     if (!result.ok) {
       return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to submit deposit request' });
     }
+
+    Promise.resolve()
+      .then(() => notifyDepositRequest({
+        user: result.user,
+        request: {
+          id: result.request.id,
+          amount: Number(result.request.amount || 0),
+          address: result.request.address,
+          status: result.request.status,
+          txHash: result.request.tx_hash || null,
+          userNote: result.request.user_note || null,
+          createdAt: result.request.created_at || new Date(),
+        },
+      }))
+      .catch((err) => console.error('Admin deposit notification email failed:', err));
 
     return res.status(201).json({
       success: true,
@@ -676,6 +701,7 @@ exports.requestWithdrawal = async (req, res) => {
     const now = new Date();
 
     const result = await Transaction.sequelize.transaction(async (t) => {
+      const user = await User.findByPk(userId, { transaction: t });
       let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t, lock: t.LOCK.UPDATE });
       if (!wallet) {
         wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
@@ -709,12 +735,42 @@ exports.requestWithdrawal = async (req, res) => {
         { transaction: t },
       );
 
-      return { ok: true, request };
+      return {
+        ok: true,
+        request,
+        user: user
+          ? {
+              id: user.id,
+              name: user.name || null,
+              email: user.email || null,
+              phone: user.phone || null,
+            }
+          : {
+              id: userId,
+              name: req.user?.name || null,
+              email: req.user?.email || null,
+              phone: req.user?.phone || null,
+            },
+      };
     });
 
     if (!result.ok) {
       return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to submit withdrawal request' });
     }
+
+    Promise.resolve()
+      .then(() => notifyWithdrawRequest({
+        user: result.user,
+        request: {
+          id: result.request.id,
+          amount: Number(result.request.amount || 0),
+          address: result.request.address,
+          status: result.request.status,
+          userNote: result.request.user_note || null,
+          createdAt: now,
+        },
+      }))
+      .catch((err) => console.error('Admin withdraw notification email failed:', err));
 
     return res.status(201).json({
       success: true,

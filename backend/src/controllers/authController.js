@@ -5,6 +5,7 @@ const { sendOTPEmail, sendWelcomeEmail, sendPasswordResetEmail } = require('../c
 const bcrypt = require('bcryptjs');
 const { User, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
+const { notifyNewUserRegistration } = require('../services/adminNotificationEmailService');
 
 // @desc    Register a new user (OTP-based email verification)
 // @route   POST /api/auth/register
@@ -73,6 +74,17 @@ exports.register = async (req, res) => {
     }
 
     await sendOTPEmail(email, otp, name);
+
+    Promise.resolve()
+      .then(() => notifyNewUserRegistration({
+        user: {
+          id: user?.id,
+          name: user?.name,
+          email: user?.email,
+          phone: user?.phone || null,
+        },
+      }))
+      .catch((err) => console.error('Admin registration notification email failed:', err));
 
     res.status(201).json({
       success: true,

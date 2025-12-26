@@ -13,6 +13,13 @@ export default function AdminKycPage() {
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isSaving, setIsSaving] = useState(false);
 
+  const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
+  const [notificationEmailInput, setNotificationEmailInput] = useState('');
+  const [emailsMessage, setEmailsMessage] = useState('');
+  const [emailsMessageType, setEmailsMessageType] = useState<'success' | 'error' | ''>('');
+  const [isLoadingEmails, setIsLoadingEmails] = useState(true);
+  const [isSavingEmails, setIsSavingEmails] = useState(false);
+
   const hasExistingLogo = useMemo(() => Boolean(logoDataUrl), [logoDataUrl]);
 
   useEffect(() => {
@@ -50,11 +57,118 @@ export default function AdminKycPage() {
       }
     };
 
+    const loadEmails = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          router.push('/admin/login');
+          return;
+        }
+
+        const res = await fetch('/api/admin/notification-emails', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json().catch(() => null);
+        if (!cancelled) {
+          if (data?.success) {
+            setNotificationEmails(Array.isArray(data?.emails) ? data.emails : []);
+          } else {
+            setNotificationEmails([]);
+          }
+          setIsLoadingEmails(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setNotificationEmails([]);
+          setIsLoadingEmails(false);
+        }
+      }
+    };
+
     load();
+    loadEmails();
     return () => {
       cancelled = true;
     };
   }, [router]);
+
+  const normalizeEmail = (value: string) => {
+    const v = String(value || '').trim().toLowerCase();
+    if (!v) return '';
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    return ok ? v : '';
+  };
+
+  const handleAddEmail = () => {
+    setEmailsMessage('');
+    setEmailsMessageType('');
+
+    const normalized = normalizeEmail(notificationEmailInput);
+    if (!normalized) {
+      setEmailsMessage('Please enter a valid email address.');
+      setEmailsMessageType('error');
+      return;
+    }
+
+    if (notificationEmails.map((e) => String(e).toLowerCase()).includes(normalized)) {
+      setEmailsMessage('This email is already added.');
+      setEmailsMessageType('error');
+      return;
+    }
+
+    setNotificationEmails((prev) => [...prev, normalized]);
+    setNotificationEmailInput('');
+  };
+
+  const handleRemoveEmail = (email: string) => {
+    setEmailsMessage('');
+    setEmailsMessageType('');
+    setNotificationEmails((prev) => prev.filter((e) => e !== email));
+  };
+
+  const handleSaveEmails = async () => {
+    try {
+      setEmailsMessage('');
+      setEmailsMessageType('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
+      setIsSavingEmails(true);
+      const res = await fetch('/api/admin/notification-emails', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ emails: notificationEmails }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        const msg = data?.message || `Failed (HTTP ${res.status})`;
+        setEmailsMessage(msg);
+        setEmailsMessageType('error');
+        return;
+      }
+
+      setNotificationEmails(Array.isArray(data?.emails) ? data.emails : notificationEmails);
+      setEmailsMessage(data?.message || 'Emails updated');
+      setEmailsMessageType('success');
+    } catch {
+      setEmailsMessage('Failed to update emails. Please try again.');
+      setEmailsMessageType('error');
+    } finally {
+      setIsSavingEmails(false);
+    }
+  };
 
   const fileToDataUrl = (file: File) => {
     return new Promise<string>((resolve, reject) => {
@@ -318,6 +432,93 @@ export default function AdminKycPage() {
                 >
                   Clear
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 md:p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-100 md:text-base">Admin Email Controls</h2>
+              <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
+                Add email recipients for automatic notifications on new registrations, deposit requests, and withdrawal requests.
+              </p>
+            </div>
+            <div className="text-[11px] text-slate-400">
+              {isLoadingEmails ? 'Loading...' : `${notificationEmails.length} email(s) configured`}
+            </div>
+          </div>
+
+          {emailsMessage && (
+            <div
+              className={
+                'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
+                (emailsMessageType === 'success'
+                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+              }
+            >
+              {emailsMessage}
+            </div>
+          )}
+
+          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_220px]">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+              <p className="text-[11px] font-semibold text-slate-200">Recipients</p>
+              <div className="mt-2">
+                {isLoadingEmails ? (
+                  <div className="text-[11px] text-slate-500">Loading emails...</div>
+                ) : notificationEmails.length === 0 ? (
+                  <div className="text-[11px] text-slate-500">No emails configured yet.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {notificationEmails.map((e) => (
+                      <div key={e} className="flex items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
+                        <div className="text-[11px] text-slate-100">{e}</div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveEmail(e)}
+                          disabled={isSavingEmails}
+                          className="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500 disabled:opacity-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+              <p className="text-[11px] font-semibold text-slate-200">Add Email</p>
+              <input
+                value={notificationEmailInput}
+                onChange={(e) => setNotificationEmailInput(e.target.value)}
+                placeholder="name@example.com"
+                className="mt-3 w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
+              />
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddEmail}
+                  disabled={isSavingEmails || isLoadingEmails}
+                  className="rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-2 text-[11px] text-slate-100 hover:border-slate-500 disabled:opacity-50"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEmails}
+                  disabled={isSavingEmails || isLoadingEmails}
+                  className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                >
+                  {isSavingEmails ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+              <div className="mt-3 text-[10px] text-slate-500">
+                Emails are used only for notifications and do not grant admin access.
               </div>
             </div>
           </div>

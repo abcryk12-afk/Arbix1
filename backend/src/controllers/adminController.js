@@ -4,6 +4,11 @@ const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
 const { deriveChildWallet } = require('../utils/hdWallet');
 const { runDailyProfitCredit } = require('../services/dailyProfitService');
+const {
+  getStoredEmailList,
+  setStoredEmailList,
+  normalizeEmailList,
+} = require('../services/adminNotificationEmailService');
 
 let notificationsColumnsCache = null;
 
@@ -20,6 +25,67 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check admin access',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getAdminNotificationEmails = async (req, res) => {
+  try {
+    try {
+      await SiteSetting.sync();
+    } catch {}
+
+    const emails = await getStoredEmailList();
+    return res.status(200).json({
+      success: true,
+      emails,
+    });
+  } catch (error) {
+    console.error('Get admin notification emails error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to load admin notification emails',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.setAdminNotificationEmails = async (req, res) => {
+  try {
+    try {
+      await SiteSetting.sync();
+    } catch {}
+
+    const raw = req.body?.emails;
+    let input = raw;
+    if (typeof input === 'string') {
+      input = String(input)
+        .split(',')
+        .map((s) => s.trim());
+    }
+
+    if (input == null) input = [];
+    if (!Array.isArray(input)) {
+      return res.status(400).json({ success: false, message: 'emails must be an array or comma-separated string' });
+    }
+
+    const normalized = normalizeEmailList(input);
+    if (normalized.length > 50) {
+      return res.status(400).json({ success: false, message: 'Too many emails (max 50)' });
+    }
+
+    const saved = await setStoredEmailList(normalized);
+    return res.status(200).json({
+      success: true,
+      message: 'Admin notification emails updated',
+      emails: saved,
+    });
+  } catch (error) {
+    console.error('Set admin notification emails error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update admin notification emails',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

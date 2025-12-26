@@ -10,6 +10,8 @@ const {
   getUserDetails,
   updateUserStatus,
   deleteUser,
+  getAdminNotificationEmails,
+  setAdminNotificationEmails,
   listWallets,
   deposit,
   withdraw,
@@ -31,6 +33,8 @@ const {
 } = require('../controllers/brandingController');
 
 router.get('/check', protect, requireAdminUser, checkAccess);
+router.get('/notification-emails', protect, requireAdminUser, getAdminNotificationEmails);
+router.put('/notification-emails', protect, requireAdminUser, setAdminNotificationEmails);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/status', protect, requireAdminUser, updateUserStatus);
