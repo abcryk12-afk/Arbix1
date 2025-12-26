@@ -37,6 +37,7 @@ function StatCard({ label, value, subLabel, accentClassName, loading }: StatCard
 }
 
 export default function DashboardFooter() {
+  const storageKey = 'arbix_footer_demo_v1';
   const [stats, setStats] = useState<{
     system: { daily: number; total: number; joiningsDaily?: number; joiningsTotal?: number };
     team: { daily: number; total: number; joiningsDaily?: number; joiningsTotal?: number };
@@ -118,17 +119,91 @@ export default function DashboardFooter() {
   useEffect(() => {
     if (loading) return;
 
+    const now = Date.now();
+    const nowKey = new Date().toDateString();
+    const baseTotalWithdrawals = Number(stats?.system?.total ?? 0);
+    const baseTotalJoinings = Number(stats?.system?.joiningsTotal ?? 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfTodayMs = startOfToday.getTime();
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const parsed = raw ? JSON.parse(raw) : null;
+
+      const storedDemo = parsed?.demo;
+      const storedDayKey = typeof parsed?.dayKey === 'string' ? parsed.dayKey : null;
+      const storedLastStepAt = typeof parsed?.lastStepAt === 'number' ? parsed.lastStepAt : null;
+      const storedUpdatedAt = typeof parsed?.demoUpdatedAt === 'string' ? parsed.demoUpdatedAt : null;
+
+      if (storedDemo && typeof storedDemo === 'object') {
+        let nextDailyW = Number(storedDemo.systemDailyWithdrawals ?? 0);
+        let nextDailyJ = Number(storedDemo.systemDailyJoinings ?? 0);
+        let nextTotalW = Number(storedDemo.systemTotalWithdrawals ?? 0);
+        let nextTotalJ = Number(storedDemo.systemTotalJoinings ?? 0);
+        let nextHours = Number(storedDemo.hours ?? 0);
+
+        nextTotalW = Math.max(nextTotalW, baseTotalWithdrawals);
+        nextTotalJ = Math.max(nextTotalJ, baseTotalJoinings);
+
+        let dayKey = storedDayKey || nowKey;
+        let lastStepAt = storedLastStepAt || now;
+
+        if (dayKey !== nowKey) {
+          nextTotalW += nextDailyW;
+          nextTotalJ += nextDailyJ;
+          nextDailyW = 0;
+          nextDailyJ = 0;
+          nextHours = 0;
+          dayKey = nowKey;
+          lastStepAt = startOfTodayMs;
+        }
+
+        setDemo({
+          systemDailyWithdrawals: nextDailyW,
+          systemTotalWithdrawals: nextTotalW,
+          systemDailyJoinings: nextDailyJ,
+          systemTotalJoinings: nextTotalJ,
+          hours: nextHours,
+        });
+
+        demoDayKeyRef.current = dayKey;
+        demoLastStepAtRef.current = lastStepAt;
+        setDemoUpdatedAt(storedUpdatedAt || new Date().toISOString());
+        return;
+      }
+    } catch {
+      // ignore
+    }
+
     setDemo({
       systemDailyWithdrawals: 0,
-      systemTotalWithdrawals: stats?.system?.total ?? 0,
+      systemTotalWithdrawals: baseTotalWithdrawals,
       systemDailyJoinings: 0,
-      systemTotalJoinings: stats?.system?.joiningsTotal ?? 0,
+      systemTotalJoinings: baseTotalJoinings,
       hours: 0,
     });
-    demoDayKeyRef.current = new Date().toDateString();
-    demoLastStepAtRef.current = Date.now();
+    demoDayKeyRef.current = nowKey;
+    demoLastStepAtRef.current = now;
     setDemoUpdatedAt(new Date().toISOString());
   }, [loading, stats?.system?.total, stats?.system?.joiningsTotal]);
+
+  useEffect(() => {
+    if (loading) return;
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          demo,
+          dayKey: demoDayKeyRef.current,
+          lastStepAt: demoLastStepAtRef.current,
+          demoUpdatedAt,
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  }, [loading, demo, demoUpdatedAt, storageKey]);
 
   useEffect(() => {
     if (loading) return;
@@ -140,37 +215,58 @@ export default function DashboardFooter() {
 
     const dayCheckMs = Math.min(stepMs, 60 * 1000);
 
-    const withdrawalOptions = [50, 100];
-    const joiningOptions = [2, 3, 4, 5];
+    const withdrawalOptions = [40, 50, 60, 80, 100];
+    const joiningOptions = [2, 3];
 
     const pick = (arr: number[]) => arr[Math.floor(Math.random() * arr.length)];
 
-    const applyOneStep = () => {
-      const w = pick(withdrawalOptions);
-      const j = pick(joiningOptions);
+    const syncNow = () => {
+      const now = Date.now();
       const nowKey = new Date().toDateString();
+
+      if (!demoDayKeyRef.current) demoDayKeyRef.current = nowKey;
+      const prevKey = demoDayKeyRef.current;
+      const dayChanged = prevKey !== nowKey;
+
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const startOfTodayMs = startOfToday.getTime();
+
+      if (!demoLastStepAtRef.current) demoLastStepAtRef.current = now;
+
+      let baseLastStepAt = demoLastStepAtRef.current;
+      if (dayChanged) {
+        demoDayKeyRef.current = nowKey;
+        baseLastStepAt = startOfTodayMs;
+        demoLastStepAtRef.current = baseLastStepAt;
+      }
+
+      const elapsed = now - baseLastStepAt;
+      const steps = Math.floor(elapsed / stepMs);
+      const safeSteps = steps > 200 ? 200 : steps;
+
+      if (!dayChanged && safeSteps <= 0) return;
 
       setDemo((prev) => {
         let nextDailyW = prev.systemDailyWithdrawals;
         let nextDailyJ = prev.systemDailyJoinings;
         let nextTotalW = prev.systemTotalWithdrawals;
         let nextTotalJ = prev.systemTotalJoinings;
-        let hours = prev.hours + 1;
+        let hours = prev.hours;
 
-        const prevKey = demoDayKeyRef.current;
-        if (!prevKey) {
-          demoDayKeyRef.current = nowKey;
-        } else if (prevKey !== nowKey) {
+        if (dayChanged) {
           nextTotalW += nextDailyW;
           nextTotalJ += nextDailyJ;
           nextDailyW = 0;
           nextDailyJ = 0;
           hours = 0;
-          demoDayKeyRef.current = nowKey;
         }
 
-        nextDailyW += w;
-        nextDailyJ += j;
+        for (let i = 0; i < safeSteps; i += 1) {
+          nextDailyW += pick(withdrawalOptions);
+          nextDailyJ += pick(joiningOptions);
+          hours += 1;
+        }
 
         return {
           systemDailyWithdrawals: nextDailyW,
@@ -180,45 +276,11 @@ export default function DashboardFooter() {
           hours,
         };
       });
-    };
-
-    const syncNow = () => {
-      const now = Date.now();
-      const nowKey = new Date().toDateString();
-      const prevKey = demoDayKeyRef.current;
-
-      if (prevKey && prevKey !== nowKey) {
-        setDemo((prev) => ({
-          systemDailyWithdrawals: 0,
-          systemTotalWithdrawals: prev.systemTotalWithdrawals + prev.systemDailyWithdrawals,
-          systemDailyJoinings: 0,
-          systemTotalJoinings: prev.systemTotalJoinings + prev.systemDailyJoinings,
-          hours: 0,
-        }));
-        demoDayKeyRef.current = nowKey;
-        demoLastStepAtRef.current = now;
-        setDemoUpdatedAt(new Date().toISOString());
-        return;
-      }
-
-      if (!demoLastStepAtRef.current) {
-        demoLastStepAtRef.current = now;
-        demoDayKeyRef.current = nowKey;
-        setDemoUpdatedAt(new Date().toISOString());
-        return;
-      }
-
-      const elapsed = now - demoLastStepAtRef.current;
-      const steps = Math.floor(elapsed / stepMs);
-      if (steps <= 0) return;
-
-      const safeSteps = steps > 200 ? 200 : steps;
-      for (let i = 0; i < safeSteps; i += 1) applyOneStep();
 
       if (steps > 200) {
         demoLastStepAtRef.current = now;
       } else {
-        demoLastStepAtRef.current += safeSteps * stepMs;
+        demoLastStepAtRef.current = baseLastStepAt + safeSteps * stepMs;
       }
 
       setDemoUpdatedAt(new Date().toISOString());
