@@ -84,6 +84,15 @@ export async function PUT(request, { params }) {
       data = await response.json().catch(() => null);
     }
 
+    if (response.status === 404 && data?.message === 'Route not found') {
+      response = await fetch(`${baseUrl}/api/admin/users/${id}/status`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body || {}),
+      });
+      data = await response.json().catch(() => null);
+    }
+
     return NextResponse.json(data || { success: response.ok }, { status: response.status });
   } catch (error) {
     console.error('Admin update user status API error:', error);
@@ -121,7 +130,24 @@ export async function DELETE(request, { params }) {
       },
     });
 
-    const data = await response.json().catch(() => null);
+    let data = await response.json().catch(() => null);
+
+    if (response.status === 404 && data?.message === 'Route not found') {
+      const fallback = await fetch(`${baseUrl}/api/admin/users/${id}/delete`, {
+        method: 'POST',
+        headers: {
+          Authorization: authHeader,
+          'X-Admin-Key': adminKey,
+        },
+      });
+
+      const fallbackData = await fallback.json().catch(() => null);
+      return NextResponse.json(
+        fallbackData || { success: fallback.ok },
+        { status: fallback.status },
+      );
+    }
+
     return NextResponse.json(data || { success: response.ok }, { status: response.status });
   } catch (error) {
     console.error('Admin delete user API error:', error);
