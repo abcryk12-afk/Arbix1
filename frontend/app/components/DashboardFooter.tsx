@@ -60,6 +60,7 @@ export default function DashboardFooter() {
   });
   const displayRef = useRef(display);
   const demoDayKeyRef = useRef<string | null>(null);
+  const demoLastStepAtRef = useRef<number | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -125,6 +126,7 @@ export default function DashboardFooter() {
       hours: 0,
     });
     demoDayKeyRef.current = new Date().toDateString();
+    demoLastStepAtRef.current = Date.now();
     setDemoUpdatedAt(new Date().toISOString());
   }, [loading, stats?.system?.total, stats?.system?.joiningsTotal]);
 
@@ -132,18 +134,18 @@ export default function DashboardFooter() {
     if (loading) return;
 
     const configuredTickMs = Number(process.env.NEXT_PUBLIC_FOOTER_DEMO_TICK_MS);
-    const demoHourMs = Number.isFinite(configuredTickMs) && configuredTickMs > 0
+    const stepMs = Number.isFinite(configuredTickMs) && configuredTickMs > 0
       ? configuredTickMs
-      : process.env.NODE_ENV === 'production'
-        ? 30 * 60 * 1000
-        : 60 * 1000;
+      : 10 * 60 * 1000;
 
-    const withdrawalOptions = [150, 200, 300, 400, 500];
-    const joiningOptions = [25, 30, 50];
+    const dayCheckMs = Math.min(stepMs, 60 * 1000);
+
+    const withdrawalOptions = [50, 100];
+    const joiningOptions = [2, 3, 4, 5];
 
     const pick = (arr: number[]) => arr[Math.floor(Math.random() * arr.length)];
 
-    const tick = () => {
+    const applyOneStep = () => {
       const w = pick(withdrawalOptions);
       const j = pick(joiningOptions);
       const nowKey = new Date().toDateString();
@@ -178,12 +180,52 @@ export default function DashboardFooter() {
           hours,
         };
       });
+    };
+
+    const syncNow = () => {
+      const now = Date.now();
+      const nowKey = new Date().toDateString();
+      const prevKey = demoDayKeyRef.current;
+
+      if (prevKey && prevKey !== nowKey) {
+        setDemo((prev) => ({
+          systemDailyWithdrawals: 0,
+          systemTotalWithdrawals: prev.systemTotalWithdrawals + prev.systemDailyWithdrawals,
+          systemDailyJoinings: 0,
+          systemTotalJoinings: prev.systemTotalJoinings + prev.systemDailyJoinings,
+          hours: 0,
+        }));
+        demoDayKeyRef.current = nowKey;
+        demoLastStepAtRef.current = now;
+        setDemoUpdatedAt(new Date().toISOString());
+        return;
+      }
+
+      if (!demoLastStepAtRef.current) {
+        demoLastStepAtRef.current = now;
+        demoDayKeyRef.current = nowKey;
+        setDemoUpdatedAt(new Date().toISOString());
+        return;
+      }
+
+      const elapsed = now - demoLastStepAtRef.current;
+      const steps = Math.floor(elapsed / stepMs);
+      if (steps <= 0) return;
+
+      const safeSteps = steps > 200 ? 200 : steps;
+      for (let i = 0; i < safeSteps; i += 1) applyOneStep();
+
+      if (steps > 200) {
+        demoLastStepAtRef.current = now;
+      } else {
+        demoLastStepAtRef.current += safeSteps * stepMs;
+      }
 
       setDemoUpdatedAt(new Date().toISOString());
     };
 
-    tick();
-    const interval = setInterval(tick, demoHourMs);
+    syncNow();
+    const interval = setInterval(syncNow, dayCheckMs);
     return () => clearInterval(interval);
   }, [loading]);
 
