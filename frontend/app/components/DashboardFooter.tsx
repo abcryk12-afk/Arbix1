@@ -59,6 +59,7 @@ export default function DashboardFooter() {
     systemTotalJoinings: 0,
   });
   const displayRef = useRef(display);
+  const demoDayKeyRef = useRef<string | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -123,38 +124,51 @@ export default function DashboardFooter() {
       systemTotalJoinings: stats?.system?.joiningsTotal ?? 0,
       hours: 0,
     });
+    demoDayKeyRef.current = new Date().toDateString();
     setDemoUpdatedAt(new Date().toISOString());
   }, [loading, stats?.system?.total, stats?.system?.joiningsTotal]);
 
   useEffect(() => {
     if (loading) return;
 
-    const demoHourMs = process.env.NODE_ENV === 'production' ? 60 * 60 * 1000 : 60 * 1000;
+    const configuredTickMs = Number(process.env.NEXT_PUBLIC_FOOTER_DEMO_TICK_MS);
+    const demoHourMs = Number.isFinite(configuredTickMs) && configuredTickMs > 0
+      ? configuredTickMs
+      : process.env.NODE_ENV === 'production'
+        ? 30 * 60 * 1000
+        : 60 * 1000;
 
-    const withdrawalOptions = [1200, 1500, 1300];
-    const joiningOptions = [50, 100, 150];
+    const withdrawalOptions = [150, 200, 300, 400, 500];
+    const joiningOptions = [25, 30, 50];
 
     const pick = (arr: number[]) => arr[Math.floor(Math.random() * arr.length)];
 
     const tick = () => {
       const w = pick(withdrawalOptions);
       const j = pick(joiningOptions);
+      const nowKey = new Date().toDateString();
 
       setDemo((prev) => {
-        const nextHours = prev.hours + 1;
-        let nextDailyW = prev.systemDailyWithdrawals + w;
-        let nextDailyJ = prev.systemDailyJoinings + j;
+        let nextDailyW = prev.systemDailyWithdrawals;
+        let nextDailyJ = prev.systemDailyJoinings;
         let nextTotalW = prev.systemTotalWithdrawals;
         let nextTotalJ = prev.systemTotalJoinings;
-        let hours = nextHours;
+        let hours = prev.hours + 1;
 
-        if (hours >= 24) {
+        const prevKey = demoDayKeyRef.current;
+        if (!prevKey) {
+          demoDayKeyRef.current = nowKey;
+        } else if (prevKey !== nowKey) {
           nextTotalW += nextDailyW;
           nextTotalJ += nextDailyJ;
           nextDailyW = 0;
           nextDailyJ = 0;
           hours = 0;
+          demoDayKeyRef.current = nowKey;
         }
+
+        nextDailyW += w;
+        nextDailyJ += j;
 
         return {
           systemDailyWithdrawals: nextDailyW,
@@ -202,45 +216,28 @@ export default function DashboardFooter() {
       return;
     }
 
-    const node = footerRef.current;
-    if (!node) return;
-
     let raf = 0;
+    const durationMs = hasAnimated ? 700 : 1400;
+    const start = performance.now();
+    const from = displayRef.current;
 
-    const startAnimation = () => {
-      const durationMs = hasAnimated ? 700 : 1400;
-      const start = performance.now();
-      const from = displayRef.current;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const easeOut = 1 - Math.pow(1 - t, 3);
 
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / durationMs);
-        const easeOut = 1 - Math.pow(1 - t, 3);
+      setDisplay({
+        systemDailyWithdrawals: from.systemDailyWithdrawals + (target.systemDailyWithdrawals - from.systemDailyWithdrawals) * easeOut,
+        systemTotalWithdrawals: from.systemTotalWithdrawals + (target.systemTotalWithdrawals - from.systemTotalWithdrawals) * easeOut,
+        systemDailyJoinings: from.systemDailyJoinings + (target.systemDailyJoinings - from.systemDailyJoinings) * easeOut,
+        systemTotalJoinings: from.systemTotalJoinings + (target.systemTotalJoinings - from.systemTotalJoinings) * easeOut,
+      });
 
-        setDisplay({
-          systemDailyWithdrawals: from.systemDailyWithdrawals + (target.systemDailyWithdrawals - from.systemDailyWithdrawals) * easeOut,
-          systemTotalWithdrawals: from.systemTotalWithdrawals + (target.systemTotalWithdrawals - from.systemTotalWithdrawals) * easeOut,
-          systemDailyJoinings: from.systemDailyJoinings + (target.systemDailyJoinings - from.systemDailyJoinings) * easeOut,
-          systemTotalJoinings: from.systemTotalJoinings + (target.systemTotalJoinings - from.systemTotalJoinings) * easeOut,
-        });
-
-        if (t < 1) raf = requestAnimationFrame(tick);
-        else setHasAnimated(true);
-      };
-
-      raf = requestAnimationFrame(tick);
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else setHasAnimated(true);
     };
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) startAnimation();
-      },
-      { threshold: 0.25 }
-    );
-
-    obs.observe(node);
+    raf = requestAnimationFrame(tick);
     return () => {
-      obs.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
   }, [

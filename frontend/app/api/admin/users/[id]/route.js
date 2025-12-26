@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
     const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
 
@@ -41,7 +42,8 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
     const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
 
@@ -59,18 +61,30 @@ export async function PUT(request, { params }) {
 
     const body = await request.json().catch(() => ({}));
 
-    const response = await fetch(`${baseUrl}/api/admin/users/${id}/status`, {
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: authHeader,
+      'X-Admin-Key': adminKey,
+    };
+
+    let response = await fetch(`${baseUrl}/api/admin/users/${id}/status`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: authHeader,
-        'X-Admin-Key': adminKey,
-      },
+      headers,
       body: JSON.stringify(body || {}),
     });
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    let data = await response.json().catch(() => null);
+
+    if (response.status === 404 && data?.message === 'Route not found') {
+      response = await fetch(`${baseUrl}/api/admin/users/${id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(body || {}),
+      });
+      data = await response.json().catch(() => null);
+    }
+
+    return NextResponse.json(data || { success: response.ok }, { status: response.status });
   } catch (error) {
     console.error('Admin update user status API error:', error);
     return NextResponse.json(
@@ -82,7 +96,8 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
     const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
 
