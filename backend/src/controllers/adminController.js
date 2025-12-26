@@ -428,6 +428,14 @@ exports.updateDepositRequestStatus = async (req, res) => {
         return { ok: false, status: 400, message: 'Only pending requests can be updated' };
       }
 
+      if (request.tx_hash) {
+        return {
+          ok: false,
+          status: 400,
+          message: 'Cannot update a processing deposit request. Please wait for automatic credit/approval.',
+        };
+      }
+
       const userId = request.user_id;
       const amount = Number(request.amount || 0);
       if (!Number.isFinite(amount) || amount <= 0) {

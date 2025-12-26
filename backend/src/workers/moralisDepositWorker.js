@@ -13,6 +13,7 @@ const {
   User,
   Wallet,
   Transaction,
+  DepositRequest,
   ChainDepositEvent,
   SiteSetting,
 } = models;
@@ -155,6 +156,27 @@ async function creditDepositEvent(eventId) {
       },
       { transaction: t },
     );
+
+    const txHash = String(event.tx_hash || '').trim();
+    if (txHash) {
+      const reqRow = await DepositRequest.findOne({
+        where: {
+          user_id: userId,
+          status: 'pending',
+          tx_hash: txHash,
+        },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (reqRow) {
+        reqRow.status = 'approved';
+        if (!reqRow.admin_note) {
+          reqRow.admin_note = 'Auto-approved after blockchain confirmation';
+        }
+        await reqRow.save({ transaction: t });
+      }
+    }
 
     event.credited = true;
     event.credited_at = new Date();

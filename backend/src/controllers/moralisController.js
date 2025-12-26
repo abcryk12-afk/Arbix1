@@ -1,5 +1,6 @@
 const { ethers } = require('ethers');
-const { User, ChainDepositEvent, sequelize } = require('../models');
+const { Op } = require('sequelize');
+const { User, DepositRequest, ChainDepositEvent, sequelize } = require('../models');
 
 const USDT_BSC_ADDRESS = String(
   process.env.USDT_BSC_ADDRESS || '0x55d398326f99059ff775485246999027b3197955',
@@ -103,6 +104,33 @@ async function findUserIdByAddress(addressLower) {
   return user?.id ? Number(user.id) : null;
 }
 
+async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash }) {
+  if (!userId || !addressLower || !txHash) return;
+
+  try {
+    const request = await DepositRequest.findOne({
+      where: {
+        user_id: userId,
+        status: 'pending',
+        tx_hash: { [Op.is]: null },
+        [Op.and]: [
+          sequelize.where(
+            sequelize.fn('LOWER', sequelize.col('address')),
+            addressLower,
+          ),
+        ],
+      },
+      order: [[DepositRequest.sequelize.col('created_at'), 'DESC']],
+    });
+
+    if (!request) return;
+    request.tx_hash = txHash;
+    await request.save();
+  } catch (e) {
+    console.error('Failed to attach tx hash to deposit request:', e);
+  }
+}
+
 exports.moralisWebhook = async (req, res) => {
   try {
     const streamSecrets = getMoralisStreamSecretsOnly();
@@ -200,6 +228,12 @@ exports.moralisWebhook = async (req, res) => {
         }
         await row.save();
       }
+
+      await attachTxHashToLatestPendingDepositRequest({
+        userId,
+        addressLower: toLower,
+        txHash,
+      });
 
       stored++;
     }

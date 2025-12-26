@@ -561,7 +561,9 @@ export default function AdminWithdrawalsPage() {
                       <td className="px-3 py-2">
                         <span
                           className={
-                            r.status === 'pending'
+                            r.status === 'pending' && r.txHash
+                              ? 'text-sky-400'
+                              : r.status === 'pending'
                               ? 'text-amber-400'
                               : r.status === 'approved'
                               ? 'text-emerald-400'
@@ -570,7 +572,7 @@ export default function AdminWithdrawalsPage() {
                               : 'text-slate-300'
                           }
                         >
-                          {r.status}
+                          {r.status === 'pending' && r.txHash ? 'processing' : r.status}
                         </span>
                       </td>
                       <td className="px-3 py-2">
@@ -599,16 +601,28 @@ export default function AdminWithdrawalsPage() {
                             <button
                               type="button"
                               onClick={() => handleDepositAction(r.id, 'approve')}
-                              className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-1 text-[10px] font-medium text-white hover:bg-emerald-500"
+                              disabled={Boolean(r.txHash)}
+                              className={
+                                'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
+                                (r.txHash
+                                  ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
+                                  : 'bg-emerald-600 text-white hover:bg-emerald-500')
+                              }
                             >
-                              Approve
+                              {r.txHash ? 'Auto Processing' : 'Approve'}
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDepositAction(r.id, 'reject')}
-                              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-1 text-[10px] font-medium text-white hover:bg-red-500"
+                              disabled={Boolean(r.txHash)}
+                              className={
+                                'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
+                                (r.txHash
+                                  ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
+                                  : 'bg-red-600 text-white hover:bg-red-500')
+                              }
                             >
-                              Reject
+                              {r.txHash ? 'Locked' : 'Reject'}
                             </button>
                           </div>
                         ) : (

@@ -144,8 +144,20 @@ export default function DepositPage() {
 
   const pendingDeposits = useMemo(() => {
     return depositRequests
-      .filter((r) => String(r?.status || '').toLowerCase() === 'pending')
+      .filter((r) => String(r?.status || '').toLowerCase() === 'pending' && r?.txHash)
       .reduce((sum, r) => sum + Number(r?.amount || 0), 0);
+  }, [depositRequests]);
+
+  const pendingWaitingCount = useMemo(() => {
+    return depositRequests.filter(
+      (r) => String(r?.status || '').toLowerCase() === 'pending' && !r?.txHash,
+    ).length;
+  }, [depositRequests]);
+
+  const processingCount = useMemo(() => {
+    return depositRequests.filter(
+      (r) => String(r?.status || '').toLowerCase() === 'pending' && r?.txHash,
+    ).length;
   }, [depositRequests]);
 
   const totalDeposited = useMemo(() => {
@@ -569,12 +581,12 @@ export default function DepositPage() {
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Pending Deposits</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
-                {depositRequests.filter((r) => String(r?.status || '').toLowerCase() === 'pending').length}
+                {pendingWaitingCount}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Processing</p>
-              <p className="mt-1 text-lg font-semibold text-sky-400">0</p>
+              <p className="mt-1 text-lg font-semibold text-sky-400">{processingCount}</p>
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
               <p className="text-slate-400">Successful (30 days)</p>
@@ -613,12 +625,19 @@ export default function DepositPage() {
                       <td className="px-3 py-2">
                         {r?.createdAt ? String(r.createdAt).slice(0, 19).replace('T', ' ') : '-'}
                       </td>
-                      <td className="px-3 py-2">#{String(r.id)}</td>
+                      <td className="px-3 py-2">
+                        <div className="font-semibold text-slate-100">#{String(r.id)}</div>
+                        {r?.txHash ? (
+                          <div className="mt-0.5 text-[10px] text-slate-500">Tx: {String(r.txHash).slice(0, 10)}...</div>
+                        ) : null}
+                      </td>
                       <td className="px-3 py-2">{Number(r?.amount || 0).toFixed(2)}</td>
                       <td
                         className={
                           'px-3 py-2 ' +
-                          (String(r?.status || '').toLowerCase() === 'pending'
+                          (String(r?.status || '').toLowerCase() === 'pending' && r?.txHash
+                            ? 'text-sky-400'
+                            : String(r?.status || '').toLowerCase() === 'pending'
                             ? 'text-amber-400'
                             : String(r?.status || '').toLowerCase() === 'approved'
                             ? 'text-emerald-400'
@@ -627,7 +646,9 @@ export default function DepositPage() {
                             : 'text-slate-300')
                         }
                       >
-                        {String(r?.status || '-')}
+                        {String(r?.status || '').toLowerCase() === 'pending' && r?.txHash
+                          ? 'processing'
+                          : String(r?.status || '-')}
                       </td>
                     </tr>
                   ))
