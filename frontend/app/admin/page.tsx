@@ -1436,7 +1436,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-slate-800">
-                    <span className="text-slate-400">Today's Network Earnings:</span>
+                    <span className="text-slate-400">Today&apos;s Network Earnings:</span>
                     <span className="font-semibold text-violet-400">${selectedUser.networkToday.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">

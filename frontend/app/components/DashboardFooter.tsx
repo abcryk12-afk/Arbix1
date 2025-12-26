@@ -44,17 +44,30 @@ export default function DashboardFooter() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [demoUpdatedAt, setDemoUpdatedAt] = useState<string | null>(null);
+  const [demo, setDemo] = useState({
+    systemDailyWithdrawals: 0,
+    systemTotalWithdrawals: 0,
+    systemDailyJoinings: 0,
+    systemTotalJoinings: 0,
+    hours: 0,
+  });
   const [display, setDisplay] = useState({
     systemDailyWithdrawals: 0,
     systemTotalWithdrawals: 0,
     systemDailyJoinings: 0,
     systemTotalJoinings: 0,
   });
+  const displayRef = useRef(display);
   const footerRef = useRef<HTMLElement | null>(null);
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
   }, []);
+
+  useEffect(() => {
+    displayRef.current = display;
+  }, [display]);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,17 +113,77 @@ export default function DashboardFooter() {
     };
   }, []);
 
-  const systemDailyWithdrawals = stats?.system?.daily ?? 0;
-  const systemTotalWithdrawals = stats?.system?.total ?? 0;
-  const systemDailyJoinings = stats?.system?.joiningsDaily ?? 0;
-  const systemTotalJoinings = stats?.system?.joiningsTotal ?? 0;
+  useEffect(() => {
+    if (loading) return;
+
+    setDemo({
+      systemDailyWithdrawals: 0,
+      systemTotalWithdrawals: stats?.system?.total ?? 0,
+      systemDailyJoinings: 0,
+      systemTotalJoinings: stats?.system?.joiningsTotal ?? 0,
+      hours: 0,
+    });
+    setDemoUpdatedAt(new Date().toISOString());
+  }, [loading, stats?.system?.total, stats?.system?.joiningsTotal]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const demoHourMs = process.env.NODE_ENV === 'production' ? 60 * 60 * 1000 : 60 * 1000;
+
+    const withdrawalOptions = [1200, 1500, 1300];
+    const joiningOptions = [50, 100, 150];
+
+    const pick = (arr: number[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    const tick = () => {
+      const w = pick(withdrawalOptions);
+      const j = pick(joiningOptions);
+
+      setDemo((prev) => {
+        const nextHours = prev.hours + 1;
+        let nextDailyW = prev.systemDailyWithdrawals + w;
+        let nextDailyJ = prev.systemDailyJoinings + j;
+        let nextTotalW = prev.systemTotalWithdrawals;
+        let nextTotalJ = prev.systemTotalJoinings;
+        let hours = nextHours;
+
+        if (hours >= 24) {
+          nextTotalW += nextDailyW;
+          nextTotalJ += nextDailyJ;
+          nextDailyW = 0;
+          nextDailyJ = 0;
+          hours = 0;
+        }
+
+        return {
+          systemDailyWithdrawals: nextDailyW,
+          systemTotalWithdrawals: nextTotalW,
+          systemDailyJoinings: nextDailyJ,
+          systemTotalJoinings: nextTotalJ,
+          hours,
+        };
+      });
+
+      setDemoUpdatedAt(new Date().toISOString());
+    };
+
+    tick();
+    const interval = setInterval(tick, demoHourMs);
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  const systemDailyWithdrawals = demo.systemDailyWithdrawals;
+  const systemTotalWithdrawals = demo.systemTotalWithdrawals;
+  const systemDailyJoinings = demo.systemDailyJoinings;
+  const systemTotalJoinings = demo.systemTotalJoinings;
 
   const formatMoney = (n: number) => `$${n.toFixed(2)}`;
   const formatInt = (n: number) => Math.round(n).toLocaleString();
   const updatedLabel = loading
     ? 'Updating...'
-    : stats?.updatedAt
-      ? `Updated: ${new Date(stats.updatedAt).toLocaleString()}`
+    : demoUpdatedAt
+      ? `Updated: ${new Date(demoUpdatedAt).toLocaleString()}`
       : 'Updated: just now';
 
   useEffect(() => {
@@ -125,34 +198,36 @@ export default function DashboardFooter() {
 
     if (prefersReducedMotion) {
       setDisplay(target);
+      setHasAnimated(true);
       return;
     }
 
     const node = footerRef.current;
     if (!node) return;
 
-    const startAnimation = () => {
-      if (hasAnimated) return;
-      setHasAnimated(true);
+    let raf = 0;
 
-      const durationMs = 1400;
+    const startAnimation = () => {
+      const durationMs = hasAnimated ? 700 : 1400;
       const start = performance.now();
+      const from = displayRef.current;
 
       const tick = (now: number) => {
         const t = Math.min(1, (now - start) / durationMs);
         const easeOut = 1 - Math.pow(1 - t, 3);
 
         setDisplay({
-          systemDailyWithdrawals: target.systemDailyWithdrawals * easeOut,
-          systemTotalWithdrawals: target.systemTotalWithdrawals * easeOut,
-          systemDailyJoinings: target.systemDailyJoinings * easeOut,
-          systemTotalJoinings: target.systemTotalJoinings * easeOut,
+          systemDailyWithdrawals: from.systemDailyWithdrawals + (target.systemDailyWithdrawals - from.systemDailyWithdrawals) * easeOut,
+          systemTotalWithdrawals: from.systemTotalWithdrawals + (target.systemTotalWithdrawals - from.systemTotalWithdrawals) * easeOut,
+          systemDailyJoinings: from.systemDailyJoinings + (target.systemDailyJoinings - from.systemDailyJoinings) * easeOut,
+          systemTotalJoinings: from.systemTotalJoinings + (target.systemTotalJoinings - from.systemTotalJoinings) * easeOut,
         });
 
-        if (t < 1) requestAnimationFrame(tick);
+        if (t < 1) raf = requestAnimationFrame(tick);
+        else setHasAnimated(true);
       };
 
-      requestAnimationFrame(tick);
+      raf = requestAnimationFrame(tick);
     };
 
     const obs = new IntersectionObserver(
@@ -164,7 +239,10 @@ export default function DashboardFooter() {
     );
 
     obs.observe(node);
-    return () => obs.disconnect();
+    return () => {
+      obs.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [
     loading,
     prefersReducedMotion,

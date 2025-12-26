@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, DepositScanLog, sequelize } = require('../models');
+const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, ChainDepositEvent, DepositScanLog, SiteSetting, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
 const { deriveChildWallet } = require('../utils/hdWallet');
@@ -925,9 +925,13 @@ exports.listUsers = async (req, res) => {
         'id',
         'name',
         'email',
+        'phone',
         ['kyc_status', 'kycStatus'],
         ['account_status', 'accountStatus'],
         ['referral_code', 'referralCode'],
+        ['referred_by_id', 'referredById'],
+        ['cnic_passport', 'cnicPassport'],
+        'role',
         ['wallet_public_address', 'walletPublicAddress'],
         [sequelize.col('created_at'), 'createdAt'],
       ],
@@ -945,7 +949,11 @@ exports.listUsers = async (req, res) => {
           id: u.id,
           name: u.name,
           email: u.email,
+          phone: u.phone || null,
           referralCode: u.referralCode,
+          referredById: u.referredById || null,
+          cnicPassport: u.cnicPassport || null,
+          role: u.role || null,
           walletPublicAddress: u.walletPublicAddress || null,
           kycStatus: u.kycStatus || null,
           accountStatus: u.accountStatus,
@@ -959,6 +967,133 @@ exports.listUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to list users',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isFinite(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid user id' });
+    }
+
+    const { accountStatus, status, action } = req.body || {};
+
+    let nextStatus = null;
+    if (action != null) {
+      const a = String(action || '').trim().toLowerCase();
+      if (a === 'hold') nextStatus = 'hold';
+      if (a === 'unhold' || a === 'active' || a === 'activate') nextStatus = 'active';
+    }
+
+    if (!nextStatus) {
+      const s = String(accountStatus ?? status ?? '').trim().toLowerCase();
+      if (s === 'active' || s === 'hold') nextStatus = s;
+    }
+
+    if (!nextStatus) {
+      return res.status(400).json({ success: false, message: 'accountStatus must be active or hold' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.account_status = nextStatus;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `User status updated to ${nextStatus}`,
+      user: {
+        id: user.id,
+        accountStatus: user.account_status,
+      },
+    });
+  } catch (error) {
+    console.error('Admin update user status error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update user status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isFinite(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid user id' });
+    }
+
+    const result = await sequelize.transaction(async (t) => {
+      const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (!user) {
+        return { ok: false, status: 404, message: 'User not found' };
+      }
+
+      if (String(user.role || '').toLowerCase() === 'admin') {
+        return { ok: false, status: 400, message: 'Admin users cannot be deleted' };
+      }
+
+      const addresses = new Set();
+      if (user.wallet_public_address) {
+        addresses.add(String(user.wallet_public_address).toLowerCase());
+      }
+
+      const walletKey = await WalletKey.findOne({ where: { user_id: userId }, transaction: t, raw: true });
+      if (walletKey?.address) {
+        addresses.add(String(walletKey.address).toLowerCase());
+      }
+
+      const cursorKeys = Array.from(addresses)
+        .filter(Boolean)
+        .map((addr) => `bsc_deposit_cursor_${String(addr).toLowerCase()}`);
+
+      const [unlinkedCount] = await User.update(
+        { referred_by_id: null },
+        { where: { referred_by_id: userId }, transaction: t },
+      );
+
+      const deleted = {
+        unlinkedReferrals: Number(unlinkedCount || 0),
+        chainDepositEvents: await ChainDepositEvent.destroy({ where: { user_id: userId }, transaction: t }),
+        depositScanLogs: await DepositScanLog.destroy({ where: { user_id: userId }, transaction: t }),
+        notifications: await Notification.destroy({ where: { user_id: userId }, transaction: t }),
+        depositRequests: await DepositRequest.destroy({ where: { user_id: userId }, transaction: t }),
+        withdrawalRequests: await WithdrawalRequest.destroy({ where: { user_id: userId }, transaction: t }),
+        userPackages: await UserPackage.destroy({ where: { user_id: userId }, transaction: t }),
+        transactions: await Transaction.destroy({ where: { user_id: userId }, transaction: t }),
+        walletKeys: await WalletKey.destroy({ where: { user_id: userId }, transaction: t }),
+        wallets: await Wallet.destroy({ where: { user_id: userId }, transaction: t }),
+        siteSettings: cursorKeys.length
+          ? await SiteSetting.destroy({ where: { key: { [Op.in]: cursorKeys } }, transaction: t })
+          : 0,
+        user: await User.destroy({ where: { id: userId }, transaction: t }),
+      };
+
+      return { ok: true, userId, deleted };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to delete user' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'User deleted successfully',
+      userId: result.userId,
+      deleted: result.deleted,
+    });
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete user',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

@@ -8,6 +8,8 @@ const {
   createUser,
   listUsers,
   getUserDetails,
+  updateUserStatus,
+  deleteUser,
   listWallets,
   deposit,
   withdraw,
@@ -31,6 +33,8 @@ const {
 router.get('/check', protect, requireAdminUser, checkAccess);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
+router.put('/users/:id/status', protect, requireAdminUser, updateUserStatus);
+router.delete('/users/:id', protect, requireAdminUser, deleteUser);
 router.get('/wallets', protect, requireAdminUser, listWallets);
 router.post('/users', protect, requireAdminUser, createUser);
 router.post('/deposit', protect, requireAdminUser, deposit);

@@ -14,12 +14,30 @@ function getScanMode() {
 }
 
 function getExplorerBaseUrl() {
-  const raw = String(process.env.EXPLORER_API_BASE_URL || 'https://api.etherscan.io/v2/api').trim();
-  return raw || 'https://api.etherscan.io/v2/api';
+  const raw = String(process.env.EXPLORER_API_BASE_URL || 'https://api.bscscan.com/v2/api').trim();
+  return raw || 'https://api.bscscan.com/v2/api';
+}
+
+function explorerUsesChainId(baseUrl) {
+  try {
+    const u = new URL(String(baseUrl || '').trim());
+    return u.pathname.includes('/v2/');
+  } catch {
+    return true;
+  }
 }
 
 function getExplorerApiKey() {
-  const raw = String(process.env.EXPLORER_API_KEY || process.env.BSCSCAN_API_KEY || '').trim();
+  const baseUrl = getExplorerBaseUrl();
+  let host = '';
+  try {
+    host = new URL(baseUrl).host.toLowerCase();
+  } catch {}
+
+  const bscKey = String(process.env.BSCSCAN_API_KEY || '').trim();
+  const explorerKey = String(process.env.EXPLORER_API_KEY || '').trim();
+
+  const raw = host.includes('bscscan.com') ? bscKey || explorerKey : explorerKey || bscKey;
   if (!raw) {
     const err = new Error('EXPLORER_API_KEY is not configured');
     err.code = 'EXPLORER_API_KEY_MISSING';
@@ -84,23 +102,54 @@ function httpGetJson(url, redirectsLeft = 2) {
   });
 }
 
+const explorerThrottle = {
+  lastRequestAt: 0,
+  chain: Promise.resolve(),
+};
+
+function getExplorerMinRequestIntervalMs() {
+  const raw = process.env.EXPLORER_MIN_REQUEST_INTERVAL_MS;
+  const n = raw == null ? 250 : Number(raw);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 250;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function explorerRequest(params) {
   const baseUrl = getExplorerBaseUrl();
   const apiKey = getExplorerApiKey();
   const chainid = getExplorerChainId();
 
   const u = new URL(baseUrl);
-  u.searchParams.set('chainid', String(chainid));
+  if (explorerUsesChainId(baseUrl)) {
+    u.searchParams.set('chainid', String(chainid));
+  }
   u.searchParams.set('apikey', apiKey);
   for (const [k, v] of Object.entries(params || {})) {
     if (v === undefined || v === null || v === '') continue;
     u.searchParams.set(k, String(v));
   }
 
-  const data = await httpGetJson(u.toString());
+  const run = async () => {
+    const minGap = getExplorerMinRequestIntervalMs();
+    const now = Date.now();
+    const wait = Math.max(0, explorerThrottle.lastRequestAt + minGap - now);
+    if (wait > 0) {
+      await sleep(wait);
+    }
+    explorerThrottle.lastRequestAt = Date.now();
+    return httpGetJson(u.toString());
+  };
+
+  const task = explorerThrottle.chain.then(run, run);
+  explorerThrottle.chain = task.catch(() => {});
+
+  const data = await task;
 
   if (data && typeof data === 'object' && data.status === '0') {
-    const msg = String(data.message || data.result || 'Explorer NOTOK');
+    const msg = String(data.result || data.message || 'Explorer NOTOK');
     const msgLower = msg.toLowerCase();
 
     const result = data.result;
@@ -113,7 +162,11 @@ async function explorerRequest(params) {
     }
 
     const err = new Error(String(result || msg));
-    if (msgLower.includes('rate limit') || msgLower.includes('max rate')) err.code = 'EXPLORER_RATE_LIMIT';
+    if (msgLower.includes('deprecated v1 endpoint') || msgLower.includes('switch to etherscan api v2') || msgLower.includes('v2-migration')) {
+      err.code = 'EXPLORER_DEPRECATED_V1';
+    } else if (msgLower.includes('free api access is not supported for this chain')) err.code = 'EXPLORER_FREE_TIER_UNSUPPORTED_CHAIN';
+    else if (msgLower.includes('missing or unsupported chainid')) err.code = 'EXPLORER_UNSUPPORTED_CHAIN';
+    else if (msgLower.includes('rate limit') || msgLower.includes('max rate')) err.code = 'EXPLORER_RATE_LIMIT';
     else if (msgLower.includes('too many') || msgLower.includes('query returned more than')) err.code = 'EXPLORER_TOO_MANY_RESULTS';
     else err.code = 'EXPLORER_NOTOK';
     throw err;
@@ -359,8 +412,8 @@ async function scanAndCreditUserUsdtDeposits({
           address: String(address),
           reason: reason || null,
           status: 'skipped',
-          error_code: 'RATE_LIMITED',
-          error_message: 'Scan skipped due to rate limit',
+          error_code: 'LOCAL_RATE_LIMITED',
+          error_message: 'Scan skipped due to cooldown',
         });
       }
     } catch {}
