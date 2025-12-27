@@ -9,6 +9,7 @@ const SiteSetting = require('./SiteSetting');
 const DepositRequest = require('./DepositRequest');
 const Notification = require('./Notification');
 const ChainDepositEvent = require('./ChainDepositEvent');
+const DepositScanLog = require('./DepositScanLog');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -46,4 +47,5 @@ module.exports = {
   DepositRequest,
   Notification,
   ChainDepositEvent,
+  DepositScanLog,
 };

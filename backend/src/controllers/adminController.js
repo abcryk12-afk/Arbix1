@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, ChainDepositEvent, SiteSetting, sequelize } = require('../models');
+const { User, Wallet, Transaction, WalletKey, UserPackage, WithdrawalRequest, DepositRequest, Notification, ChainDepositEvent, DepositScanLog, SiteSetting, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { decrypt } = require('../utils/encryption');
 const { deriveChildWallet } = require('../utils/hdWallet');
