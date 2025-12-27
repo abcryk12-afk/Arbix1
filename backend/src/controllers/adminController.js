@@ -98,6 +98,200 @@ exports.listDepositScanLogs = async (req, res) => {
   });
 };
 
+exports.listTradeLogs = async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit || 100), 1), 500);
+    const q = String(req.query.q || '').trim();
+    const userId = req.query.userId != null ? Number(req.query.userId) : null;
+
+    const whereEvents = {};
+    if (Number.isFinite(userId) && userId > 0) {
+      whereEvents.user_id = userId;
+    }
+    if (q) {
+      whereEvents[Op.or] = [
+        { tx_hash: { [Op.like]: `%${q}%` } },
+        { address: { [Op.like]: `%${q}%` } },
+      ];
+    }
+
+    const [eventsRaw, requestsRaw, txRaw] = await Promise.all([
+      ChainDepositEvent.findAll({
+        where: whereEvents,
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        raw: true,
+      }),
+      DepositRequest.findAll({
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit: Math.min(limit, 200),
+        raw: true,
+      }),
+      Transaction.findAll({
+        where: {
+          type: 'deposit',
+          created_by: 'moralis',
+        },
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit: Math.min(limit, 200),
+        raw: true,
+      }),
+    ]);
+
+    const eventUserIds = Array.from(new Set(eventsRaw.map((e) => e.user_id).filter(Boolean)));
+    const requestUserIds = Array.from(new Set(requestsRaw.map((r) => r.user_id).filter(Boolean)));
+    const txUserIds = Array.from(new Set(txRaw.map((t) => t.user_id).filter(Boolean)));
+    const userIds = Array.from(new Set([...eventUserIds, ...requestUserIds, ...txUserIds]));
+
+    const users = userIds.length
+      ? await User.findAll({
+          where: { id: userIds },
+          raw: true,
+          attributes: ['id', 'name', 'email', 'referral_code', 'wallet_public_address'],
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const txHashes = Array.from(new Set(eventsRaw.map((e) => String(e.tx_hash || '').trim()).filter(Boolean)));
+    const relatedRequests = txHashes.length
+      ? await DepositRequest.findAll({
+          where: { tx_hash: { [Op.in]: txHashes } },
+          order: [[sequelize.col('created_at'), 'DESC']],
+          limit: 500,
+          raw: true,
+        })
+      : [];
+    const reqByTx = new Map();
+    for (const r of relatedRequests) {
+      const key = String(r.tx_hash || '').trim();
+      if (!key) continue;
+      if (!reqByTx.has(key)) reqByTx.set(key, []);
+      reqByTx.get(key).push(r);
+    }
+
+    let checkpoints = {};
+    try {
+      await SiteSetting.sync();
+    } catch {}
+    try {
+      const rows = await SiteSetting.findAll({
+        where: {
+          key: {
+            [Op.in]: ['moralis_stream_last_user_id', 'moralis_poll_last_user_id'],
+          },
+        },
+        raw: true,
+      });
+      checkpoints = (rows || []).reduce((acc, row) => {
+        acc[String(row.key)] = row.value;
+        return acc;
+      }, {});
+    } catch {}
+
+    const usersWithAddress = await User.count({
+      where: {
+        wallet_public_address: { [Op.ne]: null },
+      },
+    });
+
+    const events = eventsRaw.map((e) => {
+      const u = userMap.get(e.user_id) || {};
+      const txHash = String(e.tx_hash || '').trim();
+      return {
+        id: e.id,
+        createdAt: e.created_at,
+        updatedAt: e.updated_at,
+        chain: e.chain,
+        token: e.token,
+        userId: e.user_id,
+        userName: u.name || '',
+        email: u.email || '',
+        referralCode: u.referral_code || '',
+        walletAddress: u.wallet_public_address || null,
+        address: e.address,
+        amount: Number(e.amount || 0),
+        txHash,
+        logIndex: e.log_index,
+        blockNumber: e.block_number,
+        credited: Boolean(e.credited),
+        creditedAt: e.credited_at || null,
+        relatedDepositRequests: (reqByTx.get(txHash) || []).map((r) => ({
+          id: r.id,
+          userId: r.user_id,
+          amount: Number(r.amount || 0),
+          status: r.status,
+          address: r.address,
+          txHash: r.tx_hash || null,
+          createdAt: r.created_at,
+        })),
+      };
+    });
+
+    const depositRequests = requestsRaw.map((r) => {
+      const u = userMap.get(r.user_id) || {};
+      return {
+        id: r.id,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        userId: r.user_id,
+        userName: u.name || '',
+        email: u.email || '',
+        referralCode: u.referral_code || '',
+        walletAddress: u.wallet_public_address || null,
+        address: r.address,
+        amount: Number(r.amount || 0),
+        status: r.status,
+        txHash: r.tx_hash || null,
+        userNote: r.user_note || null,
+        adminNote: r.admin_note || null,
+      };
+    });
+
+    const transactions = txRaw.map((t) => {
+      const u = userMap.get(t.user_id) || {};
+      return {
+        id: t.id,
+        createdAt: t.created_at,
+        updatedAt: t.updated_at,
+        userId: t.user_id,
+        userName: u.name || '',
+        email: u.email || '',
+        type: t.type,
+        amount: Number(t.amount || 0),
+        createdBy: t.created_by || null,
+        note: t.note || null,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      config: {
+        minDepositUsdt: Number(process.env.MIN_DEPOSIT_USDT || 9),
+        confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
+        pollingEnabled: ['1', 'true', 'yes', 'on'].includes(String(process.env.MORALIS_POLLING_ENABLED || '').trim().toLowerCase()),
+        streamId: String(process.env.MORALIS_STREAM_ID || '').trim() || null,
+      },
+      checkpoints,
+      counts: {
+        usersWithAddress,
+        chainEvents: eventsRaw.length,
+        depositRequests: requestsRaw.length,
+        moralisDepositTransactions: txRaw.length,
+      },
+      events,
+      depositRequests,
+      transactions,
+    });
+  } catch (error) {
+    console.error('Admin trade logs error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to load trade logs',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.sendNotification = async (req, res) => {
   const isNotificationsSchemaError = (err) => {
     const code = err?.original?.code || err?.parent?.code || err?.code;
