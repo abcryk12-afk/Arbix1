@@ -43,6 +43,27 @@ function extractLogRangeLimit(err) {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
 }
 
+function getMaxWindowsPerAddress() {
+  const raw = process.env.QUICKNODE_MAX_WINDOWS_PER_ADDRESS;
+  const n = raw == null ? 60 : Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 60;
+}
+
+function getEffectiveLookback({ desiredLookback, detectedLimit }) {
+  const lb = Number(desiredLookback);
+  if (!Number.isFinite(lb) || lb <= 0) return 0;
+
+  const limit = Number(detectedLimit);
+  if (!Number.isFinite(limit) || limit <= 0) return lb;
+
+  if (limit <= 10) {
+    const cap = Math.max(50, limit * getMaxWindowsPerAddress());
+    return Math.min(lb, cap);
+  }
+
+  return lb;
+}
+
 function getBscProvider() {
   const url = String(process.env.BSC_RPC_URL || '').trim();
   if (!url) {
@@ -250,7 +271,27 @@ async function scanPendingDepositAddresses({ provider }) {
     let cursor = await getSettingInt(cursorKey, -1);
     if (cursor < 0) {
       const lb = item.source === 'pending_request' ? lookback : userLookback;
-      cursor = Math.max(0, scanToBlock - lb);
+      const effectiveLookback = getEffectiveLookback({ desiredLookback: lb, detectedLimit: detectedLogRangeLimit });
+      cursor = Math.max(0, scanToBlock - effectiveLookback);
+      await setSettingInt(cursorKey, cursor);
+    } else {
+      const lb = item.source === 'pending_request' ? lookback : userLookback;
+      const effectiveLookback = getEffectiveLookback({ desiredLookback: lb, detectedLimit: detectedLogRangeLimit });
+      const minCursor = Math.max(0, scanToBlock - effectiveLookback);
+      if (effectiveLookback > 0 && cursor < minCursor) {
+        cursor = minCursor;
+        await setSettingInt(cursorKey, cursor);
+        if (debug) {
+          console.log('[quicknode] cursor fast-forward', {
+            userId: item.userId,
+            address: item.addrLower,
+            source: item.source,
+            cursor,
+            scanToBlock,
+            effectiveLookback,
+          });
+        }
+      }
     }
 
     let fromBlock = cursor + 1;
@@ -263,6 +304,9 @@ async function scanPendingDepositAddresses({ provider }) {
 
     let totalLogs = 0;
     let stored = 0;
+
+    const maxWindows = getMaxWindowsPerAddress();
+    let windows = 0;
 
     while (fromBlock <= scanToBlock) {
       const effectiveSpan = Math.max(1, Math.min(maxBlocksPerScan, detectedLogRangeLimit || maxBlocksPerScan));
@@ -352,6 +396,22 @@ async function scanPendingDepositAddresses({ provider }) {
 
       await setSettingInt(cursorKey, toBlock);
       fromBlock = toBlock + 1;
+
+      windows += 1;
+      if (windows >= maxWindows) {
+        if (debug) {
+          console.log('[quicknode] scan window cap reached', {
+            userId: item.userId,
+            address: item.addrLower,
+            source: item.source,
+            windows,
+            maxWindows,
+            cursorAfter: toBlock,
+            scanToBlock,
+          });
+        }
+        break;
+      }
     }
 
     if (debug) {
