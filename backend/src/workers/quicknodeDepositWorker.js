@@ -16,6 +16,8 @@ const {
   SiteSetting,
 } = models;
 
+let detectedLogRangeLimit = null;
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -31,6 +33,14 @@ function safeRpcHost() {
   } catch {
     return null;
   }
+}
+
+function extractLogRangeLimit(err) {
+  const msg = String(err?.message || err || '');
+  const m = msg.match(/limited to a\s*(\d+)\s*range/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
 }
 
 function getBscProvider() {
@@ -188,6 +198,7 @@ async function scanPendingDepositAddresses({ provider }) {
       confirmations,
       minDeposit,
       maxBlocksPerScan,
+      detectedLogRangeLimit: detectedLogRangeLimit || null,
       lookback,
       userLookback,
     });
@@ -254,7 +265,8 @@ async function scanPendingDepositAddresses({ provider }) {
     let stored = 0;
 
     while (fromBlock <= scanToBlock) {
-      const toBlock = Math.min(scanToBlock, fromBlock + maxBlocksPerScan - 1);
+      const effectiveSpan = Math.max(1, Math.min(maxBlocksPerScan, detectedLogRangeLimit || maxBlocksPerScan));
+      const toBlock = Math.min(scanToBlock, fromBlock + effectiveSpan - 1);
       let logs = [];
       try {
         logs = await provider.getLogs({
@@ -264,7 +276,21 @@ async function scanPendingDepositAddresses({ provider }) {
           topics: [topic0, null, toTopic],
         });
       } catch (e) {
+        const limit = extractLogRangeLimit(e);
+        if (limit && (!detectedLogRangeLimit || limit < detectedLogRangeLimit)) {
+          detectedLogRangeLimit = limit;
+          if (debug) {
+            console.warn('[quicknode] detected eth_getLogs range limit, will retry with smaller windows', {
+              detectedLogRangeLimit,
+              userId: item.userId,
+              address: item.addrLower,
+            });
+          }
+          continue;
+        }
+
         console.error('QuickNode log scan failed:', item.userId, item.addrLower, e?.message || e);
+        await sleep(1000);
         break;
       }
 
