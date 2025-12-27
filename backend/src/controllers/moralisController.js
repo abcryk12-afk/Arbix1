@@ -51,9 +51,7 @@ function verifyMoralisSignature({ rawBody, body, signature, secret }) {
   }
 
   const sigLower = String(signature).toLowerCase();
-  const payload = typeof rawBody === 'string' && rawBody.length
-    ? rawBody
-    : JSON.stringify(body);
+  const payload = JSON.stringify(body || {});
 
   for (const s of secrets) {
     const generated = ethers.utils.keccak256(
