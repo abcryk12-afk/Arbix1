@@ -197,7 +197,7 @@ function formatTokenAmount({ value, decimals }) {
 
 async function scanPendingDepositAddresses({ provider }) {
   const confirmations = Number(process.env.DEPOSIT_CONFIRMATIONS || 12);
-  const minDeposit = Number(process.env.MIN_DEPOSIT_USDT || 9);
+  const minDeposit = Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10));
   const maxBlocksPerScan = Math.min(Math.max(Number(process.env.QUICKNODE_MAX_BLOCKS_PER_SCAN || 2000), 100), 20000);
   const lookback = Math.min(Math.max(Number(process.env.QUICKNODE_LOOKBACK_BLOCKS || 20000), 1000), 500000);
   const userLookback = Math.min(Math.max(Number(process.env.QUICKNODE_USER_LOOKBACK_BLOCKS || 2000), 200), 500000);
@@ -323,6 +323,9 @@ async function scanPendingDepositAddresses({ provider }) {
         const limit = extractLogRangeLimit(e);
         if (limit && (!detectedLogRangeLimit || limit < detectedLogRangeLimit)) {
           detectedLogRangeLimit = limit;
+          try {
+            await setSettingInt('quicknode_detected_log_range_limit', detectedLogRangeLimit);
+          } catch {}
           if (debug) {
             console.warn('[quicknode] detected eth_getLogs range limit, will retry with smaller windows', {
               detectedLogRangeLimit,
@@ -487,7 +490,7 @@ async function creditDepositEvent(eventId) {
 
 async function processPendingCredits({ provider }) {
   const confirmations = Number(process.env.DEPOSIT_CONFIRMATIONS || 12);
-  const minDeposit = Number(process.env.MIN_DEPOSIT_USDT || 9);
+  const minDeposit = Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10));
 
   const debug = isDebugEnabled();
 
@@ -536,7 +539,7 @@ async function main() {
       rpcHost: safeRpcHost(),
       loopMs,
       confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
-      minDeposit: Number(process.env.MIN_DEPOSIT_USDT || 9),
+      minDeposit: Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10)),
     });
   }
 

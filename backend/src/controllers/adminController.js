@@ -94,7 +94,7 @@ exports.setAdminNotificationEmails = async (req, res) => {
 exports.listDepositScanLogs = async (req, res) => {
   return res.status(410).json({
     success: false,
-    message: 'Deposit scan logs are no longer available (deposit detection migrated to Moralis Streams).',
+    message: 'Deposit scan logs are no longer available (deposit detection migrated to QuickNode RPC scanning).',
   });
 };
 
@@ -130,7 +130,7 @@ exports.listTradeLogs = async (req, res) => {
       Transaction.findAll({
         where: {
           type: 'deposit',
-          created_by: { [Op.in]: ['moralis', 'quicknode'] },
+          created_by: { [Op.ne]: 'moralis' },
         },
         order: [[sequelize.col('created_at'), 'DESC']],
         limit: Math.min(limit, 200),
@@ -174,19 +174,36 @@ exports.listTradeLogs = async (req, res) => {
       await SiteSetting.sync();
     } catch {}
     try {
-      const rows = await SiteSetting.findAll({
-        where: {
-          key: {
-            [Op.in]: ['moralis_stream_last_user_id', 'moralis_poll_last_user_id'],
+      const [rows, cursorKeysCount] = await Promise.all([
+        SiteSetting.findAll({
+          where: {
+            key: {
+              [Op.in]: ['quicknode_last_user_id', 'quicknode_detected_log_range_limit'],
+            },
           },
-        },
-        raw: true,
-      });
+          raw: true,
+        }),
+        SiteSetting.count({
+          where: {
+            key: { [Op.like]: 'quicknode_cursor_bsc_usdt_%' },
+          },
+        }),
+      ]);
+
       checkpoints = (rows || []).reduce((acc, row) => {
         acc[String(row.key)] = row.value;
         return acc;
       }, {});
+      checkpoints.quicknode_cursor_keys_count = Number(cursorKeysCount || 0);
     } catch {}
+
+    let rpcHost = null;
+    try {
+      rpcHost = new URL(String(process.env.BSC_RPC_URL || '').trim()).host;
+    } catch {}
+
+    const detectedRangeLimitRaw = checkpoints.quicknode_detected_log_range_limit;
+    const detectedRangeLimit = detectedRangeLimitRaw != null ? Number(detectedRangeLimitRaw) : null;
 
     const usersWithAddress = await User.count({
       where: {
@@ -266,17 +283,22 @@ exports.listTradeLogs = async (req, res) => {
     return res.status(200).json({
       success: true,
       config: {
-        minDepositUsdt: Number(process.env.MIN_DEPOSIT_USDT || 9),
+        rpcHost,
+        minDepositUsdt: Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10)),
         confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
-        pollingEnabled: ['1', 'true', 'yes', 'on'].includes(String(process.env.MORALIS_POLLING_ENABLED || '').trim().toLowerCase()),
-        streamId: String(process.env.MORALIS_STREAM_ID || '').trim() || null,
+        maxBlocksPerScan: Number(process.env.QUICKNODE_MAX_BLOCKS_PER_SCAN || 2000),
+        lookbackBlocks: Number(process.env.QUICKNODE_LOOKBACK_BLOCKS || 20000),
+        userLookbackBlocks: Number(process.env.QUICKNODE_USER_LOOKBACK_BLOCKS || 2000),
+        userScanLimit: Number(process.env.QUICKNODE_USER_SCAN_LIMIT || 50),
+        maxWindowsPerAddress: Number(process.env.QUICKNODE_MAX_WINDOWS_PER_ADDRESS || 60),
+        detectedLogRangeLimit: Number.isFinite(detectedRangeLimit) ? detectedRangeLimit : null,
       },
       checkpoints,
       counts: {
         usersWithAddress,
         chainEvents: eventsRaw.length,
         depositRequests: requestsRaw.length,
-        moralisDepositTransactions: txRaw.length,
+        workerDepositTransactions: txRaw.length,
       },
       events,
       depositRequests,

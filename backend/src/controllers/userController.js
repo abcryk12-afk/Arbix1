@@ -498,8 +498,10 @@ exports.requestDeposit = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Deposit amount must be positive' });
     }
 
-    if (value < 10) {
-      return res.status(400).json({ success: false, message: 'Minimum deposit is 10 USDT' });
+    const minDeposit = Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10));
+
+    if (value < minDeposit) {
+      return res.status(400).json({ success: false, message: `Minimum deposit is ${minDeposit} USDT` });
     }
 
     const result = await Transaction.sequelize.transaction(async (t) => {

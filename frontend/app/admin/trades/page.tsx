@@ -4,17 +4,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type TradeLogConfig = {
+  rpcHost: string | null;
   minDepositUsdt: number;
   confirmations: number;
-  pollingEnabled: boolean;
-  streamId: string | null;
+  maxBlocksPerScan: number;
+  lookbackBlocks: number;
+  userLookbackBlocks: number;
+  userScanLimit: number;
+  maxWindowsPerAddress: number;
+  detectedLogRangeLimit: number | null;
 };
 
 type TradeLogCounts = {
   usersWithAddress: number;
   chainEvents: number;
   depositRequests: number;
-  moralisDepositTransactions: number;
+  workerDepositTransactions: number;
 };
 
 type TradeLogEvent = {
@@ -184,7 +189,7 @@ export default function AdminTradesPage() {
             <div>
               <h1 className="text-lg font-semibold">Trade Logs</h1>
               <p className="text-xs text-slate-400">
-                Deposit system diagnostics (Moralis → Events → Worker Credit → Requests)
+                Deposit system diagnostics (QuickNode RPC → Events → Worker Credit → Requests)
               </p>
             </div>
 
@@ -210,8 +215,8 @@ export default function AdminTradesPage() {
               <div className="text-[11px] text-slate-400">Config</div>
               <div className="mt-2 space-y-1 text-[12px]">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-slate-400">Stream ID</span>
-                  <span className="text-slate-100">{config?.streamId || '-'}</span>
+                  <span className="text-slate-400">RPC Host</span>
+                  <span className="text-slate-100">{config?.rpcHost || '-'}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-slate-400">Min Deposit</span>
@@ -222,10 +227,28 @@ export default function AdminTradesPage() {
                   <span className="text-slate-100">{Number(config?.confirmations || 0)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-slate-400">Polling Enabled</span>
-                  <span className={config?.pollingEnabled ? 'text-amber-300' : 'text-emerald-300'}>
-                    {config?.pollingEnabled ? 'ON' : 'OFF'}
-                  </span>
+                  <span className="text-slate-400">getLogs Limit</span>
+                  <span className="text-slate-100">{config?.detectedLogRangeLimit ?? '-'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">Max Blocks/Scan</span>
+                  <span className="text-slate-100">{Number(config?.maxBlocksPerScan || 0)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">Lookback</span>
+                  <span className="text-slate-100">{Number(config?.lookbackBlocks || 0)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">User Lookback</span>
+                  <span className="text-slate-100">{Number(config?.userLookbackBlocks || 0)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">User Scan Limit</span>
+                  <span className="text-slate-100">{Number(config?.userScanLimit || 0)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">Windows/Address</span>
+                  <span className="text-slate-100">{Number(config?.maxWindowsPerAddress || 0)}</span>
                 </div>
               </div>
             </div>
@@ -234,12 +257,16 @@ export default function AdminTradesPage() {
               <div className="text-[11px] text-slate-400">Checkpoints</div>
               <div className="mt-2 space-y-1 text-[12px]">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-slate-400">moralis_stream_last_user_id</span>
-                  <span className="text-slate-100">{String(checkpoints?.moralis_stream_last_user_id ?? '-')}</span>
+                  <span className="text-slate-400">quicknode_last_user_id</span>
+                  <span className="text-slate-100">{String(checkpoints?.quicknode_last_user_id ?? '-')}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-slate-400">moralis_poll_last_user_id</span>
-                  <span className="text-slate-100">{String(checkpoints?.moralis_poll_last_user_id ?? '-')}</span>
+                  <span className="text-slate-400">quicknode_cursor_keys_count</span>
+                  <span className="text-slate-100">{String(checkpoints?.quicknode_cursor_keys_count ?? '-')}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400">quicknode_detected_log_range_limit</span>
+                  <span className="text-slate-100">{String(checkpoints?.quicknode_detected_log_range_limit ?? '-')}</span>
                 </div>
               </div>
             </div>
@@ -262,6 +289,14 @@ export default function AdminTradesPage() {
                 <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2">
                   <div className="text-[10px] text-slate-500">Pending Credit</div>
                   <div className="text-amber-300 font-medium">{pendingCreditCount}</div>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2">
+                  <div className="text-[10px] text-slate-500">Deposit Requests</div>
+                  <div className="text-slate-100 font-medium">{Number(counts?.depositRequests || 0)}</div>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2">
+                  <div className="text-[10px] text-slate-500">Deposit Tx</div>
+                  <div className="text-slate-100 font-medium">{Number(counts?.workerDepositTransactions || 0)}</div>
                 </div>
               </div>
             </div>
@@ -422,7 +457,9 @@ export default function AdminTradesPage() {
                       <div className="text-[11px] text-slate-500">#{r.userId} {r.email || ''}</div>
                     </td>
                     <td className="p-3 whitespace-nowrap">{Number(r.amount || 0).toFixed(2)} USDT</td>
-                    <td className="p-3 whitespace-nowrap">{String(r.status || '-')}</td>
+                    <td className="p-3 whitespace-nowrap">
+                      {String(r.status || '').toLowerCase() === 'pending' && r.txHash ? 'processing' : String(r.status || '-')}
+                    </td>
                     <td className="p-3">{r.txHash ? shortAddr(r.txHash) : '-'}</td>
                     <td className="p-3">{shortAddr(r.address)}</td>
                   </tr>
@@ -434,7 +471,7 @@ export default function AdminTradesPage() {
 
         <div className="rounded-xl border border-slate-800 bg-slate-950/70">
           <div className="border-b border-slate-800 p-4">
-            <div className="text-sm font-semibold">Moralis-Created Deposit Transactions</div>
+            <div className="text-sm font-semibold">Deposit Transactions</div>
             <div className="text-[11px] text-slate-400">These appear only after the worker credits the wallet.</div>
           </div>
 
@@ -445,14 +482,15 @@ export default function AdminTradesPage() {
                   <th className="p-3">Time</th>
                   <th className="p-3">User</th>
                   <th className="p-3">Amount</th>
+                  <th className="p-3">By</th>
                   <th className="p-3">Note</th>
                 </tr>
               </thead>
               <tbody>
                 {!isLoading && transactions.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-4 text-slate-400">
-                      No moralis deposit transactions found.
+                    <td colSpan={5} className="p-4 text-slate-400">
+                      No deposit transactions found.
                     </td>
                   </tr>
                 )}
@@ -464,6 +502,7 @@ export default function AdminTradesPage() {
                       <div className="text-[11px] text-slate-500">#{t.userId} {t.email || ''}</div>
                     </td>
                     <td className="p-3 whitespace-nowrap">{Number(t.amount || 0).toFixed(2)} USDT</td>
+                    <td className="p-3 whitespace-nowrap">{t.createdBy || '-'}</td>
                     <td className="p-3 text-slate-200">{t.note || '-'}</td>
                   </tr>
                 ))}
