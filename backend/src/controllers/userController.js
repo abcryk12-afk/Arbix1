@@ -39,6 +39,10 @@ exports.getSummary = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      config: {
+        minDepositUsdt: Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10)),
+        confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
+      },
       wallet: {
         balance: Number(wallet.balance),
       },

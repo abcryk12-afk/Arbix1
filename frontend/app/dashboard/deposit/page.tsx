@@ -7,6 +7,9 @@ export default function DepositPage() {
   const [amountError, setAmountError] = useState('');
   const [copied, setCopied] = useState(false);
 
+  const [minDepositUsdt, setMinDepositUsdt] = useState<number>(10);
+  const [confirmations, setConfirmations] = useState<number>(12);
+
   const [walletAddress, setWalletAddress] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -75,6 +78,12 @@ export default function DepositPage() {
         const data = await res.json();
         if (!cancelled) {
           if (data?.success) {
+            if (data?.config) {
+              const min = Number(data?.config?.minDepositUsdt ?? 10);
+              const conf = Number(data?.config?.confirmations ?? 12);
+              if (Number.isFinite(min) && min > 0) setMinDepositUsdt(min);
+              if (Number.isFinite(conf) && conf > 0) setConfirmations(conf);
+            }
             setWalletBalance(Number(data?.wallet?.balance || 0));
             setTransactions(Array.isArray(data?.transactions) ? data.transactions : []);
             if (data?.wallet?.publicAddress || data?.wallet?.public_address) {
@@ -167,8 +176,8 @@ export default function DepositPage() {
   const handleGenerateAddress = async (e: FormEvent) => {
     e.preventDefault();
     const value = parseFloat(amount || '0');
-    if (isNaN(value) || value < 10) {
-      setAmountError('Minimum deposit required: 10 USDT');
+    if (isNaN(value) || value < minDepositUsdt) {
+      setAmountError(`Minimum deposit required: ${minDepositUsdt} USDT`);
       return;
     }
     setAmountError('');
@@ -299,7 +308,7 @@ export default function DepositPage() {
           </h1>
           <p className="mt-2 text-sm text-slate-300 md:text-base">
             Deposit USDT (BEP20 – BNB Smart Chain) into your Arbix Wallet. Minimum
-            deposit: <span className="font-semibold">10 USDT</span>.
+            deposit: <span className="font-semibold">{minDepositUsdt} USDT</span>.
           </p>
         </div>
       </section>
@@ -396,12 +405,12 @@ export default function DepositPage() {
                 <input
                   id="amount"
                   type="number"
-                  min={10}
+                  min={minDepositUsdt}
                   step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                  placeholder="Enter amount (minimum 10 USDT)"
+                  placeholder={`Enter amount (minimum ${minDepositUsdt} USDT)`}
                 />
                 {amountError && <p className="mt-1 text-[10px] text-red-400">{amountError}</p>}
               </div>
@@ -546,7 +555,7 @@ export default function DepositPage() {
                 • Do <span className="font-semibold">not</span> send ERC20 / TRC20 / Polygon or any other
                 network tokens.
               </li>
-              <li>• Minimum deposit: 10 USDT. Smaller deposits will not be credited.</li>
+              <li>• Minimum deposit: {minDepositUsdt} USDT. Smaller deposits will not be credited.</li>
               <li>• Wrong network may result in permanent loss of funds.</li>
               <li>• Typical confirmation time: 5–15 minutes, depending on network load.</li>
             </ul>
