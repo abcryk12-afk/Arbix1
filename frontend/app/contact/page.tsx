@@ -1,4 +1,121 @@
+'use client';
+
+import { type FormEvent, useEffect, useRef, useState } from 'react';
+
+type ChatMessage = {
+  id: string;
+  role: 'bot' | 'user';
+  text: string;
+};
+
+function getBotReply(raw: string) {
+  const text = raw.trim().toLowerCase();
+  if (!text) return "Please type a message so I can help.";
+
+  if (text.includes('withdraw') || text.includes('withdrawal')) {
+    return 'For withdrawals: make sure your wallet address is correct, your account is verified (KYC if required), and you have sufficient available balance. If you share your registered email, I can guide you to the right steps.';
+  }
+
+  if (text.includes('deposit') || text.includes('top up') || text.includes('fund')) {
+    return 'For deposits: confirm the network, address, and transaction hash (TXID). If your deposit is pending, it may need confirmations. Share the TXID and I will help you track it.';
+  }
+
+  if (text.includes('kyc') || text.includes('verification') || text.includes('cnic') || text.includes('passport')) {
+    return 'For KYC/verification: use clear photos, matching name details, and ensure documents are not expired. If you tell me the error you see, I can suggest the fix.';
+  }
+
+  if (text.includes('login') || text.includes('password') || text.includes('otp')) {
+    return 'If you can’t log in: try resetting your password, check spam for OTP emails, and confirm the email is correct. If it still fails, share the exact message on screen.';
+  }
+
+  if (text.includes('agent') || text.includes('human')) {
+    return 'I can help right away. If you want a human agent, please email support@arbix.com with your registered email and a short summary, and our team will respond as soon as possible.';
+  }
+
+  return 'Thanks — please share a little more detail (registered email + what you’re trying to do). I can help with deposits, withdrawals, account access, and verification.';
+}
+
 export default function ContactPage() {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => [
+    {
+      id: 'm1',
+      role: 'bot',
+      text: 'Hi! I’m Arbix Support Assistant. What do you need help with today — deposit, withdrawal, account access, or verification?',
+    },
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [formNotice, setFormNotice] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const chatInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!isChatOpen) return;
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [isChatOpen, chatMessages.length]);
+
+  const openChat = () => {
+    setIsChatOpen(true);
+    setTimeout(() => chatInputRef.current?.focus(), 50);
+  };
+
+  const closeChat = () => {
+    setIsChatOpen(false);
+  };
+
+  const sendChatMessage = (message: string) => {
+    const trimmed = message.trim();
+    if (!trimmed) return;
+
+    const userMsg: ChatMessage = {
+      id: `u-${Date.now()}`,
+      role: 'user',
+      text: trimmed,
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    setChatInput('');
+
+    const botText = getBotReply(trimmed);
+    const botMsg: ChatMessage = {
+      id: `b-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      role: 'bot',
+      text: botText,
+    };
+
+    setTimeout(() => {
+      setChatMessages((prev) => [...prev, botMsg]);
+    }, 350);
+  };
+
+  const handleSupportFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormNotice(null);
+
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+
+    const name = String(fd.get('name') || '').trim();
+    const email = String(fd.get('email') || '').trim();
+    const subjectKey = String(fd.get('subject') || 'account').trim();
+    const message = String(fd.get('message') || '').trim();
+
+    const subjectMap: Record<string, string> = {
+      account: 'Account Issue',
+      deposit: 'Deposit / Withdrawal',
+      technical: 'Technical Support',
+      kyc: 'KYC / Verification',
+      other: 'Other',
+    };
+
+    const subject = `Arbix Support — ${subjectMap[subjectKey] || 'Support Request'}`;
+    const body = `Full Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}\n`;
+
+    const mailto = `mailto:support@arbix.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+    setFormNotice('Opening your email app… If it doesn’t open, please email support@arbix.com.');
+  };
+
   return (
     <div className="bg-slate-950 text-slate-50">
       {/* SECTION 1 — Hero / Intro */}
@@ -11,7 +128,7 @@ export default function ContactPage() {
             We&apos;re Here to Help — Contact Arbix Support
           </h1>
           <p className="mt-3 text-sm text-slate-300 md:text-base">
-            If you have any questions about investments, trading, withdrawals or
+            If you have any questions about investing, trading, deposits, withdrawals, or
             your account, our Support team is available 24/7 to assist you.
           </p>
         </div>
@@ -28,40 +145,24 @@ export default function ContactPage() {
             possible.
           </p>
 
-          <div className="mt-6 space-y-4 text-xs text-slate-300">
+          <div className="mt-6 grid gap-4 text-xs text-slate-300 sm:grid-cols-2">
             {/* Live Chat */}
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
                 Live Chat Support
               </p>
               <p className="mt-1 text-sm font-semibold text-slate-100">
-                Immediate assistance from our support agents
+                Chat with support in real time
               </p>
               <p className="mt-2 text-slate-400">
-                Immediate replies with an average response time of 2–5 minutes.
+                Typical reply time: 2–5 minutes. Best for quick questions and urgent help.
               </p>
-              <button className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500">
+              <button
+                type="button"
+                onClick={openChat}
+                className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+              >
                 Start Live Chat
-              </button>
-              <p className="mt-2 text-[11px] text-slate-500">
-                (Developers: attach your live chat widget or third-party chat here.)
-              </p>
-            </div>
-
-            {/* WhatsApp */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-400">
-                WhatsApp Support
-              </p>
-              <p className="mt-1 text-sm font-semibold text-slate-100">
-                Fast support, even on the go
-              </p>
-              <p className="mt-2 text-slate-400">
-                Convenient customer service with the option to send voice notes and
-                screenshots for quicker resolution.
-              </p>
-              <button className="mt-3 inline-flex items-center justify-center rounded-lg border border-emerald-500 px-4 py-2 text-xs font-medium text-emerald-300 hover:border-emerald-400">
-                Chat on WhatsApp
               </button>
             </div>
 
@@ -71,11 +172,10 @@ export default function ContactPage() {
                 Email Support
               </p>
               <p className="mt-1 text-sm font-semibold text-slate-100">
-                Detailed queries and compliance matters
+                Best for verification & detailed requests
               </p>
               <p className="mt-2 text-slate-400">
-                Ideal for verification issues, formal documentation and
-                compliance-related questions.
+                Ideal for KYC issues, formal documentation, and account-related investigations.
               </p>
               <a
                 href="mailto:support@arbix.com"
@@ -99,7 +199,10 @@ export default function ContactPage() {
             will get back to you as soon as possible.
           </p>
 
-          <form className="mt-6 space-y-4 text-xs text-slate-300">
+          <form
+            className="mt-6 space-y-4 text-xs text-slate-300"
+            onSubmit={handleSupportFormSubmit}
+          >
             <div>
               <label className="mb-1 block text-[11px] text-slate-400" htmlFor="name">
                 Full Name
@@ -166,6 +269,10 @@ export default function ContactPage() {
             >
               Submit Request
             </button>
+
+            {formNotice ? (
+              <p className="mt-2 text-[11px] text-slate-400">{formNotice}</p>
+            ) : null}
 
             <p className="mt-2 text-[10px] text-slate-500">
               We never share your information with third parties. Your data is used
@@ -278,11 +385,79 @@ export default function ContactPage() {
             Our team is ready to guide you through any question or issue you may
             have.
           </p>
-          <button className="mt-5 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
+          <button
+            type="button"
+            onClick={openChat}
+            className="mt-5 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-500"
+          >
             Start Live Chat Now
           </button>
         </div>
       </section>
+
+      {isChatOpen ? (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/60" onClick={closeChat} />
+          <div className="absolute bottom-4 right-4 w-[calc(100%-2rem)] max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-100">Arbix Live Chat</p>
+                <p className="text-[11px] text-slate-400">Support Assistant</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeChat}
+                className="rounded-md border border-slate-800 px-2 py-1 text-[11px] text-slate-200 hover:border-slate-600"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="max-h-[55vh] space-y-3 overflow-y-auto px-4 py-3 text-xs">
+              {chatMessages.map((m) => (
+                <div
+                  key={m.id}
+                  className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
+                >
+                  <div
+                    className={
+                      m.role === 'user'
+                        ? 'max-w-[85%] rounded-2xl bg-primary px-3 py-2 text-white'
+                        : 'max-w-[85%] rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-slate-200'
+                    }
+                  >
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+
+            <form
+              className="flex items-center gap-2 border-t border-slate-800 px-3 py-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendChatMessage(chatInput);
+              }}
+            >
+              <input
+                ref={chatInputRef}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                type="text"
+                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                placeholder="Type your message…"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

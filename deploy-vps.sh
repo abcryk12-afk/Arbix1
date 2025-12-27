@@ -48,12 +48,13 @@ PORT=5000
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=465
 EMAIL_SECURE=true
-EMAIL_USER=wanum01234@gmail.com
-EMAIL_PASS=sxat uuht hngw vfwc
-JWT_SECRET=arbix_jwt_secret_key_2024_secure_production
+EMAIL_USER=CHANGE_ME
+EMAIL_PASS=CHANGE_ME
+JWT_SECRET=CHANGE_ME
 FRONTEND_URL=https://www.arbix.space
 ADMIN_API_KEY=CHANGE_ME_STRONG_KEY
 ADMIN_EMAILS=admin@example.com
+ADMIN_LOGIN_CODE=CHANGE_ME
 EOF
 
 # Step 9: Build frontend
@@ -151,7 +152,7 @@ sudo systemctl restart nginx
 # Step 14: Install SSL
 echo "Step 14: Installing SSL certificate..."
 sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d arbix.space -d www.arbix.space --non-interactive --agree-tos --email wanum01234@gmail.com
+sudo certbot --nginx -d arbix.space -d www.arbix.space --non-interactive --agree-tos --email admin@example.com
 
 # Step 15: Setup firewall
 echo "Step 15: Setting up firewall..."

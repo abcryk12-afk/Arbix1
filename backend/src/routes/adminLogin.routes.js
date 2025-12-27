@@ -2,24 +2,35 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+const ADMIN_LOGIN_CODE = process.env.ADMIN_LOGIN_CODE || '';
+
 // Simple admin login route - email + secret code
 router.post('/login', async (req, res) => {
   try {
     const { email, secretCode } = req.body;
-
-    const adminEmail = 'wanum01234@gmail.com';
     const normalizedEmail = (email || '').trim().toLowerCase();
 
     // Check if email is the admin email (case-insensitive, trimmed)
-    if (normalizedEmail !== adminEmail.toLowerCase()) {
+    if (!normalizedEmail || !ADMIN_EMAILS.includes(normalizedEmail)) {
       return res.status(401).json({
         success: false,
         message: 'Not authorized'
       });
     }
 
+    if (!ADMIN_LOGIN_CODE) {
+      return res.status(503).json({
+        success: false,
+        message: 'Admin login not configured'
+      });
+    }
+
     // Check if secret code is correct
-    if (secretCode !== '1020') {
+    if (secretCode !== ADMIN_LOGIN_CODE) {
       return res.status(401).json({
         success: false,
         message: 'Invalid secret code'
@@ -30,7 +41,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       {
         id: 13,
-        email: adminEmail,
+        email: normalizedEmail,
         isAdmin: true,
       },
       process.env.JWT_SECRET || 'your-secret-key',
@@ -42,7 +53,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: 13,
-        email: email,
+        email: normalizedEmail,
         name: 'Admin'
       }
     });
@@ -72,7 +83,8 @@ router.get('/check', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     
     // Check if this is the admin user
-    if (decoded.email !== 'wanum01234@gmail.com' || !decoded.isAdmin) {
+    const decodedEmail = String(decoded.email || '').trim().toLowerCase();
+    if (!decoded.isAdmin || !decodedEmail || !ADMIN_EMAILS.includes(decodedEmail)) {
       return res.status(403).json({
         success: false,
         message: 'Forbidden'
@@ -84,7 +96,7 @@ router.get('/check', async (req, res) => {
       message: 'Admin authorized',
       user: {
         id: decoded.id,
-        email: decoded.email
+        email: decodedEmail
       }
     });
   } catch (error) {

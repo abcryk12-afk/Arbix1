@@ -11,8 +11,8 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 5000,
-        ADMIN_API_KEY: 'Usman@567784',
-        ADMIN_EMAILS: 'wanum01234@gmail.com'
+        ADMIN_API_KEY: 'CHANGE_ME_STRONG_KEY',
+        ADMIN_EMAILS: 'admin@example.com'
       }
     },
     {
@@ -44,7 +44,7 @@ module.exports = {
       max_memory_restart: '512M',
       env: {
         BACKEND_URL: 'http://localhost:5000',
-        ADMIN_API_KEY: 'Usman@567784'
+        ADMIN_API_KEY: 'CHANGE_ME_STRONG_KEY'
       }
     }
   ]
