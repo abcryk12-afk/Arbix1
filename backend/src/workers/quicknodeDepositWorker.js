@@ -8,6 +8,7 @@ const models = require('../models');
 
 const {
   sequelize,
+  User,
   Wallet,
   Transaction,
   DepositRequest,
@@ -17,6 +18,19 @@ const {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isDebugEnabled() {
+  return ['1', 'true', 'yes', 'on'].includes(String(process.env.QUICKNODE_DEBUG || '').trim().toLowerCase());
+}
+
+function safeRpcHost() {
+  try {
+    const u = new URL(String(process.env.BSC_RPC_URL || '').trim());
+    return u.host;
+  } catch {
+    return null;
+  }
 }
 
 function getBscProvider() {
@@ -63,6 +77,50 @@ async function getSettingInt(key, defaultValue = 0) {
 async function setSettingInt(key, value) {
   const v = String(Math.floor(Number(value) || 0));
   await SiteSetting.upsert({ key, value: v });
+}
+
+async function loadUserAddressBatch() {
+  const limit = Math.min(Math.max(Number(process.env.QUICKNODE_USER_SCAN_LIMIT || 200), 1), 1000);
+  const checkpointKey = 'quicknode_last_user_id';
+
+  let lastId = await getSettingInt(checkpointKey, 0);
+
+  let users = await User.findAll({
+    where: {
+      id: { [Op.gt]: lastId },
+      wallet_public_address: { [Op.ne]: null },
+    },
+    attributes: ['id', 'wallet_public_address'],
+    order: [['id', 'ASC']],
+    limit,
+    raw: true,
+  });
+
+  if (!users.length) {
+    lastId = 0;
+    users = await User.findAll({
+      where: {
+        id: { [Op.gt]: 0 },
+        wallet_public_address: { [Op.ne]: null },
+      },
+      attributes: ['id', 'wallet_public_address'],
+      order: [['id', 'ASC']],
+      limit,
+      raw: true,
+    });
+  }
+
+  if (!users.length) {
+    await setSettingInt(checkpointKey, 0);
+    return { users: [], maxId: 0 };
+  }
+
+  const maxId = Math.max(...users.map((u) => Number(u.id || 0)).filter((n) => Number.isFinite(n) && n > 0));
+  if (Number.isFinite(maxId) && maxId > 0) {
+    await setSettingInt(checkpointKey, maxId);
+  }
+
+  return { users, maxId };
 }
 
 async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash }) {
@@ -117,6 +175,21 @@ async function scanPendingDepositAddresses({ provider }) {
 
   const latest = await provider.getBlockNumber();
   const safeToBlock = Math.max(0, latest - confirmations);
+  const scanToBlock = Math.max(0, latest);
+
+  const debug = isDebugEnabled();
+  if (debug) {
+    console.log('[quicknode] scan start', {
+      rpcHost: safeRpcHost(),
+      latest,
+      scanToBlock,
+      safeToBlock,
+      confirmations,
+      minDeposit,
+      maxBlocksPerScan,
+      lookback,
+    });
+  }
 
   const pending = await DepositRequest.findAll({
     where: { status: 'pending' },
@@ -125,6 +198,8 @@ async function scanPendingDepositAddresses({ provider }) {
     order: [[sequelize.col('created_at'), 'DESC']],
     limit: 500,
   });
+
+  const userBatch = await loadUserAddressBatch();
 
   const unique = new Map();
   for (const p of pending) {
@@ -135,25 +210,45 @@ async function scanPendingDepositAddresses({ provider }) {
     unique.set(`${userId}:${addrLower}`, { userId, addrLower });
   }
 
+  for (const u of userBatch.users || []) {
+    const userId = Number(u.id);
+    const addr = String(u.wallet_public_address || '').trim();
+    const addrLower = addr ? addr.toLowerCase() : '';
+    if (!userId || !addrLower) continue;
+    unique.set(`${userId}:${addrLower}`, { userId, addrLower });
+  }
+
+  if (debug) {
+    console.log('[quicknode] scan targets', {
+      pendingDepositRequests: pending.length,
+      userBatchSize: (userBatch.users || []).length,
+      userBatchMaxId: userBatch.maxId || 0,
+      uniqueAddresses: unique.size,
+    });
+  }
+
   const topic0 = ethers.utils.id('Transfer(address,address,uint256)');
 
   for (const item of unique.values()) {
     const cursorKey = `quicknode_cursor_bsc_usdt_${item.addrLower}`;
     let cursor = await getSettingInt(cursorKey, -1);
     if (cursor < 0) {
-      cursor = Math.max(0, safeToBlock - lookback);
+      cursor = Math.max(0, scanToBlock - lookback);
     }
 
     let fromBlock = cursor + 1;
-    if (fromBlock > safeToBlock) {
-      await setSettingInt(cursorKey, safeToBlock);
+    if (fromBlock > scanToBlock) {
+      await setSettingInt(cursorKey, scanToBlock);
       continue;
     }
 
     const toTopic = ethers.utils.hexZeroPad(item.addrLower, 32);
 
-    while (fromBlock <= safeToBlock) {
-      const toBlock = Math.min(safeToBlock, fromBlock + maxBlocksPerScan - 1);
+    let totalLogs = 0;
+    let stored = 0;
+
+    while (fromBlock <= scanToBlock) {
+      const toBlock = Math.min(scanToBlock, fromBlock + maxBlocksPerScan - 1);
       let logs = [];
       try {
         logs = await provider.getLogs({
@@ -166,6 +261,8 @@ async function scanPendingDepositAddresses({ provider }) {
         console.error('QuickNode log scan failed:', item.userId, item.addrLower, e?.message || e);
         break;
       }
+
+      totalLogs += Array.isArray(logs) ? logs.length : 0;
 
       for (const log of logs) {
         const txHash = String(log?.transactionHash || '').trim();
@@ -196,6 +293,8 @@ async function scanPendingDepositAddresses({ provider }) {
             },
           });
 
+          if (created) stored += 1;
+
           if (!created) {
             if (!row.user_id) {
               row.user_id = item.userId;
@@ -221,6 +320,15 @@ async function scanPendingDepositAddresses({ provider }) {
 
       await setSettingInt(cursorKey, toBlock);
       fromBlock = toBlock + 1;
+    }
+
+    if (debug) {
+      console.log('[quicknode] scan address done', {
+        userId: item.userId,
+        address: item.addrLower,
+        totalLogs,
+        stored,
+      });
     }
   }
 }
@@ -288,6 +396,8 @@ async function processPendingCredits({ provider }) {
   const confirmations = Number(process.env.DEPOSIT_CONFIRMATIONS || 12);
   const minDeposit = Number(process.env.MIN_DEPOSIT_USDT || 9);
 
+  const debug = isDebugEnabled();
+
   const latest = await provider.getBlockNumber();
   const safeToBlock = Math.max(0, latest - confirmations);
 
@@ -304,6 +414,15 @@ async function processPendingCredits({ provider }) {
     raw: true,
   });
 
+  if (debug) {
+    console.log('[quicknode] credit pass', {
+      latest,
+      safeToBlock,
+      confirmations,
+      candidates: pending.length,
+    });
+  }
+
   for (const row of pending) {
     try {
       await creditDepositEvent(row.id);
@@ -318,6 +437,15 @@ async function main() {
 
   const provider = getBscProvider();
   const loopMs = Number(process.env.DEPOSIT_WORKER_LOOP_MS || 15000);
+
+  if (isDebugEnabled()) {
+    console.log('[quicknode] worker started', {
+      rpcHost: safeRpcHost(),
+      loopMs,
+      confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
+      minDeposit: Number(process.env.MIN_DEPOSIT_USDT || 9),
+    });
+  }
 
   while (true) {
     try {

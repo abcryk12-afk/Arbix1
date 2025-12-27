@@ -130,7 +130,7 @@ exports.listTradeLogs = async (req, res) => {
       Transaction.findAll({
         where: {
           type: 'deposit',
-          created_by: 'moralis',
+          created_by: { [Op.in]: ['moralis', 'quicknode'] },
         },
         order: [[sequelize.col('created_at'), 'DESC']],
         limit: Math.min(limit, 200),
