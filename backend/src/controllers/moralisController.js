@@ -147,6 +147,9 @@ exports.moralisWebhook = async (req, res) => {
         message: 'Moralis webhook endpoint is ready. Set MORALIS_STREAM_SECRET (or MORALIS_STREAMS_SECRET) to enable signature verification and ingestion.',
       });
     }
+    if (!signature) {
+      return res.status(200).json({ success: true, ready: true, ignored: true });
+    }
 
     verifyMoralisSignature({ rawBody: req.rawBody, body: req.body, signature, secret });
 
