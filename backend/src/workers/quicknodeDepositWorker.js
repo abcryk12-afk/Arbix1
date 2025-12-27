@@ -80,7 +80,7 @@ async function setSettingInt(key, value) {
 }
 
 async function loadUserAddressBatch() {
-  const limit = Math.min(Math.max(Number(process.env.QUICKNODE_USER_SCAN_LIMIT || 200), 1), 1000);
+  const limit = Math.min(Math.max(Number(process.env.QUICKNODE_USER_SCAN_LIMIT || 50), 1), 1000);
   const checkpointKey = 'quicknode_last_user_id';
 
   let lastId = await getSettingInt(checkpointKey, 0);
@@ -169,6 +169,7 @@ async function scanPendingDepositAddresses({ provider }) {
   const minDeposit = Number(process.env.MIN_DEPOSIT_USDT || 9);
   const maxBlocksPerScan = Math.min(Math.max(Number(process.env.QUICKNODE_MAX_BLOCKS_PER_SCAN || 2000), 100), 20000);
   const lookback = Math.min(Math.max(Number(process.env.QUICKNODE_LOOKBACK_BLOCKS || 20000), 1000), 500000);
+  const userLookback = Math.min(Math.max(Number(process.env.QUICKNODE_USER_LOOKBACK_BLOCKS || 2000), 200), 500000);
 
   const usdt = getUsdtContractAddress();
   const decimals = getTokenDecimals();
@@ -188,6 +189,7 @@ async function scanPendingDepositAddresses({ provider }) {
       minDeposit,
       maxBlocksPerScan,
       lookback,
+      userLookback,
     });
   }
 
@@ -207,7 +209,7 @@ async function scanPendingDepositAddresses({ provider }) {
     const address = String(p.address || '').trim();
     const addrLower = address ? address.toLowerCase() : '';
     if (!userId || !addrLower) continue;
-    unique.set(`${userId}:${addrLower}`, { userId, addrLower });
+    unique.set(`${userId}:${addrLower}`, { userId, addrLower, source: 'pending_request' });
   }
 
   for (const u of userBatch.users || []) {
@@ -215,7 +217,10 @@ async function scanPendingDepositAddresses({ provider }) {
     const addr = String(u.wallet_public_address || '').trim();
     const addrLower = addr ? addr.toLowerCase() : '';
     if (!userId || !addrLower) continue;
-    unique.set(`${userId}:${addrLower}`, { userId, addrLower });
+    const key = `${userId}:${addrLower}`;
+    const existing = unique.get(key);
+    if (existing && existing.source === 'pending_request') continue;
+    unique.set(key, { userId, addrLower, source: 'user_wallet' });
   }
 
   if (debug) {
@@ -233,7 +238,8 @@ async function scanPendingDepositAddresses({ provider }) {
     const cursorKey = `quicknode_cursor_bsc_usdt_${item.addrLower}`;
     let cursor = await getSettingInt(cursorKey, -1);
     if (cursor < 0) {
-      cursor = Math.max(0, scanToBlock - lookback);
+      const lb = item.source === 'pending_request' ? lookback : userLookback;
+      cursor = Math.max(0, scanToBlock - lb);
     }
 
     let fromBlock = cursor + 1;
@@ -326,6 +332,7 @@ async function scanPendingDepositAddresses({ provider }) {
       console.log('[quicknode] scan address done', {
         userId: item.userId,
         address: item.addrLower,
+        source: item.source,
         totalLogs,
         stored,
       });
