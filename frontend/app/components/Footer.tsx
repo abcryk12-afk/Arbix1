@@ -144,7 +144,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 border-t border-slate-800 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 text-center text-xs text-slate-500 sm:flex-row sm:text-left">
-            <p>© 2023 Arbix. All rights reserved.</p>
+            <p>© 2026 Arbix. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <a href="/terms" className="hover:text-slate-300 hover:underline">
                 Terms

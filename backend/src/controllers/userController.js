@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
-const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, sequelize } = require('../models');
+const { ethers } = require('ethers');
+const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, SiteSetting, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
 
@@ -639,9 +640,22 @@ exports.requestWithdrawal = async (req, res) => {
     const userId = req.user.id;
     const { amount, address, note } = req.body || {};
 
+    let autoWithdrawEnabled = false;
+    try {
+      await SiteSetting.sync();
+      const row = await SiteSetting.findOne({ where: { key: 'auto_withdraw_enabled' }, raw: true });
+      const raw = String(row?.value || '').trim().toLowerCase();
+      autoWithdrawEnabled = ['1', 'true', 'yes', 'on'].includes(raw);
+    } catch {}
+
     const value = Number(amount);
     if (!address || typeof address !== 'string') {
       return res.status(400).json({ success: false, message: 'Withdrawal address is required' });
+    }
+
+    const toAddress = String(address).trim();
+    if (!ethers.utils.isAddress(toAddress)) {
+      return res.status(400).json({ success: false, message: 'Invalid withdrawal address' });
     }
 
     if (!Number.isFinite(value) || value <= 0) {
@@ -664,7 +678,7 @@ exports.requestWithdrawal = async (req, res) => {
       const currentBalance = Number(wallet.balance || 0);
 
       const pendingSumRaw = await WithdrawalRequest.sum('amount', {
-        where: { user_id: userId, status: 'pending' },
+        where: { user_id: userId, status: { [Op.in]: ['pending', 'processing'] } },
         transaction: t,
       });
       const pendingSum = Number(pendingSumRaw || 0);
@@ -682,7 +696,10 @@ exports.requestWithdrawal = async (req, res) => {
         {
           user_id: userId,
           amount: value,
-          address: String(address).trim(),
+          address: toAddress,
+          network: 'BSC',
+          token: 'USDT',
+          auto_withdraw_enabled: autoWithdrawEnabled,
           status: 'pending',
           user_note: note || null,
         },

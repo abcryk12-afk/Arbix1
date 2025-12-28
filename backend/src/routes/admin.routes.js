@@ -3,6 +3,7 @@ const router = express.Router();
 
 const { protect } = require('../middleware/authMiddleware');
 const { requireAdminUser } = require('../middleware/adminUserMiddleware');
+const { requireAdminKey } = require('../middleware/adminKeyMiddleware');
 const {
   checkAccess,
   createUser,
@@ -12,6 +13,8 @@ const {
   deleteUser,
   getAdminNotificationEmails,
   setAdminNotificationEmails,
+  getAutoWithdrawSetting,
+  setAutoWithdrawSetting,
   listWallets,
   deposit,
   withdraw,
@@ -32,9 +35,13 @@ const {
   removeLogo,
 } = require('../controllers/brandingController');
 
+router.use(requireAdminKey);
+
 router.get('/check', protect, requireAdminUser, checkAccess);
 router.get('/notification-emails', protect, requireAdminUser, getAdminNotificationEmails);
 router.put('/notification-emails', protect, requireAdminUser, setAdminNotificationEmails);
+router.get('/auto-withdraw', protect, requireAdminUser, getAutoWithdrawSetting);
+router.put('/auto-withdraw', protect, requireAdminUser, setAutoWithdrawSetting);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/status', protect, requireAdminUser, updateUserStatus);

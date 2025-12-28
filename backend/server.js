@@ -97,6 +97,42 @@ const ensureSchema = async () => {
     }
   } catch (e) {}
 
+  try {
+    const [colsRaw] = await sequelize.query('SHOW COLUMNS FROM withdrawal_requests');
+    const cols = Array.isArray(colsRaw) ? colsRaw : [];
+    const colSet = new Set(cols.map((c) => String(c.Field || '').toLowerCase()).filter(Boolean));
+
+    if (!colSet.has('network')) {
+      await sequelize.query("ALTER TABLE withdrawal_requests ADD COLUMN network VARCHAR(50) NOT NULL DEFAULT 'BSC'");
+    }
+    if (!colSet.has('token')) {
+      await sequelize.query("ALTER TABLE withdrawal_requests ADD COLUMN token VARCHAR(50) NOT NULL DEFAULT 'USDT'");
+    }
+    if (!colSet.has('auto_withdraw_enabled')) {
+      await sequelize.query('ALTER TABLE withdrawal_requests ADD COLUMN auto_withdraw_enabled TINYINT(1) NULL');
+    }
+
+    const [statusRows] = await sequelize.query("SHOW COLUMNS FROM withdrawal_requests LIKE 'status'");
+    const statusRow = Array.isArray(statusRows) && statusRows.length ? statusRows[0] : null;
+    const rawType = statusRow?.Type ? String(statusRow.Type) : '';
+
+    const existingValues = rawType.startsWith('enum(')
+      ? rawType
+          .slice(5, -1)
+          .split(',')
+          .map((s) => s.trim())
+          .map((s) => s.replace(/^'/, '').replace(/'$/, ''))
+          .filter(Boolean)
+      : [];
+
+    const desiredValues = ['pending', 'processing', 'completed', 'failed', 'approved', 'rejected'];
+    const merged = Array.from(new Set([...existingValues, ...desiredValues]));
+    if (merged.length && desiredValues.some((v) => !existingValues.includes(v))) {
+      const enumSql = merged.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');
+      await sequelize.query(`ALTER TABLE withdrawal_requests MODIFY COLUMN status ENUM(${enumSql}) NOT NULL DEFAULT 'pending'`);
+    }
+  } catch (e) {}
+
   startDailyProfitScheduler({
     sequelize: models.sequelize,
     User: models.User,

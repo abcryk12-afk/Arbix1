@@ -351,11 +351,13 @@ export default function DepositPage() {
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Your Arbix Wallet (Permanent Deposit Address)
+            Your Deposit Wallet Address
           </h2>
           <p className="mt-2 text-slate-400">
-            Most deposits are credited in about <span className="font-semibold text-slate-200">10 minutes</span>.
-            In some cases, it can take up to <span className="font-semibold text-slate-200">1–2 hours</span> depending on network confirmations.
+            Most deposits are credited automatically after{' '}
+            <span className="font-semibold text-slate-200">{confirmations} network confirmations</span>, typically within{' '}
+            <span className="font-semibold text-slate-200">5–15 minutes</span>. In rare cases, it may take up to{' '}
+            <span className="font-semibold text-slate-200">1–2 hours</span> depending on network conditions.
           </p>
         </div>
       </section>

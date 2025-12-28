@@ -5,13 +5,22 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
+
+    if (!adminKey) {
+      return NextResponse.json(
+        { success: false, message: 'Admin API key is not configured' },
+        { status: 500 }
+      );
+    }
 
     // Forward to backend admin check
     const response = await fetch(`${baseUrl}/api/admin/check`, {
       method: 'GET',
       headers: {
         Authorization: authHeader,
+        'X-Admin-Key': adminKey,
       },
     });
 

@@ -22,8 +22,23 @@ const WithdrawalRequest = db.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    network: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'BSC',
+    },
+    token: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'USDT',
+    },
+    auto_withdraw_enabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      field: 'auto_withdraw_enabled',
+    },
     status: {
-      type: DataTypes.ENUM('pending', 'approved', 'rejected', 'processing', 'failed'),
+      type: DataTypes.ENUM('pending', 'processing', 'completed', 'failed', 'approved', 'rejected'),
       allowNull: false,
       defaultValue: 'pending',
     },

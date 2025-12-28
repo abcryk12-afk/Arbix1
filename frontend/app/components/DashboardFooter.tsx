@@ -402,7 +402,7 @@ export default function DashboardFooter() {
         </div>
 
         <div className="mt-6 border-t border-slate-800/80 pt-4 text-[11px] text-slate-500">
-          © 2023 Arbix. Dashboard area.
+          © 2026 Arbix. Dashboard area.
         </div>
       </div>
     </footer>

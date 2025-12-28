@@ -12,6 +12,10 @@ import { useRouter } from 'next/navigation';
   amount: number;
   address: string;
   status: string;
+  rawStatus?: string;
+  token?: string;
+  network?: string;
+  autoWithdrawEnabledAtRequest?: boolean | null;
   txHash: string | null;
   userNote: string | null;
   adminNote: string | null;
@@ -141,6 +145,10 @@ export default function AdminWithdrawalsPage() {
   const [actionType, setActionType] = useState<'success' | 'error' | ''>('');
   const [actionContext, setActionContext] = useState<'deposit' | 'withdrawal' | ''>('');
 
+  const [autoWithdrawEnabled, setAutoWithdrawEnabled] = useState<boolean>(false);
+  const [isLoadingAutoWithdraw, setIsLoadingAutoWithdraw] = useState<boolean>(true);
+  const [isUpdatingAutoWithdraw, setIsUpdatingAutoWithdraw] = useState<boolean>(false);
+
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequestRow | DepositRequestRow | null>(null);
   const [selectedRequestType, setSelectedRequestType] = useState<'withdrawal' | 'deposit'>('withdrawal');
   const [selectedUserDetails, setSelectedUserDetails] = useState<UserDetailsResponse | null>(null);
@@ -154,10 +162,16 @@ export default function AdminWithdrawalsPage() {
 
   const filteredRequests = useMemo(() => {
     if (filterStatus === 'pending') {
-      return requests.filter((r) => r.status === 'pending');
+      return requests.filter((r) => r.status === 'pending' || r.status === 'processing');
     }
     return requests;
   }, [requests, filterStatus]);
+
+  const bscscanTxUrl = (hash?: string | null) => {
+    const h = String(hash || '').trim();
+    if (!h) return null;
+    return `https://bscscan.com/tx/${h}`;
+  };
 
   const filteredDepositRequests = useMemo(() => {
     if (depositFilterStatus === 'pending') {
@@ -195,6 +209,13 @@ export default function AdminWithdrawalsPage() {
             amount: Number(r.amount || 0),
             address: String(r.address || ''),
             status: String(r.status || ''),
+            rawStatus: r.rawStatus != null ? String(r.rawStatus) : undefined,
+            token: r.token != null ? String(r.token) : undefined,
+            network: r.network != null ? String(r.network) : undefined,
+            autoWithdrawEnabledAtRequest:
+              r.autoWithdrawEnabledAtRequest === null || r.autoWithdrawEnabledAtRequest === undefined
+                ? null
+                : Boolean(r.autoWithdrawEnabledAtRequest),
             txHash: r.txHash != null ? String(r.txHash) : null,
             userNote: r.userNote != null ? String(r.userNote) : null,
             adminNote: r.adminNote != null ? String(r.adminNote) : null,
@@ -210,6 +231,54 @@ export default function AdminWithdrawalsPage() {
       setRequests([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadAutoWithdrawSetting = async () => {
+    try {
+      setIsLoadingAutoWithdraw(true);
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/auto-withdraw', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setAutoWithdrawEnabled(Boolean(data.enabled));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingAutoWithdraw(false);
+    }
+  };
+
+  const toggleAutoWithdraw = async (next: boolean) => {
+    try {
+      setIsUpdatingAutoWithdraw(true);
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/auto-withdraw', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ enabled: next }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        setAutoWithdrawEnabled(Boolean(data.enabled));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsUpdatingAutoWithdraw(false);
     }
   };
 
@@ -389,6 +458,7 @@ export default function AdminWithdrawalsPage() {
         if (!cancelled) {
           await loadRequests();
           await loadDepositRequests();
+          await loadAutoWithdrawSetting();
         }
       } catch {
         localStorage.removeItem('adminToken');
@@ -572,6 +642,12 @@ export default function AdminWithdrawalsPage() {
                         <span className="font-semibold text-emerald-400">${r.amount.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
+                        <span className="text-[10px] text-slate-200">{String(r.token || 'USDT')}</span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="text-[10px] text-slate-200">{String(r.network || 'BSC')}</span>
+                      </td>
+                      <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
                           <div className="font-mono text-[10px] text-slate-200">{shortAddr(r.address)}</div>
                           <button
@@ -712,6 +788,29 @@ export default function AdminWithdrawalsPage() {
             Review, approve or reject user withdrawal requests. Approvals will deduct from the user wallet
             and create a withdraw transaction.
           </p>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px]">
+            <span className="font-semibold text-slate-100">Auto Withdrawals:</span>
+            <span className={autoWithdrawEnabled ? 'text-emerald-300' : 'text-amber-300'}>
+              {isLoadingAutoWithdraw ? 'Loading...' : autoWithdrawEnabled ? 'ON' : 'OFF'}
+            </span>
+            <button
+              type="button"
+              disabled={isLoadingAutoWithdraw || isUpdatingAutoWithdraw}
+              onClick={() => toggleAutoWithdraw(!autoWithdrawEnabled)}
+              className={
+                'ml-2 rounded-lg border px-3 py-1 font-medium ' +
+                (autoWithdrawEnabled
+                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200 hover:border-emerald-400'
+                  : 'border-amber-500/60 bg-amber-950/20 text-amber-200 hover:border-amber-400')
+              }
+            >
+              {isUpdatingAutoWithdraw ? 'Updating...' : autoWithdrawEnabled ? 'Turn OFF' : 'Turn ON'}
+            </button>
+            <span className="ml-auto text-slate-400">
+              Auto withdrawals are restricted to USDT on BSC.
+            </span>
+          </div>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
             <span className="text-slate-300">Filter:</span>
             <button
@@ -771,24 +870,28 @@ export default function AdminWithdrawalsPage() {
                   <th className="px-3 py-2 text-left">User</th>
                   <th className="px-3 py-2 text-left">Referral</th>
                   <th className="px-3 py-2 text-left">Amount (USDT)</th>
+                  <th className="px-3 py-2 text-left">Token</th>
+                  <th className="px-3 py-2 text-left">Network</th>
                   <th className="px-3 py-2 text-left">Withdrawal Address</th>
                   <th className="px-3 py-2 text-left">Status</th>
+                  <th className="px-3 py-2 text-left">Auto</th>
                   <th className="px-3 py-2 text-left">Wallet Balance</th>
                   <th className="px-3 py-2 text-left">Requested At</th>
                   <th className="px-3 py-2 text-left">User Note</th>
+                  <th className="px-3 py-2 text-left">Tx</th>
                   <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={14} className="px-3 py-6 text-center text-slate-500">
                       Loading withdrawal requests...
                     </td>
                   </tr>
                 ) : filteredRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={14} className="px-3 py-6 text-center text-slate-500">
                       No withdrawal requests found for this filter.
                     </td>
                   </tr>
@@ -834,15 +937,26 @@ export default function AdminWithdrawalsPage() {
                           className={
                             r.status === 'pending'
                               ? 'text-amber-400'
-                              : r.status === 'approved'
+                              : r.status === 'processing'
+                              ? 'text-sky-300'
+                              : r.status === 'completed'
                               ? 'text-emerald-400'
-                              : r.status === 'rejected'
+                              : r.status === 'failed'
                               ? 'text-red-400'
                               : 'text-slate-300'
                           }
                         >
                           {r.status}
                         </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        {r.autoWithdrawEnabledAtRequest === null || r.autoWithdrawEnabledAtRequest === undefined ? (
+                          <span className="text-[10px] text-slate-500">-</span>
+                        ) : r.autoWithdrawEnabledAtRequest ? (
+                          <span className="text-[10px] text-emerald-300">ON</span>
+                        ) : (
+                          <span className="text-[10px] text-amber-300">OFF</span>
+                        )}
                       </td>
                       <td className="px-3 py-2">
                         <span className="text-[10px] text-slate-200">${r.userBalance.toFixed(2)}</span>
@@ -854,6 +968,20 @@ export default function AdminWithdrawalsPage() {
                         <span className="text-[10px] text-slate-300">
                           {r.userNote || '-' }
                         </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        {r.txHash ? (
+                          <a
+                            href={bscscanTxUrl(r.txHash) || '#'}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[10px] text-primary hover:text-blue-400"
+                          >
+                            {shortAddr(r.txHash)}
+                          </a>
+                        ) : (
+                          <span className="text-[10px] text-slate-500">-</span>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right">
                         {r.status === 'pending' ? (
@@ -883,6 +1011,21 @@ export default function AdminWithdrawalsPage() {
                             >
                               Reject
                             </button>
+                          </div>
+                        ) : r.status === 'processing' ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                setSelectedRequestType('withdrawal');
+                                setSelectedRequest(r);
+                                await loadUserDetails(r.userId);
+                              }}
+                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                            >
+                              View Details
+                            </button>
+                            <span className="text-[10px] text-sky-300">Auto Processing</span>
                           </div>
                         ) : (
                           <div className="flex flex-col items-end gap-1">
@@ -934,6 +1077,20 @@ export default function AdminWithdrawalsPage() {
                     <div><span className="text-slate-500">Request ID:</span> #{selectedRequest.id}</div>
                     <div><span className="text-slate-500">Status:</span> {selectedRequest.status}</div>
                     <div><span className="text-slate-500">Amount:</span> ${selectedRequest.amount.toFixed(2)}</div>
+                    {selectedRequestType === 'withdrawal' ? (
+                      <>
+                        <div><span className="text-slate-500">Token:</span> {String((selectedRequest as any)?.token || 'USDT')}</div>
+                        <div><span className="text-slate-500">Network:</span> {String((selectedRequest as any)?.network || 'BSC')}</div>
+                        <div>
+                          <span className="text-slate-500">Auto at request:</span>{' '}
+                          {((selectedRequest as any)?.autoWithdrawEnabledAtRequest === null || (selectedRequest as any)?.autoWithdrawEnabledAtRequest === undefined)
+                            ? '-'
+                            : (selectedRequest as any)?.autoWithdrawEnabledAtRequest
+                            ? 'ON'
+                            : 'OFF'}
+                        </div>
+                      </>
+                    ) : null}
                     <div className="md:col-span-3 break-all">
                       <span className="text-slate-500">{selectedRequestType === 'deposit' ? 'Wallet Address:' : 'Withdrawal Address:'}</span> {selectedRequest.address}{' '}
                       <button
@@ -944,6 +1101,19 @@ export default function AdminWithdrawalsPage() {
                         Copy
                       </button>
                     </div>
+                    {selectedRequestType === 'withdrawal' && selectedRequest.txHash ? (
+                      <div className="md:col-span-3 break-all">
+                        <span className="text-slate-500">Tx Hash:</span>{' '}
+                        <a
+                          href={bscscanTxUrl(selectedRequest.txHash) || '#'}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:text-blue-400"
+                        >
+                          {selectedRequest.txHash}
+                        </a>
+                      </div>
+                    ) : null}
                     <div><span className="text-slate-500">Requested At:</span> {selectedRequest.requestTime || '-'}</div>
                   </div>
                 </div>

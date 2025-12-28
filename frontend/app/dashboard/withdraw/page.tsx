@@ -133,13 +133,13 @@ export default function WithdrawPage() {
           ? String(r.createdAt).slice(0, 16).replace('T', ' ')
           : '';
 
-        if (statusRaw === 'pending') {
+        if (statusRaw === 'pending' || statusRaw === 'processing') {
           pendingRows.push({
             id: String(r.id),
             amount: Number(r.amount || 0),
             address: String(r.address || ''),
             createdAt: createdAtStr,
-            status: 'Pending',
+            status: statusRaw === 'processing' ? 'Processing' : 'Pending',
           });
           continue;
         }
@@ -150,7 +150,7 @@ export default function WithdrawPage() {
           address: String(r.address || ''),
           createdAt: createdAtStr,
           status:
-            statusRaw === 'approved'
+            statusRaw === 'completed' || statusRaw === 'approved'
               ? 'Successful'
               : statusRaw === 'rejected'
               ? 'Rejected'
@@ -342,13 +342,12 @@ export default function WithdrawPage() {
               ⏱ Withdrawal Processing Time
             </p>
             <p className="mt-2 text-[11px] text-slate-400">
-              Withdrawals usually process within <span className="font-semibold">1–2 hours</span>.
-              In rare cases, processing can take up to{' '}
-              <span className="font-semibold">24 hours</span>.
+              Most withdrawals are processed <span className="font-semibold">instantly (within minutes)</span>.
+              If additional review is required, it may take <span className="font-semibold">1–2 hours</span>.
+              In rare cases, processing can take up to <span className="font-semibold">24 hours</span>.
             </p>
             <p className="mt-1 text-[11px] text-slate-400">
-              Arbix admin reviews each withdrawal manually to ensure security and to
-              prevent fraudulent activity.
+              Automated checks run instantly, and some withdrawals may require a brief manual review for security.
             </p>
           </div>
         </div>
@@ -583,7 +582,7 @@ export default function WithdrawPage() {
               • Arbix cannot reverse transfers sent to the wrong or incompatible
               network address.
             </li>
-            <li>• Withdrawals may take 1–2 hours, with a maximum of 24 hours.</li>
+            <li>• Most withdrawals are instant. If additional checks are required, it may take 1–2 hours (rarely up to 24 hours).</li>
             <li>• Arbix will never ask for your password or private key.</li>
             <li>• All withdrawal activities are logged for your protection.</li>
           </ul>

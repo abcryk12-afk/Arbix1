@@ -91,6 +91,57 @@ exports.setAdminNotificationEmails = async (req, res) => {
   }
 };
 
+exports.getAutoWithdrawSetting = async (req, res) => {
+  try {
+    try {
+      await SiteSetting.sync();
+    } catch {}
+
+    const row = await SiteSetting.findOne({ where: { key: 'auto_withdraw_enabled' }, raw: true });
+    const raw = String(row?.value || '').trim().toLowerCase();
+    const enabled = ['1', 'true', 'yes', 'on'].includes(raw);
+
+    return res.status(200).json({
+      success: true,
+      enabled,
+    });
+  } catch (error) {
+    console.error('Get auto withdraw setting error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to load auto withdraw setting',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.setAutoWithdrawSetting = async (req, res) => {
+  try {
+    const enabled = Boolean(req.body?.enabled);
+
+    try {
+      await SiteSetting.sync();
+    } catch {}
+
+    await SiteSetting.upsert({
+      key: 'auto_withdraw_enabled',
+      value: enabled ? '1' : '0',
+    });
+
+    return res.status(200).json({
+      success: true,
+      enabled,
+    });
+  } catch (error) {
+    console.error('Set auto withdraw setting error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update auto withdraw setting',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.listDepositScanLogs = async (req, res) => {
   return res.status(410).json({
     success: false,
@@ -596,6 +647,10 @@ exports.listDepositRequests = async (req, res) => {
     const requests = requestsRaw.map((r) => {
       const u = userMap.get(r.user_id) || {};
       const w = walletMap.get(r.user_id) || {};
+
+      const rawStatus = String(r.status || 'pending');
+      const status = rawStatus === 'approved' ? 'completed' : rawStatus === 'rejected' ? 'failed' : rawStatus;
+
       return {
         id: r.id,
         userId: r.user_id,
@@ -604,7 +659,11 @@ exports.listDepositRequests = async (req, res) => {
         referralCode: u.referral_code || '',
         amount: Number(r.amount || 0),
         address: r.address,
-        status: r.status,
+        status,
+        rawStatus,
+        token: r.token || 'USDT',
+        network: r.network || 'BSC',
+        autoWithdrawEnabledAtRequest: r.auto_withdraw_enabled === null || r.auto_withdraw_enabled === undefined ? null : Boolean(r.auto_withdraw_enabled),
         txHash: r.tx_hash || null,
         userNote: r.user_note || null,
         adminNote: r.admin_note || null,
@@ -936,6 +995,9 @@ exports.listWithdrawalRequests = async (req, res) => {
     const requests = requestsRaw.map((r) => {
       const u = userMap.get(r.user_id) || {};
       const w = walletMap.get(r.user_id) || {};
+
+      const rawStatus = String(r.status || 'pending');
+      const status = rawStatus === 'approved' ? 'completed' : rawStatus === 'rejected' ? 'failed' : rawStatus;
       return {
         id: r.id,
         userId: r.user_id,
@@ -944,7 +1006,11 @@ exports.listWithdrawalRequests = async (req, res) => {
         referralCode: u.referral_code || '',
         amount: Number(r.amount || 0),
         address: r.address,
-        status: r.status,
+        status,
+        rawStatus,
+        token: r.token || 'USDT',
+        network: r.network || 'BSC',
+        autoWithdrawEnabledAtRequest: r.auto_withdraw_enabled === null || r.auto_withdraw_enabled === undefined ? null : Boolean(r.auto_withdraw_enabled),
         txHash: r.tx_hash || null,
         userNote: r.user_note || null,
         adminNote: r.admin_note || null,
@@ -988,8 +1054,21 @@ exports.updateWithdrawalRequestStatus = async (req, res) => {
         return { ok: false, status: 404, message: 'Withdrawal request not found' };
       }
 
-      if (request.status !== 'pending') {
+      const currentStatus = String(request.status || 'pending');
+      const isProcessing = currentStatus === 'processing';
+
+      if (isProcessing || request.tx_hash) {
+        return { ok: false, status: 400, message: 'Cannot update an auto-processing withdrawal request' };
+      }
+
+      if (currentStatus !== 'pending') {
         return { ok: false, status: 400, message: 'Only pending requests can be updated' };
+      }
+
+      const token = String(request.token || 'USDT').toUpperCase();
+      const network = String(request.network || 'BSC').toUpperCase();
+      if (token !== 'USDT' || network !== 'BSC') {
+        return { ok: false, status: 400, message: 'Only USDT withdrawals on BSC are supported' };
       }
 
       const userId = request.user_id;
@@ -999,7 +1078,7 @@ exports.updateWithdrawalRequestStatus = async (req, res) => {
       }
 
       if (normalizedAction === 'reject') {
-        request.status = 'rejected';
+        request.status = 'failed';
         request.admin_note = adminNote || null;
         await request.save({ transaction: t });
         return { ok: true, request };
@@ -1030,7 +1109,7 @@ exports.updateWithdrawalRequestStatus = async (req, res) => {
         { transaction: t },
       );
 
-      request.status = 'approved';
+      request.status = 'completed';
       request.tx_hash = txHash || request.tx_hash || null;
       request.admin_note = adminNote || request.admin_note || null;
       await request.save({ transaction: t });

@@ -33,6 +33,23 @@ module.exports = {
       }
     },
     {
+      name: 'arbix-auto-withdraw-worker',
+      script: './backend/src/workers/autoWithdrawWorker.js',
+      cwd: '/var/www/arbix',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '512M',
+      env: {
+        NODE_ENV: 'production',
+        BSC_RPC_URL: '',
+        WITHDRAWAL_HD_MNEMONIC: '',
+        WITHDRAWAL_HD_DERIVATION_PATH: "m/44'/60'/0'/0/0",
+        WITHDRAWAL_WALLET_ADDRESS: '',
+        WITHDRAW_CONFIRMATIONS: 3,
+      }
+    },
+    {
       name: 'arbix-frontend',
       script: 'npm',
       args: 'start',
