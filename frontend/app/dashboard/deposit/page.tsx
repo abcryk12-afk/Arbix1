@@ -330,9 +330,9 @@ export default function DepositPage() {
       : '';
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-slate-950 text-slate-50 min-h-screen">
       {/* Header */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 network-grid-bg">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             WALLET
@@ -364,7 +364,7 @@ export default function DepositPage() {
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <div className="grid gap-3 text-xs text-slate-300 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-slate-400">Wallet Balance</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
                 {walletBalance.toFixed(2)} USDT
@@ -373,7 +373,7 @@ export default function DepositPage() {
                 Available for investments &amp; withdrawals
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-slate-400">Pending Deposits</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
                 {pendingDeposits.toFixed(2)} USDT
@@ -382,7 +382,7 @@ export default function DepositPage() {
                 Waiting for confirmations
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-slate-400">Total Deposited</p>
               <p className="mt-1 text-lg font-semibold text-slate-100">
                 {totalDeposited.toFixed(2)} USDT
@@ -401,83 +401,82 @@ export default function DepositPage() {
             Follow the steps below to create a new deposit.
           </p>
 
-          <form
-            className="mt-4 space-y-4 text-xs text-slate-300"
-            onSubmit={handleGenerateAddress}
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400">
-                  Network
-                </label>
-                <input
-                  value="BNB Smart Chain (BEP20)"
-                  readOnly
-                  className="w-full cursor-not-allowed rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] text-slate-300"
-                />
-                <p className="mt-1 text-[10px] text-red-400">
-                  Wrong network may result in permanent loss of funds.
-                </p>
+          <div className="mt-4 arbix-card arbix-3d rounded-2xl p-4">
+            <form className="space-y-4 text-xs text-slate-300" onSubmit={handleGenerateAddress}>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[11px] text-slate-400">
+                    Network
+                  </label>
+                  <input
+                    value="BNB Smart Chain (BEP20)"
+                    readOnly
+                    className="w-full cursor-not-allowed rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] text-slate-300"
+                  />
+                  <p className="mt-1 text-[10px] text-red-400">
+                    Wrong network may result in permanent loss of funds.
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-slate-400">
+                    Token
+                  </label>
+                  <input
+                    value="USDT (BEP20)"
+                    readOnly
+                    className="w-full cursor-not-allowed rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] text-slate-300"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">
-                  Token
-                </label>
-                <input
-                  value="USDT (BEP20)"
-                  readOnly
-                  className="w-full cursor-not-allowed rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 text-[11px] text-slate-300"
-                />
+                <div>
+                  <label className="mb-1 block text-[11px] text-slate-400" htmlFor="amount">
+                    Amount (USDT)
+                  </label>
+                  <input
+                    id="amount"
+                    type="number"
+                    min={minDepositUsdt}
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-100 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    placeholder={`Enter amount (minimum ${minDepositUsdt} USDT)`}
+                  />
+                  {amountError && <p className="mt-1 text-[10px] text-red-400">{amountError}</p>}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <div>
-                <label className="mb-1 block text-[11px] text-slate-400" htmlFor="amount">
-                  Amount (USDT)
-                </label>
-                <input
-                  id="amount"
-                  type="number"
-                  min={minDepositUsdt}
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
-                  placeholder={`Enter amount (minimum ${minDepositUsdt} USDT)`}
-                />
-                {amountError && <p className="mt-1 text-[10px] text-red-400">{amountError}</p>}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmittingRequest}
-              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
-            >
-              {isSubmittingRequest ? 'Creating request...' : 'Generate Deposit Address'}
-            </button>
-
-            {submitMessage && (
-              <div
-                className={
-                  'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
-                  (submitMessageType === 'success'
-                    ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                    : 'border-red-500/60 bg-red-950/20 text-red-200')
-                }
+              <button
+                type="submit"
+                disabled={isSubmittingRequest}
+                className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-blue-500 hover:shadow-lg disabled:opacity-70"
               >
-                {submitMessage}
-                {createdRequestId ? ` (Request #${createdRequestId})` : ''}
-              </div>
-            )}
+                {isSubmittingRequest ? 'Creating request...' : 'Generate Deposit Address'}
+              </button>
 
-            <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-500">
-              <span>Step 1: Enter amount</span>
-              <span>Step 2: Generate deposit address</span>
-              <span>Step 3: Send USDT and wait for confirmations</span>
-            </div>
-          </form>
+              {submitMessage && (
+                <div
+                  className={
+                    'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
+                    (submitMessageType === 'success'
+                      ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                      : 'border-red-500/60 bg-red-950/20 text-red-200')
+                  }
+                >
+                  {submitMessage}
+                  {createdRequestId ? ` (Request #${createdRequestId})` : ''}
+                </div>
+              )}
+
+              <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-slate-500">
+                <span>Step 1: Enter amount</span>
+                <span>Step 2: Generate deposit address</span>
+                <span>Step 3: Send USDT and wait for confirmations</span>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
 
@@ -498,7 +497,7 @@ export default function DepositPage() {
 
             <div className="mt-4 grid gap-4 text-xs text-slate-300 md:grid-cols-[2fr,1fr]">
               <div className="space-y-3">
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                <div className="arbix-card arbix-3d rounded-2xl p-3">
                   <p className="text-[11px] text-slate-400">Deposit Address</p>
                   <div className="mt-1 flex items-center justify-between gap-2 text-[11px] md:text-xs">
                     <span className="break-all font-mono text-[10px] text-slate-100" title={walletAddress}>
@@ -516,7 +515,7 @@ export default function DepositPage() {
                 </div>
 
                 {confirmedAmount !== null && (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                  <div className="arbix-card arbix-3d rounded-2xl p-3">
                     <p className="text-[11px] text-slate-400">Amount to send</p>
                     <p className="mt-1 text-lg font-semibold text-emerald-400">
                       {confirmedAmount.toFixed(2)} USDT
@@ -528,7 +527,7 @@ export default function DepositPage() {
                   </div>
                 )}
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                <div className="arbix-card arbix-3d rounded-2xl p-3">
                   <p className="text-[11px] text-slate-400">Deposit Request</p>
                   <p className="mt-1 text-[11px] text-slate-400">
                     A deposit request is created automatically when you generate the address.
@@ -541,7 +540,7 @@ export default function DepositPage() {
                   )}
                 </div>
 
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-400">
+                <div className="arbix-card arbix-3d rounded-2xl p-3 text-[11px] text-slate-400">
                   <p>
                     Scan this address in your wallet app (Trust Wallet, Binance,
                     MetaMask, etc.) and send only USDT on BNB Smart Chain (BEP20).
@@ -559,7 +558,7 @@ export default function DepositPage() {
               </div>
 
               <div className="flex items-center justify-center">
-                <div className="flex h-32 w-32 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/70">
+                <div className="arbix-card arbix-3d flex h-32 w-32 items-center justify-center rounded-xl">
                   {qrCodeUrl ? (
                     <img
                       src={qrCodeUrl}
@@ -581,7 +580,7 @@ export default function DepositPage() {
       {/* Critical Instructions */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <div className="rounded-2xl border border-red-500/60 bg-red-950/20 p-4 text-xs text-red-100 md:text-sm">
+          <div className="arbix-alert arbix-3d arbix-3d-red rounded-2xl p-4 text-xs text-red-100 md:text-sm">
             <p className="font-semibold">⚠ Important Deposit Instructions</p>
             <ul className="mt-2 space-y-1 text-red-100/90">
               <li>• Send only USDT on BNB Smart Chain (BEP20).</li>
@@ -621,17 +620,23 @@ export default function DepositPage() {
           </div>
 
           <div className="mt-5 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
               <p className="text-slate-400">Pending Deposits</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
                 {pendingWaitingCount}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div
+              className={
+                `arbix-card arbix-3d arbix-shine rounded-2xl p-3 ${
+                  processingCount > 0 ? 'arbix-shine-active' : ''
+                }`
+              }
+            >
               <p className="text-slate-400">Processing</p>
               <p className="mt-1 text-lg font-semibold text-sky-400">{processingCount}</p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
               <p className="text-slate-400">Successful (30 days)</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">{depositTransactions.length}</p>
             </div>
@@ -645,7 +650,7 @@ export default function DepositPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Deposit Requests
           </h2>
-          <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
+          <div className="mt-3 overflow-x-auto arbix-card arbix-3d rounded-2xl">
             <table className="min-w-full divide-y divide-slate-800 text-[11px]">
               <thead className="bg-slate-950/80 text-slate-400">
                 <tr>
@@ -724,22 +729,24 @@ export default function DepositPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             If Your Deposit Is Not Showing
           </h2>
-          <p className="mt-2 text-slate-400">
-            If your deposit is not visible after 30–40 minutes:
-          </p>
-          <ul className="mt-2 space-y-1 text-slate-400">
-            <li>• Make sure you sent USDT on BNB Smart Chain (BEP20) to the correct address.</li>
-            <li>• Verify the number of confirmations on BNB Smart Chain.</li>
-            <li>
-              • Contact Support and share your Deposit Request ID (from Deposit Requests).
-            </li>
-          </ul>
-          <a
-            href="/contact"
-            className="mt-4 inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-100 hover:border-slate-500"
-          >
-            Contact Support
-          </a>
+          <div className="mt-3 arbix-card arbix-3d rounded-2xl p-4">
+            <p className="text-slate-400">
+              If your deposit is not visible after 30–40 minutes:
+            </p>
+            <ul className="mt-2 space-y-1 text-slate-400">
+              <li>• Make sure you sent USDT on BNB Smart Chain (BEP20) to the correct address.</li>
+              <li>• Verify the number of confirmations on BNB Smart Chain.</li>
+              <li>
+                • Contact Support and share your Deposit Request ID (from Deposit Requests).
+              </li>
+            </ul>
+            <a
+              href="/contact"
+              className="mt-4 inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-100 transition hover:border-slate-500"
+            >
+              Contact Support
+            </a>
+          </div>
         </div>
       </section>
 
@@ -749,13 +756,15 @@ export default function DepositPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Security Notice
           </h2>
-          <ul className="mt-2 space-y-1 text-slate-400">
-            <li>• Wallet private keys are encrypted and never shared with users.</li>
-            <li>• Only system-level services can access wallet operations.</li>
-            <li>• Arbix team will never ask for your password, OTP or private key.</li>
-            <li>• The website uses SSL encryption for all communication.</li>
-            <li>• All deposit attempts are logged in transaction and admin audit logs.</li>
-          </ul>
+          <div className="mt-3 arbix-card arbix-3d rounded-2xl p-4">
+            <ul className="space-y-1 text-slate-400">
+              <li>• Wallet private keys are encrypted and never shared with users.</li>
+              <li>• Only system-level services can access wallet operations.</li>
+              <li>• Arbix team will never ask for your password, OTP or private key.</li>
+              <li>• The website uses SSL encryption for all communication.</li>
+              <li>• All deposit attempts are logged in transaction and admin audit logs.</li>
+            </ul>
+          </div>
         </div>
       </section>
     </div>
