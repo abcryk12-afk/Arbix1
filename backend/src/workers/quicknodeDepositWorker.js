@@ -35,6 +35,13 @@ function getDepositRequestTtlMinutes() {
   return Math.min(Math.max(Math.floor(n), 1), 24 * 60);
 }
 
+function getDepositAmountTolerance() {
+  const raw = process.env.DEPOSIT_AMOUNT_TOLERANCE;
+  const n = raw == null ? 0.1 : Number(raw);
+  if (!Number.isFinite(n) || n < 0) return 0.1;
+  return n;
+}
+
 async function expirePendingDepositRequests() {
   const ttlMinutes = getDepositRequestTtlMinutes();
   const cutoff = new Date(Date.now() - ttlMinutes * 60 * 1000);
@@ -196,8 +203,65 @@ async function loadUserAddressBatch() {
   return { users, maxId };
 }
 
-async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash, createdAfter }) {
+function toMatchUnits(value) {
+  try {
+    if (value == null) return null;
+    const n = typeof value === 'string' ? Number(value) : Number(value);
+    if (!Number.isFinite(n)) return null;
+    return ethers.utils.parseUnits(n.toFixed(8), 8);
+  } catch {
+    return null;
+  }
+}
+
+function pickBestDepositRequest({ requests, depositedUnits, toleranceUnits }) {
+  if (!Array.isArray(requests) || !requests.length) return null;
+  if (!depositedUnits || !toleranceUnits) return null;
+
+  let best = null;
+  let bestDiff = null;
+
+  for (const req of requests) {
+    const requestedUnits = toMatchUnits(req?.amount);
+    if (!requestedUnits) continue;
+
+    const isUnder = requestedUnits.gt(depositedUnits);
+    if (isUnder) {
+      const diffUnder = requestedUnits.sub(depositedUnits);
+      if (diffUnder.gt(toleranceUnits)) {
+        continue;
+      }
+    }
+
+    const diff = requestedUnits.gt(depositedUnits)
+      ? requestedUnits.sub(depositedUnits)
+      : depositedUnits.sub(requestedUnits);
+
+    if (!best || diff.lt(bestDiff)) {
+      best = req;
+      bestDiff = diff;
+      continue;
+    }
+
+    if (diff.eq(bestDiff)) {
+      const a = new Date(req?.created_at || req?.createdAt || 0).getTime();
+      const b = new Date(best?.created_at || best?.createdAt || 0).getTime();
+      if (Number.isFinite(a) && Number.isFinite(b) && a > b) {
+        best = req;
+        bestDiff = diff;
+      }
+    }
+  }
+
+  return best;
+}
+
+async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash, createdAfter, depositedAmount }) {
   if (!userId || !addressLower || !txHash) return;
+
+  const depositedUnits = toMatchUnits(depositedAmount);
+  const toleranceUnits = toMatchUnits(getDepositAmountTolerance());
+  if (!depositedUnits || !toleranceUnits) return;
 
   try {
     const andClauses = [
@@ -211,7 +275,7 @@ async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower,
       andClauses.push(sequelize.where(sequelize.col('created_at'), { [Op.gte]: createdAfter }));
     }
 
-    const request = await DepositRequest.findOne({
+    const requests = await DepositRequest.findAll({
       where: {
         user_id: userId,
         status: 'pending',
@@ -219,11 +283,13 @@ async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower,
         [Op.and]: andClauses,
       },
       order: [[DepositRequest.sequelize.col('created_at'), 'DESC']],
+      limit: 25,
     });
 
-    if (!request) return;
-    request.tx_hash = txHash;
-    await request.save();
+    const best = pickBestDepositRequest({ requests, depositedUnits, toleranceUnits });
+    if (!best) return;
+    best.tx_hash = txHash;
+    await best.save();
   } catch (e) {
     console.error('Failed to attach tx hash to deposit request:', e);
   }
@@ -457,12 +523,15 @@ async function scanPendingDepositAddresses({ provider }) {
             await row.save();
           }
 
-          await attachTxHashToLatestPendingDepositRequest({
-            userId: item.userId,
-            addressLower: item.addrLower,
-            txHash,
-            createdAfter: activeCutoff,
-          });
+          if (!row.credited) {
+            await attachTxHashToLatestPendingDepositRequest({
+              userId: item.userId,
+              addressLower: item.addrLower,
+              txHash,
+              createdAfter: activeCutoff,
+              depositedAmount: amount,
+            });
+          }
         } catch (e) {
           console.error('QuickNode store failed:', txHash, e?.message || e);
         }
@@ -533,23 +602,77 @@ async function creditDepositEvent(eventId) {
     );
 
     const txHash = String(event.tx_hash || '').trim();
-    if (txHash) {
-      const reqRow = await DepositRequest.findOne({
+    const addressLower = String(event.address || '').trim().toLowerCase();
+    const ttlMinutes = getDepositRequestTtlMinutes();
+    const activeCutoff = new Date(Date.now() - ttlMinutes * 60 * 1000);
+    const depositedUnits = toMatchUnits(amount);
+    const toleranceUnits = toMatchUnits(getDepositAmountTolerance());
+
+    if (txHash && addressLower && depositedUnits && toleranceUnits) {
+      const andClauses = [
+        sequelize.where(
+          sequelize.fn('LOWER', sequelize.col('address')),
+          addressLower,
+        ),
+      ];
+
+      const allRequests = await DepositRequest.findAll({
         where: {
           user_id: userId,
           status: 'pending',
-          tx_hash: txHash,
+          [Op.or]: [{ tx_hash: { [Op.is]: null } }, { tx_hash: txHash }],
+          [Op.and]: andClauses,
         },
+        order: [[DepositRequest.sequelize.col('created_at'), 'DESC']],
+        limit: 50,
         transaction: t,
         lock: t.LOCK.UPDATE,
       });
 
-      if (reqRow) {
-        reqRow.status = 'approved';
-        if (!reqRow.admin_note) {
-          reqRow.admin_note = 'Auto-approved after blockchain confirmation';
+      const eligibleRequests = (allRequests || []).filter((r) => {
+        const th = r?.tx_hash ? String(r.tx_hash).trim() : null;
+        if (th && th !== txHash) return false;
+        if (!th) {
+          const t0 = new Date(r?.created_at || r?.createdAt || 0).getTime();
+          if (!Number.isFinite(t0)) return false;
+          if (t0 < activeCutoff.getTime()) return false;
         }
-        await reqRow.save({ transaction: t });
+        return true;
+      });
+
+      const best = pickBestDepositRequest({ requests: eligibleRequests, depositedUnits, toleranceUnits });
+
+      if (best) {
+        for (const r of allRequests || []) {
+          if (!r) continue;
+          const th = r?.tx_hash ? String(r.tx_hash).trim() : null;
+          if (th === txHash && Number(r.id) !== Number(best.id)) {
+            r.tx_hash = null;
+            if (!r.admin_note) {
+              r.admin_note = 'Auto-detected deposit did not match this request; tx unlocked.';
+            }
+            await r.save({ transaction: t });
+          }
+        }
+
+        best.tx_hash = txHash;
+        best.status = 'approved';
+        if (!best.admin_note) {
+          best.admin_note = 'Auto-approved after blockchain confirmation';
+        }
+        await best.save({ transaction: t });
+      } else {
+        for (const r of allRequests || []) {
+          if (!r) continue;
+          const th = r?.tx_hash ? String(r.tx_hash).trim() : null;
+          if (th === txHash) {
+            r.tx_hash = null;
+            if (!r.admin_note) {
+              r.admin_note = `Underpaid deposit detected. Expected ${Number(r.amount || 0)} USDT, received ${amount} USDT.`;
+            }
+            await r.save({ transaction: t });
+          }
+        }
       }
     }
 
@@ -628,6 +751,7 @@ async function main() {
       confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
       minDeposit: Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10)),
       depositRequestTtlMinutes: getDepositRequestTtlMinutes(),
+      depositAmountTolerance: getDepositAmountTolerance(),
       includeUserWallets,
     });
   }
