@@ -228,9 +228,9 @@ export default function TeamEarningsPage() {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-slate-950 text-slate-50 min-h-screen">
       {/* Hero */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 network-grid-bg">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             REFERRALS
@@ -238,7 +238,7 @@ export default function TeamEarningsPage() {
           <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
             My Team &amp; Earnings
           </h1>
-          <p className="mt-2 text-sm text-slate-300 md:text-base">
+          <p className="mt-2 text-sm text-slate-200 md:text-base">
             View your team across all three levels, track their packages and see
             how much referral income you earn every day.
           </p>
@@ -247,70 +247,102 @@ export default function TeamEarningsPage() {
 
       {/* Referral Earnings */}
       <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Referral Earnings
           </h2>
           <div className="mt-4 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-slate-400">Today</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
+              <p className="text-slate-300">Today</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-emerald-300">
                 ${earnings.today.toFixed(2)}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-slate-400">All Time</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
+              <p className="text-slate-300">All Time</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-slate-50">
                 ${earnings.allTime.toFixed(2)}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-slate-400">Withdrawable</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
+              <p className="text-slate-300">Withdrawable</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-amber-300">
                 ${earnings.withdrawable.toFixed(2)}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/80 text-slate-400">
+          <div className="mt-4 overflow-x-auto arbix-card arbix-3d rounded-2xl">
+            <table className="min-w-full divide-y divide-slate-800/80 text-[11px]">
+              <thead className="bg-slate-950/50 text-slate-200">
                 <tr>
                   <th className="px-3 py-2 text-left">Category</th>
-                  <th className="px-3 py-2 text-left">L1</th>
-                  <th className="px-3 py-2 text-left">L2</th>
-                  <th className="px-3 py-2 text-left">L3</th>
-                  <th className="px-3 py-2 text-left">All</th>
+                  <th className="px-3 py-2 text-right">L1</th>
+                  <th className="px-3 py-2 text-right">L2</th>
+                  <th className="px-3 py-2 text-right">L3</th>
+                  <th className="px-3 py-2 text-right">All</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
-                <tr>
-                  <td className="px-3 py-2">Deposit commissions (1%)</td>
-                  <td className="px-3 py-2">${earnings.categories.deposit_commission.breakdown.l1.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.deposit_commission.breakdown.l2.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.deposit_commission.breakdown.l3.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.deposit_commission.allTime.toFixed(2)}</td>
+              <tbody className="divide-y divide-slate-800/80 text-slate-100">
+                <tr className="hover:bg-slate-900/25">
+                  <td className="px-3 py-2 text-slate-200">Deposit commissions (1%)</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.deposit_commission.breakdown.l1.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.deposit_commission.breakdown.l2.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.deposit_commission.breakdown.l3.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.deposit_commission.allTime.toFixed(2)}
+                  </td>
                 </tr>
-                <tr>
-                  <td className="px-3 py-2">Referral profit (20% / 10% / 5%)</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_profit.breakdown.l1.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_profit.breakdown.l2.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_profit.breakdown.l3.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_profit.allTime.toFixed(2)}</td>
+                <tr className="hover:bg-slate-900/25">
+                  <td className="px-3 py-2 text-slate-200">Referral profit (20% / 10% / 5%)</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_profit.breakdown.l1.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_profit.breakdown.l2.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_profit.breakdown.l3.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_profit.allTime.toFixed(2)}
+                  </td>
                 </tr>
-                <tr>
-                  <td className="px-3 py-2">Referral bonus (L1 60% for $500+)</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_bonus.breakdown.l1.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_bonus.breakdown.l2.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_bonus.breakdown.l3.toFixed(2)}</td>
-                  <td className="px-3 py-2">${earnings.categories.referral_bonus.allTime.toFixed(2)}</td>
+                <tr className="hover:bg-slate-900/25">
+                  <td className="px-3 py-2 text-slate-200">Referral bonus (L1 60% for $500+)</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_bonus.breakdown.l1.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_bonus.breakdown.l2.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_bonus.breakdown.l3.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${earnings.categories.referral_bonus.allTime.toFixed(2)}
+                  </td>
                 </tr>
-                <tr>
-                  <td className="px-3 py-2 font-semibold text-slate-100">Total</td>
-                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.breakdown.l1.toFixed(2)}</td>
-                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.breakdown.l2.toFixed(2)}</td>
-                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.breakdown.l3.toFixed(2)}</td>
-                  <td className="px-3 py-2 font-semibold text-slate-100">${earnings.allTime.toFixed(2)}</td>
+                <tr className="bg-slate-950/40">
+                  <td className="px-3 py-2 font-semibold text-slate-50">Total</td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-50">
+                    ${earnings.breakdown.l1.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-50">
+                    ${earnings.breakdown.l2.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-50">
+                    ${earnings.breakdown.l3.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-50">
+                    ${earnings.allTime.toFixed(2)}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -321,28 +353,28 @@ export default function TeamEarningsPage() {
       {/* Overview cards */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <div className="flex gap-3 overflow-x-auto pb-1 text-xs text-slate-300">
-            <div className="min-w-[130px] rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Level 1 Referrals</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+          <div className="flex gap-3 overflow-x-auto pb-1 text-xs text-slate-200">
+            <div className="arbix-card arbix-3d min-w-[130px] rounded-2xl p-3">
+              <p className="text-[11px] text-slate-300">Level 1 Referrals</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-emerald-300">
                 {counts.l1}
               </p>
             </div>
-            <div className="min-w-[130px] rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Level 2 Referrals</p>
-              <p className="mt-1 text-lg font-semibold text-sky-400">
+            <div className="arbix-card arbix-3d min-w-[130px] rounded-2xl p-3">
+              <p className="text-[11px] text-slate-300">Level 2 Referrals</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-sky-300">
                 {counts.l2}
               </p>
             </div>
-            <div className="min-w-[130px] rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Level 3 Referrals</p>
-              <p className="mt-1 text-lg font-semibold text-violet-400">
+            <div className="arbix-card arbix-3d min-w-[130px] rounded-2xl p-3">
+              <p className="text-[11px] text-slate-300">Level 3 Referrals</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-violet-300">
                 {counts.l3}
               </p>
             </div>
-            <div className="min-w-[130px] rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-              <p className="text-[11px] text-slate-400">Total Team</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+            <div className="arbix-card arbix-3d min-w-[130px] rounded-2xl p-3">
+              <p className="text-[11px] text-slate-300">Total Team</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-slate-50">
                 {counts.total}
               </p>
             </div>
@@ -352,33 +384,35 @@ export default function TeamEarningsPage() {
 
       {/* Referral Link */}
       <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Your Referral Link
           </h2>
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-slate-200/80">
             Share this link with others and earn a daily percentage from their
             active packages.
           </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex-1 rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px] text-slate-200">
-              <span className="break-all">{referralLink}</span>
-            </div>
-            <div className="flex gap-2 text-[11px]">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="rounded-lg border border-slate-700 px-3 py-1 text-slate-100 hover:border-slate-500"
-              >
-                {copied ? 'Copied!' : 'Copy Link'}
-              </button>
-              <button
-                type="button"
-                onClick={handleShare}
-                className="rounded-lg border border-slate-700 px-3 py-1 text-slate-100 hover:border-slate-500"
-              >
-                Share
-              </button>
+          <div className="mt-3 arbix-card arbix-3d rounded-2xl p-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex-1 rounded-lg border border-slate-700/80 bg-slate-950/40 px-3 py-2 text-[11px] text-slate-50">
+                <span className="break-all">{referralLink}</span>
+              </div>
+              <div className="flex gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="rounded-lg border border-slate-700/80 bg-slate-950/40 px-3 py-2 font-medium text-slate-50 hover:border-slate-500"
+                >
+                  {copied ? 'Copied!' : 'Copy Link'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="rounded-lg border border-slate-700/80 bg-slate-950/40 px-3 py-2 font-medium text-slate-50 hover:border-slate-500"
+                >
+                  Share
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -387,7 +421,7 @@ export default function TeamEarningsPage() {
       {/* Team list tabs */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 pt-4 md:pt-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 text-[11px] text-slate-300">
+          <div className="arbix-card arbix-3d flex gap-2 overflow-x-auto rounded-2xl p-2 text-[11px] text-slate-200">
             {[
               { id: 'L1', label: 'Level 1' },
               { id: 'L2', label: 'Level 2' },
@@ -401,10 +435,10 @@ export default function TeamEarningsPage() {
                   type="button"
                   onClick={() => setActiveTab(tab.id as any)}
                   className={
-                    'whitespace-nowrap rounded-full border px-3 py-1 ' +
+                    'whitespace-nowrap rounded-full border px-3 py-2 font-medium transition-colors ' +
                     (active
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-slate-700 bg-slate-900/60 hover:border-slate-500')
+                      ? 'border-primary/80 bg-primary/15 text-primary'
+                      : 'border-slate-700/80 bg-slate-950/40 text-slate-200 hover:border-slate-500')
                   }
                 >
                   {tab.label}
@@ -416,33 +450,28 @@ export default function TeamEarningsPage() {
 
         <div className="mx-auto max-w-5xl px-4 pb-6 pt-4 md:pb-8">
           {isLoadingTeam ? (
-            <p className="text-xs text-slate-400 md:text-sm">Loading team...</p>
+            <p className="text-xs text-slate-300 md:text-sm">Loading team...</p>
           ) : filteredMembers.length === 0 ? (
-            <p className="text-xs text-slate-400 md:text-sm">
+            <p className="text-xs text-slate-300 md:text-sm">
               No team members found for this level yet.
             </p>
           ) : (
-            <div className="space-y-3 text-xs text-slate-300 md:text-sm">
+            <div className="space-y-3 text-xs text-slate-200 md:text-sm">
               {filteredMembers.map((m) => (
-                  <div
-                    key={m.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-100">
-                          {m.name}
-                        </p>
-                        <p className="text-[11px] text-slate-400">
-                          {maskEmail(m.email)} • Joined {m.joinDate}
-                        </p>
-                      </div>
-                      <div className="text-[11px] text-slate-400">
-                        Level {m.level}
-                      </div>
+                <div key={m.id} className="arbix-card arbix-3d rounded-2xl p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-50">{m.name}</p>
+                      <p className="text-[11px] text-slate-200/75">
+                        {maskEmail(m.email)} • Joined {m.joinDate}
+                      </p>
+                    </div>
+                    <div className="rounded-full border border-slate-700/70 bg-slate-950/40 px-2 py-1 text-[11px] text-slate-200">
+                      Level {m.level}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -450,48 +479,55 @@ export default function TeamEarningsPage() {
 
       {/* Rules section */}
       <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Referral Income Rules
           </h2>
-          <div className="mt-3 space-y-1 text-[11px] text-slate-400">
-            <p className="font-semibold text-slate-200">Daily Referral Income:</p>
-            <p>• Level 1 → 20% of referral&apos;s daily profit</p>
-            <p>• Level 2 → 10% of referral&apos;s daily profit</p>
-            <p>• Level 3 → 5% of referral&apos;s daily profit</p>
+          <div className="mt-3 arbix-card arbix-3d rounded-2xl p-4">
+            <div className="space-y-1 text-[11px] text-slate-200/85">
+              <p className="font-semibold text-slate-50">Daily Referral Income:</p>
+              <p>Level 1: 20% of referral&apos;s daily profit</p>
+              <p>Level 2: 10% of referral&apos;s daily profit</p>
+              <p>Level 3: 5% of referral&apos;s daily profit</p>
 
-            <p className="mt-2 font-semibold text-slate-200">Special Bonus:</p>
-            <p>
-              • If a referral activates a package of $500 or more → you earn an
-              extra 60% of that referral&apos;s daily profit every day while the package
-              is active.
-            </p>
+              <p className="mt-2 font-semibold text-slate-50">Special Bonus:</p>
+              <p>
+                If a referral activates a package of $500 or more, you earn an
+                extra 60% of that referral&apos;s daily profit every day while the package
+                is active.
+              </p>
 
-            <p className="mt-2 font-semibold text-slate-200">Additional Rules:</p>
-            <p>• Unlimited team size.</p>
-            <p>• Earnings continue as long as packages remain active.</p>
-            <p>• No earnings from inactive users.</p>
-            <p>• Bonus can apply to referrals at any level (1, 2 or 3) based on their package size.</p>
+              <p className="mt-2 font-semibold text-slate-50">Additional Rules:</p>
+              <p>Unlimited team size.</p>
+              <p>Earnings continue as long as packages remain active.</p>
+              <p>No earnings from inactive users.</p>
+              <p>
+                Bonus can apply to referrals at any level (1, 2 or 3) based on their
+                package size.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Support section */}
       <section className="bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Need Help?
           </h2>
-          <p className="mt-2 text-slate-400">
-            If you have any questions about your team, referral earnings or the
-            bonus structure, our Support team is always available.
-          </p>
-          <a
-            href="/contact"
-            className="mt-3 inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-[11px] font-medium text-slate-100 hover:border-slate-500"
-          >
-            Contact Support
-          </a>
+          <div className="mt-3 arbix-card arbix-3d rounded-2xl p-4">
+            <p className="text-[11px] text-slate-200/85 md:text-sm">
+              If you have any questions about your team, referral earnings or the bonus
+              structure, our Support team is always available.
+            </p>
+            <a
+              href="/contact"
+              className="mt-3 inline-flex items-center justify-center rounded-lg border border-slate-700/80 bg-slate-950/40 px-4 py-2 text-[11px] font-medium text-slate-50 hover:border-slate-500"
+            >
+              Contact Support
+            </a>
+          </div>
         </div>
       </section>
     </div>
