@@ -81,6 +81,21 @@ body {
   backdrop-filter: blur(10px);
 }
 
+.arbix-card-amber {
+  border-color: rgba(245, 158, 11, 0.36);
+  background: linear-gradient(180deg, rgba(120, 53, 15, 0.28), rgba(2, 6, 23, 0.78));
+}
+
+.arbix-card-emerald {
+  border-color: rgba(16, 185, 129, 0.34);
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0.22), rgba(2, 6, 23, 0.78));
+}
+
+.arbix-card-red {
+  border-color: rgba(248, 113, 113, 0.34);
+  background: linear-gradient(180deg, rgba(127, 29, 29, 0.22), rgba(2, 6, 23, 0.78));
+}
+
 .arbix-card::before {
   content: "";
   position: absolute;
@@ -123,6 +138,16 @@ body {
   --arbix-3d-glow: rgba(248, 113, 113, 0.22);
 }
 
+.arbix-3d-amber {
+  --arbix-3d-border: rgba(245, 158, 11, 0.46);
+  --arbix-3d-glow: rgba(245, 158, 11, 0.22);
+}
+
+.arbix-3d-emerald {
+  --arbix-3d-border: rgba(16, 185, 129, 0.42);
+  --arbix-3d-glow: rgba(16, 185, 129, 0.2);
+}
+
 .arbix-alert {
   position: relative;
   border: 1px solid rgba(248, 113, 113, 0.42);
@@ -135,6 +160,7 @@ body {
 
 .arbix-shine {
   overflow: hidden;
+  --arbix-shine-accent: rgba(56, 189, 248, 0.22);
 }
 
 .arbix-shine::after {
@@ -148,7 +174,7 @@ body {
     90deg,
     transparent,
     rgba(255, 255, 255, 0.08),
-    rgba(56, 189, 248, 0.22),
+    var(--arbix-shine-accent),
     rgba(255, 255, 255, 0.08),
     transparent
   );
@@ -160,6 +186,18 @@ body {
 .arbix-shine-active::after {
   opacity: 0.85;
   animation: arbixShineSweep 1.35s ease-in-out infinite;
+}
+
+.arbix-shine-amber {
+  --arbix-shine-accent: rgba(245, 158, 11, 0.28);
+}
+
+.arbix-shine-emerald {
+  --arbix-shine-accent: rgba(16, 185, 129, 0.26);
+}
+
+.arbix-shine-red {
+  --arbix-shine-accent: rgba(248, 113, 113, 0.26);
 }
 
 @keyframes arbixShineSweep {
