@@ -22,6 +22,48 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isEnabledEnvFlag(name, defaultValue = false) {
+  const raw = process.env[name];
+  if (raw == null) return defaultValue;
+  return ['1', 'true', 'yes', 'on'].includes(String(raw).trim().toLowerCase());
+}
+
+function getDepositRequestTtlMinutes() {
+  const raw = process.env.DEPOSIT_REQUEST_TTL_MINUTES;
+  const n = raw == null ? 30 : Number(raw);
+  if (!Number.isFinite(n)) return 30;
+  return Math.min(Math.max(Math.floor(n), 1), 24 * 60);
+}
+
+async function expirePendingDepositRequests() {
+  const ttlMinutes = getDepositRequestTtlMinutes();
+  const cutoff = new Date(Date.now() - ttlMinutes * 60 * 1000);
+
+  const rows = await DepositRequest.findAll({
+    where: {
+      status: 'pending',
+      tx_hash: { [Op.is]: null },
+      [Op.and]: [sequelize.where(sequelize.col('created_at'), { [Op.lt]: cutoff })],
+    },
+    order: [[DepositRequest.sequelize.col('created_at'), 'ASC']],
+    limit: 500,
+  });
+
+  if (!rows.length) return 0;
+
+  let updated = 0;
+  for (const row of rows) {
+    row.status = 'rejected';
+    if (!row.admin_note) {
+      row.admin_note = `Expired after ${ttlMinutes} minutes`;
+    }
+    await row.save();
+    updated += 1;
+  }
+
+  return updated;
+}
+
 function isDebugEnabled() {
   return ['1', 'true', 'yes', 'on'].includes(String(process.env.QUICKNODE_DEBUG || '').trim().toLowerCase());
 }
@@ -154,21 +196,27 @@ async function loadUserAddressBatch() {
   return { users, maxId };
 }
 
-async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash }) {
+async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash, createdAfter }) {
   if (!userId || !addressLower || !txHash) return;
 
   try {
+    const andClauses = [
+      sequelize.where(
+        sequelize.fn('LOWER', sequelize.col('address')),
+        addressLower,
+      ),
+    ];
+
+    if (createdAfter) {
+      andClauses.push(sequelize.where(sequelize.col('created_at'), { [Op.gte]: createdAfter }));
+    }
+
     const request = await DepositRequest.findOne({
       where: {
         user_id: userId,
         status: 'pending',
         tx_hash: { [Op.is]: null },
-        [Op.and]: [
-          sequelize.where(
-            sequelize.fn('LOWER', sequelize.col('address')),
-            addressLower,
-          ),
-        ],
+        [Op.and]: andClauses,
       },
       order: [[DepositRequest.sequelize.col('created_at'), 'DESC']],
     });
@@ -202,8 +250,36 @@ async function scanPendingDepositAddresses({ provider }) {
   const lookback = Math.min(Math.max(Number(process.env.QUICKNODE_LOOKBACK_BLOCKS || 20000), 1000), 500000);
   const userLookback = Math.min(Math.max(Number(process.env.QUICKNODE_USER_LOOKBACK_BLOCKS || 2000), 200), 500000);
 
+  const ttlMinutes = getDepositRequestTtlMinutes();
+  const activeCutoff = new Date(Date.now() - ttlMinutes * 60 * 1000);
+  const includeUserWallets = isEnabledEnvFlag('QUICKNODE_SCAN_USER_WALLETS', false);
+
   const usdt = getUsdtContractAddress();
   const decimals = getTokenDecimals();
+
+  const pendingRaw = await DepositRequest.findAll({
+    where: {
+      status: 'pending',
+      tx_hash: { [Op.is]: null },
+    },
+    raw: true,
+    attributes: ['id', 'user_id', 'address', 'tx_hash', [sequelize.col('created_at'), 'createdAt']],
+    order: [[sequelize.col('created_at'), 'DESC']],
+    limit: 500,
+  });
+
+  const pending = (pendingRaw || []).filter((p) => {
+    if (!p?.createdAt) return false;
+    const t = new Date(p.createdAt).getTime();
+    return Number.isFinite(t) && t >= activeCutoff.getTime();
+  });
+
+  if (!pending.length && !includeUserWallets) {
+    if (isDebugEnabled()) {
+      console.log('[quicknode] scan skipped (idle)');
+    }
+    return;
+  }
 
   const latest = await provider.getBlockNumber();
   const safeToBlock = Math.max(0, latest - confirmations);
@@ -222,18 +298,12 @@ async function scanPendingDepositAddresses({ provider }) {
       detectedLogRangeLimit: detectedLogRangeLimit || null,
       lookback,
       userLookback,
+      ttlMinutes,
+      includeUserWallets,
     });
   }
 
-  const pending = await DepositRequest.findAll({
-    where: { status: 'pending' },
-    raw: true,
-    attributes: ['id', 'user_id', 'address', 'tx_hash'],
-    order: [[sequelize.col('created_at'), 'DESC']],
-    limit: 500,
-  });
-
-  const userBatch = await loadUserAddressBatch();
+  const userBatch = includeUserWallets ? await loadUserAddressBatch() : { users: [], maxId: 0 };
 
   const unique = new Map();
   for (const p of pending) {
@@ -391,6 +461,7 @@ async function scanPendingDepositAddresses({ provider }) {
             userId: item.userId,
             addressLower: item.addrLower,
             txHash,
+            createdAfter: activeCutoff,
           });
         } catch (e) {
           console.error('QuickNode store failed:', txHash, e?.message || e);
@@ -494,6 +565,17 @@ async function processPendingCredits({ provider }) {
 
   const debug = isDebugEnabled();
 
+  const pendingTotal = await ChainDepositEvent.count({
+    where: {
+      credited: false,
+      chain: 'BSC',
+      token: 'USDT',
+      amount: { [Op.gte]: minDeposit },
+    },
+  });
+
+  if (!Number(pendingTotal || 0)) return { pendingTotal: 0, candidates: 0, creditedAttempts: 0 };
+
   const latest = await provider.getBlockNumber();
   const safeToBlock = Math.max(0, latest - confirmations);
 
@@ -526,6 +608,8 @@ async function processPendingCredits({ provider }) {
       console.error('Deposit credit failed:', row?.id, e?.message || e);
     }
   }
+
+  return { pendingTotal: Number(pendingTotal || 0), candidates: pending.length, creditedAttempts: pending.length };
 }
 
 async function main() {
@@ -533,30 +617,61 @@ async function main() {
 
   const provider = getBscProvider();
   const loopMs = Number(process.env.DEPOSIT_WORKER_LOOP_MS || 15000);
+  const idlePollMs = Number(process.env.DEPOSIT_WORKER_IDLE_POLL_MS || 60000);
+  const includeUserWallets = isEnabledEnvFlag('QUICKNODE_SCAN_USER_WALLETS', false);
 
   if (isDebugEnabled()) {
     console.log('[quicknode] worker started', {
       rpcHost: safeRpcHost(),
       loopMs,
+      idlePollMs,
       confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
       minDeposit: Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10)),
+      depositRequestTtlMinutes: getDepositRequestTtlMinutes(),
+      includeUserWallets,
     });
   }
 
   while (true) {
+    let didWork = false;
+
     try {
-      await scanPendingDepositAddresses({ provider });
+      const expired = await expirePendingDepositRequests();
+      if (expired) didWork = true;
+    } catch (e) {
+      console.error('Deposit request expiry failed:', e?.message || e);
+    }
+
+    try {
+      const pendingRequests = await DepositRequest.count({
+        where: {
+          status: 'pending',
+          tx_hash: { [Op.is]: null },
+        },
+      });
+
+      if (includeUserWallets || Number(pendingRequests || 0) > 0) {
+        await scanPendingDepositAddresses({ provider });
+        didWork = true;
+      }
     } catch (e) {
       console.error('QuickNode scan failed:', e?.message || e);
     }
 
     try {
-      await processPendingCredits({ provider });
+      const creditResult = await processPendingCredits({ provider });
+      if (creditResult?.pendingTotal || creditResult?.candidates) {
+        didWork = true;
+      }
     } catch (e) {
       console.error('Deposit processing failed:', e?.message || e);
     }
 
-    await sleep(Number.isFinite(loopMs) && loopMs > 0 ? Math.floor(loopMs) : 15000);
+    const sleepMs = didWork
+      ? (Number.isFinite(loopMs) && loopMs > 0 ? Math.floor(loopMs) : 15000)
+      : (Number.isFinite(idlePollMs) && idlePollMs > 0 ? Math.floor(idlePollMs) : 60000);
+
+    await sleep(sleepMs);
   }
 }
 

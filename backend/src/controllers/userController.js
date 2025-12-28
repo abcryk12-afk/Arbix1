@@ -42,6 +42,10 @@ exports.getSummary = async (req, res) => {
       config: {
         minDepositUsdt: Math.max(10, Number(process.env.MIN_DEPOSIT_USDT || 10)),
         confirmations: Number(process.env.DEPOSIT_CONFIRMATIONS || 12),
+        depositRequestTtlMinutes: Math.min(
+          Math.max(Math.floor(Number(process.env.DEPOSIT_REQUEST_TTL_MINUTES || 30)), 1),
+          24 * 60,
+        ),
       },
       wallet: {
         balance: Number(wallet.balance),

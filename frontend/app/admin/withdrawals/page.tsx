@@ -20,6 +20,15 @@ import { useRouter } from 'next/navigation';
   userBalance: number;
 };
 
+type DepositRequestsResponse = {
+  success: boolean;
+  message?: string;
+  config?: {
+    depositRequestTtlMinutes?: number;
+  };
+  requests?: any[];
+};
+
 type DepositRequestRow = {
   id: string;
   userId: string;
@@ -95,6 +104,14 @@ function fmtDate(value?: string | null) {
   return String(value).slice(0, 19).replace('T', ' ');
 }
 
+function formatCountdown(msRemaining: number) {
+  const ms = Math.max(0, Math.floor(msRemaining));
+  const totalSeconds = Math.floor(ms / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 function earningsRows(byType?: Record<string, number>) {
   const src = byType || {};
   const order = ['deposit', 'withdraw', 'package_purchase', 'profit', 'referral_profit', 'referral_bonus'];
@@ -114,6 +131,8 @@ export default function AdminWithdrawalsPage() {
   const router = useRouter();
   const [requests, setRequests] = useState<WithdrawalRequestRow[]>([]);
   const [depositRequests, setDepositRequests] = useState<DepositRequestRow[]>([]);
+  const [depositRequestTtlMinutes, setDepositRequestTtlMinutes] = useState<number>(30);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDeposits, setIsLoadingDeposits] = useState(true);
   const [filterStatus, setFilterStatus] = useState<'pending' | 'all'>('pending');
@@ -127,6 +146,11 @@ export default function AdminWithdrawalsPage() {
   const [selectedUserDetails, setSelectedUserDetails] = useState<UserDetailsResponse | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
+
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const filteredRequests = useMemo(() => {
     if (filterStatus === 'pending') {
@@ -265,10 +289,12 @@ export default function AdminWithdrawalsPage() {
         },
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as DepositRequestsResponse;
       if (data?.success && Array.isArray(data?.requests)) {
+        const ttl = Number(data?.config?.depositRequestTtlMinutes ?? 30);
+        if (Number.isFinite(ttl) && ttl > 0) setDepositRequestTtlMinutes(Math.floor(ttl));
         setDepositRequests(
-          data.requests.map((r: any) => ({
+          (data.requests || []).map((r: any) => ({
             id: String(r.id),
             userId: String(r.userId),
             userName: String(r.userName || ''),
@@ -280,7 +306,7 @@ export default function AdminWithdrawalsPage() {
             txHash: r.txHash != null ? String(r.txHash) : null,
             userNote: r.userNote != null ? String(r.userNote) : null,
             adminNote: r.adminNote != null ? String(r.adminNote) : null,
-            requestTime: r.requestTime ? String(r.requestTime).slice(0, 19).replace('T', ' ') : '',
+            requestTime: r.requestTime ? String(r.requestTime) : '',
             walletAddress: r.walletAddress != null ? String(r.walletAddress) : null,
             userBalance: Number(r.userBalance || 0),
           })),
@@ -572,75 +598,103 @@ export default function AdminWithdrawalsPage() {
                               : 'text-slate-300'
                           }
                         >
-                          {r.status === 'pending' && r.txHash ? 'processing' : r.status}
+                          {(() => {
+                            const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
+                            const createdMs = r.requestTime ? new Date(r.requestTime).getTime() : NaN;
+                            const isExpired = r.status === 'pending' && !r.txHash && Number.isFinite(createdMs) && (nowMs - createdMs) >= ttlMs;
+                            if (isExpired) return 'expired';
+                            return r.status === 'pending' && r.txHash ? 'processing' : r.status;
+                          })()}
                         </span>
+
+                        {(() => {
+                          const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
+                          const createdMs = r.requestTime ? new Date(r.requestTime).getTime() : NaN;
+                          const msRemaining = Number.isFinite(createdMs) ? (createdMs + ttlMs - nowMs) : NaN;
+                          const showCountdown = r.status === 'pending' && !r.txHash && Number.isFinite(msRemaining);
+                          if (!showCountdown) return null;
+                          return (
+                            <div className="mt-0.5 text-[10px] text-slate-500">
+                              Time left: {formatCountdown(msRemaining)}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-3 py-2">
                         <span className="text-[10px] text-slate-200">${r.userBalance.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-300">{r.requestTime || '-'}</span>
+                        <span className="text-[10px] text-slate-300">{fmtDate(r.requestTime) || '-'}</span>
                       </td>
                       <td className="px-3 py-2 max-w-xs">
                         <span className="text-[10px] text-slate-300">{r.userNote || '-'}</span>
                       </td>
                       <td className="px-3 py-2 text-right">
-                        {r.status === 'pending' ? (
-                          <div className="flex flex-col items-end gap-1">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                setSelectedRequestType('deposit');
-                                setSelectedRequest(r);
-                                await loadUserDetails(r.userId);
-                              }}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
-                            >
-                              View Details
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDepositAction(r.id, 'approve')}
-                              disabled={Boolean(r.txHash)}
-                              className={
-                                'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
-                                (r.txHash
-                                  ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
-                                  : 'bg-emerald-600 text-white hover:bg-emerald-500')
-                              }
-                            >
-                              {r.txHash ? 'Auto Processing' : 'Approve'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDepositAction(r.id, 'reject')}
-                              disabled={Boolean(r.txHash)}
-                              className={
-                                'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
-                                (r.txHash
-                                  ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
-                                  : 'bg-red-600 text-white hover:bg-red-500')
-                              }
-                            >
-                              {r.txHash ? 'Locked' : 'Reject'}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-end gap-1">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                setSelectedRequestType('deposit');
-                                setSelectedRequest(r);
-                                await loadUserDetails(r.userId);
-                              }}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
-                            >
-                              View Details
-                            </button>
-                            <span className="text-[10px] text-slate-500">No actions</span>
-                          </div>
-                        )}
+                        {(() => {
+                          const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
+                          const createdMs = r.requestTime ? new Date(r.requestTime).getTime() : NaN;
+                          const isExpired = r.status === 'pending' && !r.txHash && Number.isFinite(createdMs) && (nowMs - createdMs) >= ttlMs;
+                          if (r.status !== 'pending' || isExpired) {
+                            return (
+                              <div className="flex flex-col items-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    setSelectedRequestType('deposit');
+                                    setSelectedRequest(r);
+                                    await loadUserDetails(r.userId);
+                                  }}
+                                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                                >
+                                  View Details
+                                </button>
+                                <span className="text-[10px] text-slate-500">No actions</span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="flex flex-col items-end gap-1">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  setSelectedRequestType('deposit');
+                                  setSelectedRequest(r);
+                                  await loadUserDetails(r.userId);
+                                }}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                              >
+                                View Details
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDepositAction(r.id, 'approve')}
+                                disabled={Boolean(r.txHash)}
+                                className={
+                                  'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
+                                  (r.txHash
+                                    ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
+                                    : 'bg-emerald-600 text-white hover:bg-emerald-500')
+                                }
+                              >
+                                {r.txHash ? 'Auto Processing' : 'Approve'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDepositAction(r.id, 'reject')}
+                                disabled={Boolean(r.txHash)}
+                                className={
+                                  'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
+                                  (r.txHash
+                                    ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
+                                    : 'bg-red-600 text-white hover:bg-red-500')
+                                }
+                              >
+                                {r.txHash ? 'Locked' : 'Reject'}
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))

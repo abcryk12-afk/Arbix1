@@ -554,6 +554,11 @@ exports.listDepositRequests = async (req, res) => {
       ? String(req.query.status).toLowerCase()
       : null;
 
+    const depositRequestTtlMinutes = Math.min(
+      Math.max(Math.floor(Number(process.env.DEPOSIT_REQUEST_TTL_MINUTES || 30)), 1),
+      24 * 60,
+    );
+
     const where = {};
     if (status) {
       where.status = status;
@@ -609,7 +614,11 @@ exports.listDepositRequests = async (req, res) => {
       };
     });
 
-    return res.status(200).json({ success: true, requests });
+    return res.status(200).json({
+      success: true,
+      config: { depositRequestTtlMinutes },
+      requests,
+    });
   } catch (error) {
     console.error('Admin list deposit requests error:', error);
     return res.status(500).json({
@@ -649,6 +658,20 @@ exports.updateDepositRequestStatus = async (req, res) => {
           ok: false,
           status: 400,
           message: 'Cannot update a processing deposit request. Please wait for automatic credit/approval.',
+        };
+      }
+
+      const ttlMinutes = Math.min(
+        Math.max(Math.floor(Number(process.env.DEPOSIT_REQUEST_TTL_MINUTES || 30)), 1),
+        24 * 60,
+      );
+      const cutoff = new Date(Date.now() - ttlMinutes * 60 * 1000);
+      const createdAt = request.created_at ? new Date(request.created_at) : null;
+      if (createdAt && createdAt.getTime() < cutoff.getTime()) {
+        return {
+          ok: false,
+          status: 400,
+          message: `Deposit request expired after ${ttlMinutes} minutes`,
         };
       }
 

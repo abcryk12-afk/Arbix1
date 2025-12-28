@@ -9,6 +9,8 @@ export default function DepositPage() {
 
   const [minDepositUsdt, setMinDepositUsdt] = useState<number>(10);
   const [confirmations, setConfirmations] = useState<number>(12);
+  const [depositRequestTtlMinutes, setDepositRequestTtlMinutes] = useState<number>(30);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const [walletAddress, setWalletAddress] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
@@ -24,6 +26,36 @@ export default function DepositPage() {
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitMessageType, setSubmitMessageType] = useState<'success' | 'error' | ''>('');
   const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const formatCountdown = (msRemaining: number) => {
+    const ms = Math.max(0, Math.floor(msRemaining));
+    const totalSeconds = Math.floor(ms / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const isExpiredByTtl = (r: any) => {
+    const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
+    const createdMs = r?.createdAt ? new Date(r.createdAt).getTime() : NaN;
+    return (
+      String(r?.status || '').toLowerCase() === 'pending' &&
+      !r?.txHash &&
+      Number.isFinite(createdMs) &&
+      (nowMs - createdMs) >= ttlMs
+    );
+  };
+
+  const isExpiredStatus = (r: any) => {
+    const status = String(r?.status || '').toLowerCase();
+    const adminNote = String(r?.adminNote || '').toLowerCase();
+    return status === 'rejected' && adminNote.includes('expired after');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -81,8 +113,10 @@ export default function DepositPage() {
             if (data?.config) {
               const min = Number(data?.config?.minDepositUsdt ?? 10);
               const conf = Number(data?.config?.confirmations ?? 12);
+              const ttl = Number(data?.config?.depositRequestTtlMinutes ?? 30);
               if (Number.isFinite(min) && min > 0) setMinDepositUsdt(min);
               if (Number.isFinite(conf) && conf > 0) setConfirmations(conf);
+              if (Number.isFinite(ttl) && ttl > 0) setDepositRequestTtlMinutes(Math.floor(ttl));
             }
             setWalletBalance(Number(data?.wallet?.balance || 0));
             setTransactions(Array.isArray(data?.transactions) ? data.transactions : []);
@@ -655,9 +689,25 @@ export default function DepositPage() {
                             : 'text-slate-300')
                         }
                       >
-                        {String(r?.status || '').toLowerCase() === 'pending' && r?.txHash
-                          ? 'processing'
-                          : String(r?.status || '-')}
+                        {(() => {
+                          const lower = String(r?.status || '').toLowerCase();
+                          if (lower === 'pending' && r?.txHash) return 'processing';
+                          if (isExpiredByTtl(r) || isExpiredStatus(r)) return 'expired';
+                          return lower || '-';
+                        })()}
+
+                        {(() => {
+                          const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
+                          const createdMs = r?.createdAt ? new Date(r.createdAt).getTime() : NaN;
+                          const msRemaining = Number.isFinite(createdMs) ? (createdMs + ttlMs - nowMs) : NaN;
+                          const showCountdown = String(r?.status || '').toLowerCase() === 'pending' && !r?.txHash && Number.isFinite(msRemaining);
+                          if (!showCountdown) return null;
+                          return (
+                            <div className="mt-0.5 text-[10px] text-slate-500">
+                              Time left: {formatCountdown(msRemaining)}
+                            </div>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))
