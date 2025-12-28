@@ -256,6 +256,40 @@ function pickBestDepositRequest({ requests, depositedUnits, toleranceUnits }) {
   return best;
 }
 
+function pickClosestDepositRequestAny({ requests, depositedUnits }) {
+  if (!Array.isArray(requests) || !requests.length) return null;
+  if (!depositedUnits) return null;
+
+  let best = null;
+  let bestDiff = null;
+
+  for (const req of requests) {
+    const requestedUnits = toMatchUnits(req?.amount);
+    if (!requestedUnits) continue;
+
+    const diff = requestedUnits.gt(depositedUnits)
+      ? requestedUnits.sub(depositedUnits)
+      : depositedUnits.sub(requestedUnits);
+
+    if (!best || diff.lt(bestDiff)) {
+      best = req;
+      bestDiff = diff;
+      continue;
+    }
+
+    if (diff.eq(bestDiff)) {
+      const a = new Date(req?.created_at || req?.createdAt || 0).getTime();
+      const b = new Date(best?.created_at || best?.createdAt || 0).getTime();
+      if (Number.isFinite(a) && Number.isFinite(b) && a > b) {
+        best = req;
+        bestDiff = diff;
+      }
+    }
+  }
+
+  return best;
+}
+
 async function attachTxHashToLatestPendingDepositRequest({ userId, addressLower, txHash, createdAfter, depositedAmount }) {
   if (!userId || !addressLower || !txHash) return;
 
@@ -662,13 +696,26 @@ async function creditDepositEvent(eventId) {
         }
         await best.save({ transaction: t });
       } else {
+        const closest = pickClosestDepositRequestAny({ requests: eligibleRequests, depositedUnits });
+
         for (const r of allRequests || []) {
           if (!r) continue;
           const th = r?.tx_hash ? String(r.tx_hash).trim() : null;
+
+          if (closest && Number(r.id) === Number(closest.id)) {
+            r.tx_hash = txHash;
+            r.status = 'rejected';
+            if (!r.admin_note) {
+              r.admin_note = `Underpaid deposit detected. Expected ${Number(r.amount || 0)} USDT, received ${amount} USDT.`;
+            }
+            await r.save({ transaction: t });
+            continue;
+          }
+
           if (th === txHash) {
             r.tx_hash = null;
             if (!r.admin_note) {
-              r.admin_note = `Underpaid deposit detected. Expected ${Number(r.amount || 0)} USDT, received ${amount} USDT.`;
+              r.admin_note = 'Auto-detected deposit did not match this request; tx unlocked.';
             }
             await r.save({ transaction: t });
           }
