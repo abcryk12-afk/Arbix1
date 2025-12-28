@@ -642,12 +642,6 @@ export default function AdminWithdrawalsPage() {
                         <span className="font-semibold text-emerald-400">${r.amount.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-200">{String(r.token || 'USDT')}</span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-200">{String(r.network || 'BSC')}</span>
-                      </td>
-                      <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
                           <div className="font-mono text-[10px] text-slate-200">{shortAddr(r.address)}</div>
                           <button
