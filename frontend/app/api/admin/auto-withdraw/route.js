@@ -29,7 +29,10 @@ export async function GET(request) {
     });
 
     const data = await response.json().catch(() => null);
-    return NextResponse.json(data || { success: response.ok }, { status: response.status });
+    const res = NextResponse.json(data || { success: response.ok }, { status: response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    res.headers.set('Vary', 'Authorization');
+    return res;
   } catch (error) {
     console.error('Admin auto withdraw GET API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
@@ -62,7 +65,10 @@ export async function PUT(request) {
     });
 
     const data = await response.json().catch(() => null);
-    return NextResponse.json(data || { success: response.ok }, { status: response.status });
+    const res = NextResponse.json(data || { success: response.ok }, { status: response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    res.headers.set('Vary', 'Authorization');
+    return res;
   } catch (error) {
     console.error('Admin auto withdraw PUT API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });

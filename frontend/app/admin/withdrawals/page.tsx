@@ -242,6 +242,7 @@ export default function AdminWithdrawalsPage() {
 
       const res = await fetch('/api/admin/auto-withdraw', {
         method: 'GET',
+        cache: 'no-store',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -265,6 +266,7 @@ export default function AdminWithdrawalsPage() {
 
       const res = await fetch('/api/admin/auto-withdraw', {
         method: 'PUT',
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
