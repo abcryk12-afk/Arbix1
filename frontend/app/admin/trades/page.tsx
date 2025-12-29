@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const ITEMS_PER_PAGE = 6;
+
 type TradeLogConfig = {
   rpcHost: string | null;
   minDepositUsdt: number;
@@ -112,6 +114,10 @@ export default function AdminTradesPage() {
   const [query, setQuery] = useState('');
   const [userId, setUserId] = useState('');
 
+  const [eventsPage, setEventsPage] = useState(1);
+  const [depositRequestsPage, setDepositRequestsPage] = useState(1);
+  const [transactionsPage, setTransactionsPage] = useState(1);
+
   const [config, setConfig] = useState<TradeLogConfig | null>(null);
   const [checkpoints, setCheckpoints] = useState<Record<string, any>>({});
   const [counts, setCounts] = useState<TradeLogCounts | null>(null);
@@ -160,6 +166,10 @@ export default function AdminTradesPage() {
       setEvents(Array.isArray(data.events) ? data.events : []);
       setDepositRequests(Array.isArray(data.depositRequests) ? data.depositRequests : []);
       setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
+
+      setEventsPage(1);
+      setDepositRequestsPage(1);
+      setTransactionsPage(1);
     } catch {
       setError('Failed to load trade logs');
       setConfig(null);
@@ -180,6 +190,34 @@ export default function AdminTradesPage() {
 
   const creditedCount = useMemo(() => events.filter((e) => e.credited).length, [events]);
   const pendingCreditCount = useMemo(() => events.filter((e) => !e.credited).length, [events]);
+
+  const eventsTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(events.length / ITEMS_PER_PAGE)),
+    [events.length],
+  );
+  const depositRequestsTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(depositRequests.length / ITEMS_PER_PAGE)),
+    [depositRequests.length],
+  );
+  const transactionsTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(transactions.length / ITEMS_PER_PAGE)),
+    [transactions.length],
+  );
+
+  const pagedEvents = useMemo(() => {
+    const start = (eventsPage - 1) * ITEMS_PER_PAGE;
+    return events.slice(start, start + ITEMS_PER_PAGE);
+  }, [events, eventsPage]);
+
+  const pagedDepositRequests = useMemo(() => {
+    const start = (depositRequestsPage - 1) * ITEMS_PER_PAGE;
+    return depositRequests.slice(start, start + ITEMS_PER_PAGE);
+  }, [depositRequests, depositRequestsPage]);
+
+  const pagedTransactions = useMemo(() => {
+    const start = (transactionsPage - 1) * ITEMS_PER_PAGE;
+    return transactions.slice(start, start + ITEMS_PER_PAGE);
+  }, [transactions, transactionsPage]);
 
   return (
     <div className="bg-slate-950 text-slate-50 min-h-screen">
@@ -313,13 +351,13 @@ export default function AdminTradesPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search tx hash or address"
-                  className="w-64 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-[12px] text-slate-100 placeholder:text-slate-600"
+                  className="w-full sm:w-64 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-[12px] text-slate-100 placeholder:text-slate-600"
                 />
                 <input
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   placeholder="User ID (optional)"
-                  className="w-40 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-[12px] text-slate-100 placeholder:text-slate-600"
+                  className="w-full sm:w-40 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-[12px] text-slate-100 placeholder:text-slate-600"
                 />
                 <button
                   type="button"
@@ -349,11 +387,98 @@ export default function AdminTradesPage() {
       <section className="mx-auto max-w-7xl px-4 py-6 space-y-6">
         <div className="rounded-xl border border-slate-800 bg-slate-950/70">
           <div className="border-b border-slate-800 p-4">
-            <div className="text-sm font-semibold">Chain Deposit Events</div>
-            <div className="text-[11px] text-slate-400">These rows must exist before worker can credit.</div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-sm font-semibold">Chain Deposit Events</div>
+                <div className="text-[11px] text-slate-400">These rows must exist before worker can credit.</div>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">
+                  Page {eventsPage} / {eventsTotalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEventsPage((p) => Math.max(1, p - 1))}
+                  disabled={eventsPage <= 1}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-slate-200 disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventsPage((p) => Math.min(eventsTotalPages, p + 1))}
+                  disabled={eventsPage >= eventsTotalPages}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-slate-200 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="overflow-auto">
+          <div className="md:hidden">
+            {!isLoading && pagedEvents.length === 0 && (
+              <div className="p-4 text-[12px] text-slate-400">No chain deposit events found.</div>
+            )}
+            <div className="divide-y divide-slate-900/80">
+              {pagedEvents.map((e) => (
+                <div key={String(e.id)} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[12px] text-slate-100 font-medium">{e.userName || '-'}</div>
+                      <div className="text-[11px] text-slate-500">#{e.userId || '-'} {e.email || ''}</div>
+                      <div className="mt-1 text-[11px] text-slate-500">{fmtDate(e.createdAt)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[12px] text-slate-100 font-medium">{Number(e.amount || 0).toFixed(2)} USDT</div>
+                      <div className={`text-[11px] ${e.credited ? 'text-emerald-300' : 'text-amber-300'}`}>
+                        {e.credited ? 'Credited' : 'Pending'}
+                      </div>
+                      <div className="text-[11px] text-slate-500">{fmtDate(e.creditedAt)}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="rounded-lg border border-slate-900/70 bg-slate-950/40 p-2">
+                      <div className="text-slate-500">Block</div>
+                      <div className="text-slate-200">{e.blockNumber}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-900/70 bg-slate-950/40 p-2">
+                      <div className="text-slate-500">Tx</div>
+                      <div className="text-slate-200">{shortAddr(e.txHash)}</div>
+                      <div className="text-slate-500">log {e.logIndex}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-900/70 bg-slate-950/40 p-2 col-span-2">
+                      <div className="text-slate-500">To</div>
+                      <div className="text-slate-200">{shortAddr(e.address)}</div>
+                      <div className="text-slate-500">user wallet: {shortAddr(e.walletAddress)}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-900/70 bg-slate-950/40 p-2 col-span-2">
+                      <div className="text-slate-500">Related Requests</div>
+                      {Array.isArray(e.relatedDepositRequests) && e.relatedDepositRequests.length ? (
+                        <div className="mt-1 space-y-1">
+                          {e.relatedDepositRequests.slice(0, 2).map((r) => (
+                            <div key={String(r.id)} className="text-slate-200">
+                              <span className="text-slate-100">#{r.id}</span>{' '}
+                              <span className="text-slate-400">{Number(r.amount || 0).toFixed(2)}</span>{' '}
+                              <span className="text-slate-500">({String(r.status || '')})</span>
+                            </div>
+                          ))}
+                          {e.relatedDepositRequests.length > 2 && (
+                            <div className="text-slate-500">+{e.relatedDepositRequests.length - 2} more</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-slate-500">-</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:block overflow-auto">
             <table className="w-full text-left text-[12px]">
               <thead className="text-[11px] text-slate-400">
                 <tr className="border-b border-slate-800">
@@ -375,7 +500,7 @@ export default function AdminTradesPage() {
                     </td>
                   </tr>
                 )}
-                {events.map((e) => (
+                {pagedEvents.map((e) => (
                   <tr key={String(e.id)} className="border-b border-slate-900/80">
                     <td className="p-3 whitespace-nowrap">{fmtDate(e.createdAt)}</td>
                     <td className="p-3">
@@ -425,11 +550,72 @@ export default function AdminTradesPage() {
 
         <div className="rounded-xl border border-slate-800 bg-slate-950/70">
           <div className="border-b border-slate-800 p-4">
-            <div className="text-sm font-semibold">Deposit Requests</div>
-            <div className="text-[11px] text-slate-400">If tx hash is attached, it should be “processing” until credited.</div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-sm font-semibold">Deposit Requests</div>
+                <div className="text-[11px] text-slate-400">If tx hash is attached, it should be “processing” until credited.</div>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">
+                  Page {depositRequestsPage} / {depositRequestsTotalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDepositRequestsPage((p) => Math.max(1, p - 1))}
+                  disabled={depositRequestsPage <= 1}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-slate-200 disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDepositRequestsPage((p) => Math.min(depositRequestsTotalPages, p + 1))}
+                  disabled={depositRequestsPage >= depositRequestsTotalPages}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-slate-200 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="overflow-auto">
+          <div className="md:hidden">
+            {!isLoading && pagedDepositRequests.length === 0 && (
+              <div className="p-4 text-[12px] text-slate-400">No deposit requests found.</div>
+            )}
+            <div className="divide-y divide-slate-900/80">
+              {pagedDepositRequests.map((r) => (
+                <div key={String(r.id)} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[12px] text-slate-100 font-medium">{r.userName || '-'}</div>
+                      <div className="text-[11px] text-slate-500">#{r.userId} {r.email || ''}</div>
+                      <div className="mt-1 text-[11px] text-slate-500">{fmtDate(r.createdAt)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[12px] text-slate-100 font-medium">{Number(r.amount || 0).toFixed(2)} USDT</div>
+                      <div className="text-[11px] text-slate-400">
+                        {String(r.status || '').toLowerCase() === 'pending' && r.txHash ? 'processing' : String(r.status || '-')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="rounded-lg border border-slate-900/70 bg-slate-950/40 p-2 col-span-2">
+                      <div className="text-slate-500">Tx</div>
+                      <div className="text-slate-200">{r.txHash ? shortAddr(r.txHash) : '-'}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-900/70 bg-slate-950/40 p-2 col-span-2">
+                      <div className="text-slate-500">Address</div>
+                      <div className="text-slate-200">{shortAddr(r.address)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:block overflow-auto">
             <table className="w-full text-left text-[12px]">
               <thead className="text-[11px] text-slate-400">
                 <tr className="border-b border-slate-800">
@@ -449,7 +635,7 @@ export default function AdminTradesPage() {
                     </td>
                   </tr>
                 )}
-                {depositRequests.map((r) => (
+                {pagedDepositRequests.map((r) => (
                   <tr key={String(r.id)} className="border-b border-slate-900/80">
                     <td className="p-3 whitespace-nowrap">{fmtDate(r.createdAt)}</td>
                     <td className="p-3">
@@ -471,11 +657,64 @@ export default function AdminTradesPage() {
 
         <div className="rounded-xl border border-slate-800 bg-slate-950/70">
           <div className="border-b border-slate-800 p-4">
-            <div className="text-sm font-semibold">Deposit Transactions</div>
-            <div className="text-[11px] text-slate-400">These appear only after the worker credits the wallet.</div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-sm font-semibold">Deposit Transactions</div>
+                <div className="text-[11px] text-slate-400">These appear only after the worker credits the wallet.</div>
+              </div>
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-slate-500">
+                  Page {transactionsPage} / {transactionsTotalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setTransactionsPage((p) => Math.max(1, p - 1))}
+                  disabled={transactionsPage <= 1}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-slate-200 disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTransactionsPage((p) => Math.min(transactionsTotalPages, p + 1))}
+                  disabled={transactionsPage >= transactionsTotalPages}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-1.5 text-slate-200 disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="overflow-auto">
+          <div className="md:hidden">
+            {!isLoading && pagedTransactions.length === 0 && (
+              <div className="p-4 text-[12px] text-slate-400">No deposit transactions found.</div>
+            )}
+            <div className="divide-y divide-slate-900/80">
+              {pagedTransactions.map((t) => (
+                <div key={String(t.id)} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[12px] text-slate-100 font-medium">{t.userName || '-'}</div>
+                      <div className="text-[11px] text-slate-500">#{t.userId} {t.email || ''}</div>
+                      <div className="mt-1 text-[11px] text-slate-500">{fmtDate(t.createdAt)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[12px] text-slate-100 font-medium">{Number(t.amount || 0).toFixed(2)} USDT</div>
+                      <div className="text-[11px] text-slate-500">{t.createdBy || '-'}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-lg border border-slate-900/70 bg-slate-950/40 p-2 text-[11px]">
+                    <div className="text-slate-500">Note</div>
+                    <div className="text-slate-200">{t.note || '-'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:block overflow-auto">
             <table className="w-full text-left text-[12px]">
               <thead className="text-[11px] text-slate-400">
                 <tr className="border-b border-slate-800">
@@ -494,7 +733,7 @@ export default function AdminTradesPage() {
                     </td>
                   </tr>
                 )}
-                {transactions.map((t) => (
+                {pagedTransactions.map((t) => (
                   <tr key={String(t.id)} className="border-b border-slate-900/80">
                     <td className="p-3 whitespace-nowrap">{fmtDate(t.createdAt)}</td>
                     <td className="p-3">
