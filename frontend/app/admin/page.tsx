@@ -129,6 +129,14 @@ type AdminStats = {
   pendingWithdrawals: number;
 };
 
+type InvestmentPackageConfig = {
+  name: string;
+  capital: number | 'flex';
+  minCapital?: number;
+  dailyRoi: number;
+  durationDays: number;
+};
+
 const ADMIN_USERS_PAGE_SIZE = 5;
 
 const KYC_PENDING: KycPending[] = [];
@@ -140,12 +148,29 @@ const shortAddr = (addr: string) => {
   return `${addr.slice(0, 8)}...${addr.slice(-4)}`;
 };
 
+const INVESTMENT_PACKAGE_IDS = [
+  'starter',
+  'basic',
+  'growth',
+  'silver',
+  'gold',
+  'platinum',
+  'elite_plus',
+] as const;
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [withdrawFilter, setWithdrawFilter] = useState<'pending' | 'all'>('pending');
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
+
+  const [investmentPackages, setInvestmentPackages] = useState<Record<string, InvestmentPackageConfig>>({});
+  const [isLoadingInvestmentPackages, setIsLoadingInvestmentPackages] = useState(false);
+  const [isSavingInvestmentPackages, setIsSavingInvestmentPackages] = useState(false);
+  const [applyInvestmentPackagesToActive, setApplyInvestmentPackagesToActive] = useState(false);
+  const [investmentPackagesMessage, setInvestmentPackagesMessage] = useState('');
+  const [investmentPackagesMessageType, setInvestmentPackagesMessageType] = useState<'success' | 'error' | ''>('');
 
   const [manageUsers, setManageUsers] = useState<ManageUserListRow[]>([]);
   const [isLoadingManageUsers, setIsLoadingManageUsers] = useState(false);
@@ -209,6 +234,87 @@ export default function AdminDashboardPage() {
       }
     } catch {
       // ignore
+    }
+  };
+
+  const loadInvestmentPackages = async () => {
+    try {
+      setIsLoadingInvestmentPackages(true);
+      setInvestmentPackagesMessage('');
+      setInvestmentPackagesMessageType('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/investment-packages', {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (data?.success && data?.packages && typeof data.packages === 'object') {
+        setInvestmentPackages(data.packages);
+      } else {
+        setInvestmentPackages({});
+      }
+    } catch {
+      setInvestmentPackages({});
+    } finally {
+      setIsLoadingInvestmentPackages(false);
+    }
+  };
+
+  const saveInvestmentPackages = async () => {
+    try {
+      setIsSavingInvestmentPackages(true);
+      setInvestmentPackagesMessage('');
+      setInvestmentPackagesMessageType('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setInvestmentPackagesMessage('Not logged in');
+        setInvestmentPackagesMessageType('error');
+        return;
+      }
+
+      const res = await fetch('/api/admin/investment-packages', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          packages: investmentPackages,
+          applyToActive: applyInvestmentPackagesToActive,
+        }),
+      });
+
+      const data = await res.json();
+      if (!data?.success) {
+        setInvestmentPackagesMessage(data?.message || 'Failed to update packages');
+        setInvestmentPackagesMessageType('error');
+        return;
+      }
+
+      if (data?.packages && typeof data.packages === 'object') {
+        setInvestmentPackages(data.packages);
+      }
+
+      const applied = Number(data?.appliedToActive || 0);
+      setInvestmentPackagesMessage(
+        applyInvestmentPackagesToActive
+          ? `Packages updated. Applied to active packages: ${applied}`
+          : 'Packages updated.'
+      );
+      setInvestmentPackagesMessageType('success');
+    } catch {
+      setInvestmentPackagesMessage('An error occurred. Please try again.');
+      setInvestmentPackagesMessageType('error');
+    } finally {
+      setIsSavingInvestmentPackages(false);
     }
   };
 
@@ -466,6 +572,7 @@ export default function AdminDashboardPage() {
     await loadAdminUsers();
     await loadAdminStats();
     await loadRecentTransactions();
+    await loadInvestmentPackages();
   };
 
   useEffect(() => {
@@ -499,6 +606,7 @@ export default function AdminDashboardPage() {
           await loadManageUsers('');
           await loadAdminStats();
           await loadRecentTransactions();
+          await loadInvestmentPackages();
         }
       } catch {
         localStorage.removeItem('adminToken');
@@ -896,6 +1004,177 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-slate-800 bg-transparent">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+                Investment Packages ROI Control
+              </h2>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Update per-package ROI and labels for new activations. You can optionally apply changes to currently active packages.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex items-center gap-2 text-[11px] text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={applyInvestmentPackagesToActive}
+                  onChange={(e) => setApplyInvestmentPackagesToActive(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+                />
+                Apply to active packages
+              </label>
+              <button
+                type="button"
+                onClick={saveInvestmentPackages}
+                disabled={isSavingInvestmentPackages || isLoadingInvestmentPackages}
+                className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-500 disabled:opacity-60"
+              >
+                {isSavingInvestmentPackages ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+
+          {investmentPackagesMessage && (
+            <div
+              className={
+                'mb-3 rounded-lg border px-3 py-2 text-[11px] ' +
+                (investmentPackagesMessageType === 'success'
+                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+              }
+            >
+              {investmentPackagesMessage}
+            </div>
+          )}
+
+          <div className="arbix-card rounded-2xl p-4">
+            <div className="overflow-x-auto">
+              <table className="min-w-[860px] w-full text-left text-[11px]">
+                <thead className="text-slate-400">
+                  <tr className="border-b border-slate-800">
+                    <th className="p-2">Package ID</th>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Capital</th>
+                    <th className="p-2">Min Capital</th>
+                    <th className="p-2">Daily ROI %</th>
+                    <th className="p-2">Duration (days)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-900/80">
+                  {isLoadingInvestmentPackages ? (
+                    <tr>
+                      <td colSpan={6} className="p-4 text-slate-500">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : (
+                    INVESTMENT_PACKAGE_IDS.map((id) => {
+                      const pkg = investmentPackages[String(id)];
+                      return (
+                        <tr key={String(id)}>
+                          <td className="p-2 font-mono text-slate-300">{String(id)}</td>
+                          <td className="p-2">
+                            <input
+                              value={pkg?.name || ''}
+                              onChange={(e) =>
+                                setInvestmentPackages((prev) => ({
+                                  ...prev,
+                                  [String(id)]: {
+                                    ...(prev[String(id)] || ({} as any)),
+                                    name: e.target.value,
+                                  },
+                                }))
+                              }
+                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              value={pkg?.capital === 'flex' ? 'flex' : String(pkg?.capital ?? '')}
+                              onChange={(e) => {
+                                const nextRaw = e.target.value;
+                                const nextCapital = nextRaw.trim().toLowerCase() === 'flex' ? 'flex' : Number(nextRaw);
+                                setInvestmentPackages((prev) => ({
+                                  ...prev,
+                                  [String(id)]: {
+                                    ...(prev[String(id)] || ({} as any)),
+                                    capital: nextCapital === 'flex' ? 'flex' : Number.isFinite(nextCapital) ? nextCapital : 0,
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              placeholder="10 / flex"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              value={pkg?.minCapital != null ? String(pkg.minCapital) : ''}
+                              onChange={(e) => {
+                                const n = Number(e.target.value);
+                                setInvestmentPackages((prev) => ({
+                                  ...prev,
+                                  [String(id)]: {
+                                    ...(prev[String(id)] || ({} as any)),
+                                    minCapital: Number.isFinite(n) ? n : 0,
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              placeholder={pkg?.capital === 'flex' ? '1000' : '—'}
+                              disabled={pkg?.capital !== 'flex'}
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              value={pkg?.dailyRoi != null ? String(pkg.dailyRoi) : ''}
+                              onChange={(e) => {
+                                const n = Number(e.target.value);
+                                setInvestmentPackages((prev) => ({
+                                  ...prev,
+                                  [String(id)]: {
+                                    ...(prev[String(id)] || ({} as any)),
+                                    dailyRoi: Number.isFinite(n) ? n : 0,
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              placeholder="1.5"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              value={pkg?.durationDays != null ? String(pkg.durationDays) : ''}
+                              onChange={(e) => {
+                                const n = Number(e.target.value);
+                                setInvestmentPackages((prev) => ({
+                                  ...prev,
+                                  [String(id)]: {
+                                    ...(prev[String(id)] || ({} as any)),
+                                    durationDays: Number.isFinite(n) ? Math.floor(n) : 0,
+                                  },
+                                }));
+                              }}
+                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              placeholder="365"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 text-[11px] text-slate-400">
+              Note: daily profits are calculated using the stored ROI per user package. If you enable &quot;Apply to active packages&quot;, future daily credits will use the updated ROI.
             </div>
           </div>
         </div>

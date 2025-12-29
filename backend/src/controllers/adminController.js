@@ -9,6 +9,11 @@ const {
   setStoredEmailList,
   normalizeEmailList,
 } = require('../services/adminNotificationEmailService');
+const {
+  DEFAULT_PACKAGES,
+  getInvestmentPackagesConfig,
+  setInvestmentPackagesConfig,
+} = require('../services/investmentPackageConfigService');
 
 let notificationsColumnsCache = null;
 
@@ -137,6 +142,66 @@ exports.setAutoWithdrawSetting = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to update auto withdraw setting',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getInvestmentPackagesSetting = async (req, res) => {
+  try {
+    const cfg = await getInvestmentPackagesConfig();
+    return res.status(200).json({
+      success: true,
+      packages: cfg.packages,
+      defaults: DEFAULT_PACKAGES,
+    });
+  } catch (error) {
+    console.error('Get investment packages setting error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to load investment packages',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.setInvestmentPackagesSetting = async (req, res) => {
+  try {
+    const applyToActive = Boolean(req.body?.applyToActive);
+    const saved = await setInvestmentPackagesConfig({ packages: req.body?.packages });
+
+    let appliedToActive = 0;
+    if (applyToActive) {
+      await sequelize.transaction(async (t) => {
+        for (const packageId of Object.keys(saved || {})) {
+          const p = saved[packageId];
+          const updateResult = await UserPackage.update(
+            {
+              daily_roi: Number(p.dailyRoi || 0),
+              package_name: String(p.name || ''),
+            },
+            {
+              where: { package_id: String(packageId), status: 'active' },
+              transaction: t,
+            },
+          );
+          const count = Array.isArray(updateResult) ? updateResult[0] : updateResult;
+          appliedToActive += Number(count || 0);
+        }
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      packages: saved,
+      applyToActive,
+      appliedToActive,
+    });
+  } catch (error) {
+    console.error('Set investment packages setting error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update investment packages',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

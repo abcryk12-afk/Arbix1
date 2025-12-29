@@ -3,16 +3,7 @@ const { ethers } = require('ethers');
 const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, SiteSetting, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
-
-const PACKAGES = {
-  starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
-  basic: { name: 'Basic', capital: 30, dailyRoi: 1.3, durationDays: 365 },
-  growth: { name: 'Growth', capital: 50, dailyRoi: 1.5, durationDays: 365 },
-  silver: { name: 'Silver', capital: 100, dailyRoi: 2, durationDays: 365 },
-  gold: { name: 'Gold', capital: 500, dailyRoi: 3, durationDays: 365 },
-  platinum: { name: 'Platinum', capital: 1000, dailyRoi: 4, durationDays: 365 },
-  elite_plus: { name: 'Elite+', capital: 'flex', minCapital: 1000, dailyRoi: 4.5, durationDays: 365 },
-};
+const { getInvestmentPackagesConfig } = require('../services/investmentPackageConfigService');
 
 exports.getSummary = async (req, res) => {
   try {
@@ -873,11 +864,14 @@ exports.activatePackage = async (req, res) => {
     const userId = req.user.id;
     const { packageId, capital } = req.body;
 
-    if (!packageId || !PACKAGES[String(packageId)]) {
+    const cfg = await getInvestmentPackagesConfig();
+    const packages = cfg?.packages || {};
+
+    if (!packageId || !packages[String(packageId)]) {
       return res.status(400).json({ success: false, message: 'Invalid packageId' });
     }
 
-    const config = PACKAGES[String(packageId)];
+    const config = packages[String(packageId)];
 
     const cap =
       config.capital === 'flex'

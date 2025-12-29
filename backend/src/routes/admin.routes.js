@@ -15,6 +15,8 @@ const {
   deleteUser,
   getAdminNotificationEmails,
   setAdminNotificationEmails,
+  getInvestmentPackagesSetting,
+  setInvestmentPackagesSetting,
   getAutoWithdrawSetting,
   setAutoWithdrawSetting,
   listWallets,
@@ -43,6 +45,8 @@ router.get('/check', protect, requireAdminUser, checkAccess);
 router.get('/logs', protect, requireAdminUser, listLogs);
 router.get('/notification-emails', protect, requireAdminUser, getAdminNotificationEmails);
 router.put('/notification-emails', protect, requireAdminUser, auditAdminAction('admin_notification_emails.update', { entity: 'site_setting' }), setAdminNotificationEmails);
+router.get('/investment-packages', protect, requireAdminUser, getInvestmentPackagesSetting);
+router.put('/investment-packages', protect, requireAdminUser, auditAdminAction('investment_packages.update', { entity: 'site_setting' }), setInvestmentPackagesSetting);
 router.get('/auto-withdraw', protect, requireAdminUser, getAutoWithdrawSetting);
 router.put('/auto-withdraw', protect, requireAdminUser, auditAdminAction('auto_withdraw.toggle', { entity: 'site_setting' }), setAutoWithdrawSetting);
 router.get('/users', protect, requireAdminUser, listUsers);
