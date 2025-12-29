@@ -6,6 +6,7 @@ const {
   getSummary,
   getActivity,
   listNotifications,
+  markNotificationsRead,
   updateProfile,
   getFooterStats,
   getReferrals,
@@ -21,6 +22,8 @@ const {
 router.get('/summary', protect, getSummary);
 router.get('/activity', protect, getActivity);
 router.get('/notifications', protect, listNotifications);
+router.post('/notifications/read', protect, markNotificationsRead);
+router.put('/notifications/read', protect, markNotificationsRead);
 router.put('/profile', protect, updateProfile);
 router.get('/footer-stats', protect, getFooterStats);
 router.get('/referrals', protect, getReferrals);

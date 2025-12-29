@@ -50,6 +50,8 @@ export default function AdminHeader() {
     { label: "KYC", href: "/admin/kyc" },
     { label: "Withdrawals", href: "/admin/withdrawals" },
     { label: "Packages", href: "/admin/packages" },
+    { label: "Trade Logs", href: "/admin/trades" },
+    { label: "Notifications", href: "/admin/notifications" },
   ];
 
   return (

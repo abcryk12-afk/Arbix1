@@ -206,6 +206,110 @@ exports.listNotifications = async (req, res) => {
   }
 };
 
+exports.markNotificationsRead = async (req, res) => {
+  const isNotificationsSchemaError = (err) => {
+    const code = err?.original?.code || err?.parent?.code || err?.code;
+    const msg = String(err?.original?.message || err?.message || '');
+    return (
+      code === 'ER_NO_SUCH_TABLE' ||
+      code === 'ER_BAD_FIELD_ERROR' ||
+      msg.toLowerCase().includes('notifications') ||
+      msg.toLowerCase().includes('unknown column')
+    );
+  };
+
+  const pickCol = (colsSet, candidates) => candidates.find((c) => colsSet.has(c)) || null;
+
+  const normalizeIds = (input) => {
+    if (!Array.isArray(input)) return [];
+    return input
+      .map((v) => Number(v))
+      .filter((v) => Number.isFinite(v) && v > 0)
+      .slice(0, 200);
+  };
+
+  const updateWithModel = async ({ userId, ids }) => {
+    const where = { user_id: userId, is_read: false };
+    if (ids.length) where.id = { [Op.in]: ids };
+    const result = await Notification.update({ is_read: true }, { where });
+    const updated = Array.isArray(result) ? Number(result[0] || 0) : Number(result || 0);
+    return updated;
+  };
+
+  try {
+    const userId = req.user.id;
+    const ids = normalizeIds(req.body?.ids);
+    const all = Boolean(req.body?.all);
+
+    if (!all && ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Provide ids[] or set all=true' });
+    }
+
+    const runRawUpdate = async () => {
+      const qi = sequelize.getQueryInterface();
+      const desc = await qi.describeTable('notifications');
+      const colsSet = new Set(Object.keys(desc || {}));
+
+      const userCol = pickCol(colsSet, ['user_id', 'userId']);
+      const isReadCol = pickCol(colsSet, ['is_read', 'isRead']);
+      const idCol = pickCol(colsSet, ['id']);
+
+      if (!userCol || !isReadCol) {
+        const e = new Error('notifications table schema incompatible');
+        e.code = 'NOTIFICATIONS_SCHEMA_INCOMPATIBLE';
+        throw e;
+      }
+
+      let whereSql = `${userCol} = :userId AND ${isReadCol} = 0`;
+      const replacements = { userId };
+
+      if (!all && ids.length && idCol) {
+        whereSql += ` AND ${idCol} IN (:ids)`;
+        replacements.ids = ids;
+      }
+
+      const sql = `UPDATE notifications SET ${isReadCol} = 1 WHERE ${whereSql}`;
+      const result = await sequelize.query(sql, { replacements });
+      const meta = Array.isArray(result) ? result[1] : null;
+      const updated = Number(meta?.affectedRows ?? meta?.changedRows ?? 0);
+      return updated;
+    };
+
+    let updated = 0;
+    try {
+      updated = await updateWithModel({ userId, ids: all ? [] : ids });
+    } catch (err) {
+      if (isNotificationsSchemaError(err)) {
+        await Notification.sync({ alter: true });
+        try {
+          updated = await updateWithModel({ userId, ids: all ? [] : ids });
+        } catch (err2) {
+          if (!isNotificationsSchemaError(err2)) throw err2;
+          updated = await runRawUpdate();
+        }
+      } else {
+        try {
+          updated = await runRawUpdate();
+        } catch {
+          throw err;
+        }
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      updated,
+    });
+  } catch (error) {
+    console.error('Mark notifications read error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to mark notifications as read',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.getActivity = async (req, res) => {
   try {
     const userId = req.user.id;

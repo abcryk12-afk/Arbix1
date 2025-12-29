@@ -16,6 +16,7 @@ export default function DashboardHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [displayName, setDisplayName] = useState<string>('');
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -66,6 +67,42 @@ export default function DashboardHeader() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setHasUnreadNotifications(false);
+          return;
+        }
+
+        const res = await fetch('/api/user/notifications?limit=20', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data?.success || !Array.isArray(data?.notifications)) {
+          setHasUnreadNotifications(false);
+          return;
+        }
+
+        const anyUnread = data.notifications.some((n: any) => !Boolean(n?.isRead));
+        setHasUnreadNotifications(anyUnread);
+      } catch {
+        setHasUnreadNotifications(false);
+      }
+    };
+
+    fetchUnread();
+
+    const onUpdate = () => fetchUnread();
+    window.addEventListener('arbix-notifications-updated', onUpdate);
+    return () => window.removeEventListener('arbix-notifications-updated', onUpdate);
   }, []);
 
   const navItems: NavItem[] = useMemo(
@@ -139,6 +176,28 @@ export default function DashboardHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/notifications"
+            className={
+              'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
+              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none'
+            }
+            aria-label="Notifications"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
+              />
+            </svg>
+            {hasUnreadNotifications && (
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+            )}
+          </Link>
+
           <div className="hidden text-right text-[11px] text-slate-300 md:block">
             <div className="font-medium text-slate-100">{displayName || 'Account'}</div>
             <div className="text-slate-500">Logged in</div>
@@ -224,6 +283,22 @@ export default function DashboardHeader() {
                   {item.label}
                 </Link>
               ))}
+
+              <Link
+                href="/dashboard/notifications"
+                onClick={() => setMobileOpen(false)}
+                className={
+                  (
+                    'rounded-lg border px-3 py-2 text-xs transition-colors duration-150 ' +
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none '
+                  ) +
+                  (isActive({ label: 'Notifications', href: '/dashboard/notifications', match: 'prefix' })
+                    ? 'border-slate-700 bg-slate-800 text-slate-50'
+                    : 'border-slate-800 text-slate-200 hover:border-slate-700 hover:bg-slate-900/50')
+                }
+              >
+                Notifications
+              </Link>
             </nav>
           </div>
         </div>
