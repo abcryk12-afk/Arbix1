@@ -15,12 +15,13 @@ type PackageConfig = {
   id: PackageId;
   name: string;
   capital: number | 'flex';
+  minCapital?: number;
   dailyRoi: number; // percent
   durationDays: number;
   bullets: string[];
 };
 
-const PACKAGES: PackageConfig[] = [
+const DEFAULT_PACKAGES: PackageConfig[] = [
   {
     id: 'starter',
     name: 'Starter',
@@ -97,6 +98,7 @@ const PACKAGES: PackageConfig[] = [
     id: 'elite_plus',
     name: 'Elite+',
     capital: 'flex',
+    minCapital: 1000,
     dailyRoi: 4.5,
     durationDays: 365,
     bullets: [
@@ -128,6 +130,8 @@ export default function StartInvestmentPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activationError, setActivationError] = useState<string>('');
 
+  const [packagesConfig, setPackagesConfig] = useState<PackageConfig[]>(DEFAULT_PACKAGES);
+
   const [selectedPackageId, setSelectedPackageId] = useState<PackageId | null>(
     null,
   );
@@ -135,9 +139,71 @@ export default function StartInvestmentPage() {
   const [eliteCapital, setEliteCapital] = useState<number>(1000);
 
   const selectedConfig = useMemo(
-    () => PACKAGES.find((p) => p.id === selectedPackageId) || null,
-    [selectedPackageId],
+    () => packagesConfig.find((p) => p.id === selectedPackageId) || null,
+    [packagesConfig, selectedPackageId],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPublicConfig = async () => {
+      try {
+        const res = await fetch('/api/public/investment-packages', { method: 'GET', cache: 'no-store' });
+        const data = await res.json();
+        if (cancelled) return;
+
+        const remote = data?.success && data?.packages && typeof data.packages === 'object'
+          ? data.packages
+          : null;
+        if (!remote) return;
+
+        setPackagesConfig((prev) =>
+          prev.map((p) => {
+            const r = remote[p.id];
+            if (!r || typeof r !== 'object') return p;
+
+            const name = typeof r.name === 'string' && r.name.trim() ? String(r.name) : p.name;
+
+            let capital: number | 'flex' = p.capital;
+            if (r.capital === 'flex') {
+              capital = 'flex';
+            } else if (r.capital != null) {
+              const n = Number(r.capital);
+              if (Number.isFinite(n) && n > 0) capital = n;
+            }
+
+            const dailyRoi = Number(r.dailyRoi);
+            const durationDays = Number(r.durationDays);
+
+            let minCapital: number | undefined = p.minCapital;
+            if (capital === 'flex') {
+              const m = Number(r.minCapital);
+              if (Number.isFinite(m) && m > 0) minCapital = m;
+              if (!Number.isFinite(Number(minCapital)) || Number(minCapital) <= 0) minCapital = 1000;
+            } else {
+              minCapital = undefined;
+            }
+
+            return {
+              ...p,
+              name,
+              capital,
+              dailyRoi: Number.isFinite(dailyRoi) && dailyRoi > 0 ? dailyRoi : p.dailyRoi,
+              durationDays: Number.isFinite(durationDays) && durationDays > 0 ? Math.floor(durationDays) : p.durationDays,
+              ...(capital === 'flex' ? { minCapital } : { minCapital: undefined }),
+            };
+          })
+        );
+      } catch {
+        // ignore
+      }
+    };
+
+    loadPublicConfig();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const requiredCapital =
     selectedConfig?.capital === 'flex'
@@ -152,8 +218,12 @@ export default function StartInvestmentPage() {
   }, [selectedConfig, requiredCapital]);
 
   const handleActivateClick = (id: PackageId) => {
+    const pkg = packagesConfig.find((p) => p.id === id);
     setSelectedPackageId(id);
     setShowActivation(true);
+    if (pkg?.capital === 'flex') {
+      setEliteCapital(Number(pkg.minCapital || 1000));
+    }
     const el = document.getElementById('activation-panel');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -172,6 +242,14 @@ export default function StartInvestmentPage() {
     if (!Number.isFinite(cap) || cap <= 0) {
       setActivationError('Invalid capital amount.');
       return;
+    }
+
+    if (selectedConfig.capital === 'flex') {
+      const minCap = Number(selectedConfig.minCapital || 1000);
+      if (Number.isFinite(minCap) && cap < minCap) {
+        setActivationError(`Capital must be at least ${minCap}.`);
+        return;
+      }
     }
 
     try {
@@ -354,10 +432,11 @@ export default function StartInvestmentPage() {
           </p>
 
           <div className="mt-4 grid gap-4 text-xs text-slate-300 sm:grid-cols-2">
-            {PACKAGES.map((pkg) => {
+            {packagesConfig.map((pkg) => {
+              const minCap = Number(pkg.minCapital || 1000);
               const capLabel =
                 pkg.capital === 'flex'
-                  ? '$1,000+' 
+                  ? `$${minCap.toLocaleString()}+` 
                   : `$${pkg.capital.toLocaleString()}`;
               const tagColor =
                 pkg.id === 'starter'
@@ -370,7 +449,7 @@ export default function StartInvestmentPage() {
 
               const expectedDaily =
                 pkg.capital === 'flex'
-                  ? (1000 * pkg.dailyRoi) / 100
+                  ? (minCap * pkg.dailyRoi) / 100
                   : (pkg.capital * pkg.dailyRoi) / 100;
 
               return (
@@ -475,20 +554,20 @@ export default function StartInvestmentPage() {
                     <span className="text-slate-400">Required Capital:</span>{' '}
                     <span className="font-semibold text-slate-100">
                       {selectedConfig.capital === 'flex'
-                        ? '$1,000+'
+                        ? `$${Number(selectedConfig.minCapital || 1000).toLocaleString()}+`
                         : `$${selectedConfig.capital.toLocaleString()}`}
                     </span>
                   </p>
                   {selectedConfig.capital === 'flex' && (
                     <div className="mt-2">
                       <label className="block text-[11px] text-slate-400">
-                        Enter Capital (min 1000)
+                        Enter Capital (min {Number(selectedConfig.minCapital || 1000)})
                       </label>
                       <input
                         value={eliteCapital}
                         onChange={(e) => setEliteCapital(Number(e.target.value || 0))}
                         type="number"
-                        min={1000}
+                        min={Number(selectedConfig.minCapital || 1000)}
                         className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-sky-500/60"
                       />
                     </div>

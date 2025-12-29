@@ -5,6 +5,23 @@ const { ensureWalletForUser } = require('../services/walletService');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
 const { getInvestmentPackagesConfig } = require('../services/investmentPackageConfigService');
 
+exports.getPublicInvestmentPackages = async (req, res) => {
+  try {
+    const cfg = await getInvestmentPackagesConfig();
+    return res.status(200).json({
+      success: true,
+      packages: cfg?.packages || {},
+    });
+  } catch (error) {
+    console.error('Get public investment packages error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch investment packages',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.getSummary = async (req, res) => {
   try {
     const userId = req.user.id;
