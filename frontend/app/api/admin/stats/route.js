@@ -2,9 +2,14 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+const normalizeBaseUrl = (raw) => {
+  const base = (raw || 'http://localhost:5000').trim();
+  return base.replace(/\/+$/, '').replace(/\/api$/, '');
+};
+
 export async function GET(request) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = normalizeBaseUrl(process.env.BACKEND_URL);
     const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
 
@@ -17,6 +22,7 @@ export async function GET(request) {
 
     const response = await fetch(`${baseUrl}/api/admin/stats`, {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         Authorization: authHeader,
         'X-Admin-Key': adminKey,
@@ -24,7 +30,10 @@ export async function GET(request) {
     });
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    const res = NextResponse.json(data, { status: response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    res.headers.set('Vary', 'Authorization');
+    return res;
   } catch (error) {
     console.error('Admin stats API error:', error);
     return NextResponse.json(

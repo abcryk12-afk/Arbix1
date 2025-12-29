@@ -1667,14 +1667,16 @@ exports.getAdminStats = async (req, res) => {
   try {
     const [totalUsers, activeInvestors, totalDepositedRaw, totalWithdrawnRaw, pendingKyc, pendingWithdrawals] =
       await Promise.all([
-        User.count(),
-        UserPackage.count({ where: { status: 'active' } }),
+        User.count({ where: { role: { [Op.ne]: 'admin' } } }),
+        UserPackage.count({ where: { status: 'active' }, distinct: true, col: 'user_id' }),
         Transaction.sum('amount', { where: { type: 'deposit' } }),
         Transaction.sum('amount', { where: { type: 'withdraw' } }),
-        User.count({ where: { kyc_status: 'pending' } }),
+        User.count({ where: { kyc_status: 'pending', role: { [Op.ne]: 'admin' } } }),
         WithdrawalRequest.count({ where: { status: 'pending' } }),
       ]);
 
+    res.set('Cache-Control', 'no-store');
+    res.set('Vary', 'Authorization');
     res.status(200).json({
       success: true,
       stats: {

@@ -354,6 +354,7 @@ export default function AdminDashboardPage() {
 
       const res = await fetch('/api/admin/stats', {
         method: 'GET',
+        cache: 'no-store',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -459,6 +460,12 @@ export default function AdminDashboardPage() {
     } finally {
       setIsRunningDailyProfit(false);
     }
+  };
+
+  const refreshDashboard = async () => {
+    await loadAdminUsers();
+    await loadAdminStats();
+    await loadRecentTransactions();
   };
 
   useEffect(() => {
@@ -690,7 +697,7 @@ export default function AdminDashboardPage() {
             </h2>
             <button
               type="button"
-              onClick={loadAdminUsers}
+              onClick={refreshDashboard}
               className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
             >
               Refresh
