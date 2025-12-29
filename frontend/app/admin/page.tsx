@@ -688,13 +688,15 @@ export default function AdminDashboardPage() {
   const userEndIndex = Math.min(adminUsers.length, userPage * ADMIN_USERS_PAGE_SIZE);
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
-      <section className="border-b border-slate-800 bg-slate-950">
+    <div className="min-h-screen text-slate-50">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-              Users (Latest) + Adjust Balance
-            </h2>
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight md:text-xl">
+                Admin Dashboard
+              </h1>
+            </div>
             <button
               type="button"
               onClick={refreshDashboard}
@@ -900,43 +902,43 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Global Summary Cards */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
             Platform Overview
           </h2>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 text-xs">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
               <p className="text-[11px] text-slate-400">Total Users</p>
               <p className="mt-1 text-lg font-semibold text-slate-100">
                 {adminStats ? adminStats.totalUsers.toLocaleString() : '–'}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-card-emerald arbix-3d arbix-3d-emerald rounded-2xl p-3">
               <p className="text-[11px] text-slate-400">Active Investors</p>
               <p className="mt-1 text-lg font-semibold text-emerald-400">
                 {adminStats ? adminStats.activeInvestors.toLocaleString() : '–'}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
               <p className="text-[11px] text-slate-400">Total Deposited</p>
               <p className="mt-1 text-lg font-semibold text-blue-400">
                 {adminStats ? `$${adminStats.totalDeposited.toFixed(2)}` : '$0.00'}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-card-amber arbix-3d arbix-3d-amber rounded-2xl p-3">
               <p className="text-[11px] text-slate-400">Total Withdrawn</p>
               <p className="mt-1 text-lg font-semibold text-orange-400">
                 {adminStats ? `$${adminStats.totalWithdrawn.toFixed(2)}` : '$0.00'}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-card-amber arbix-3d arbix-3d-amber rounded-2xl p-3">
               <p className="text-[11px] text-slate-400">Pending KYC</p>
               <p className="mt-1 text-lg font-semibold text-amber-400">
                 {adminStats ? adminStats.pendingKyc.toLocaleString() : '0'}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="arbix-card arbix-card-red arbix-3d arbix-3d-red rounded-2xl p-3">
               <p className="text-[11px] text-slate-400">Pending Withdrawals</p>
               <p className="mt-1 text-lg font-semibold text-red-400">
                 {adminStats ? adminStats.pendingWithdrawals.toLocaleString() : '0'}
@@ -947,34 +949,34 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Quick Admin Actions */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
             Quick Actions
           </h2>
           <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            <a href="/admin/users" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/users" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Users Management
             </a>
-            <a href="/admin/user-wallets" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/user-wallets" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               User Wallets
             </a>
-            <a href="/admin/kyc" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/kyc" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               KYC Review
             </a>
-            <a href="/admin/withdrawals" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/withdrawals" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Withdraw Requests
             </a>
-            <a href="/admin/packages" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/packages" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Packages Config
             </a>
-            <a href="/admin/trades" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/trades" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Trade Logs
             </a>
-            <a href="/admin/notifications" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/notifications" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Notifications
             </a>
-            <a href="/admin/logs" className="rounded-lg border border-slate-800 bg-slate-950/70 p-2 text-center text-[11px] hover:border-slate-600">
+            <a href="/admin/logs" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Admin Logs
             </a>
           </div>

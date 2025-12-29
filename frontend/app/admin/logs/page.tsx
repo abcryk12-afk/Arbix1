@@ -145,8 +145,8 @@ export default function AdminLogsPage() {
   }, [worker, query]);
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
-      <section className="border-b border-slate-800 bg-slate-950/95">
+    <div className="min-h-screen text-slate-50">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -210,10 +210,10 @@ export default function AdminLogsPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950">
+      <section className="bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           {activeTab === 'admin' ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 overflow-hidden">
+            <div className="arbix-card rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
                 <div className="text-xs font-semibold text-slate-100">Recent Admin Activity</div>
                 <div className="text-[11px] text-slate-500">

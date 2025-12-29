@@ -200,6 +200,21 @@ body {
   --arbix-shine-accent: rgba(248, 113, 113, 0.26);
 }
 
+.arbix-page-enter {
+  animation: arbixPageEnter 360ms ease both;
+}
+
+@keyframes arbixPageEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 @keyframes arbixShineSweep {
   0% {
     transform: skewX(-20deg) translateX(-140%);
@@ -220,6 +235,9 @@ body {
     transform: none;
   }
   .arbix-shine-active::after {
+    animation: none;
+  }
+  .arbix-page-enter {
     animation: none;
   }
 }

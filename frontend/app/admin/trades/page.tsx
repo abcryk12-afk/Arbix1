@@ -220,8 +220,8 @@ export default function AdminTradesPage() {
   }, [transactions, transactionsPage]);
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
-      <section className="border-b border-slate-800 bg-slate-950">
+    <div className="min-h-screen text-slate-50">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -249,7 +249,7 @@ export default function AdminTradesPage() {
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="arbix-card arbix-3d rounded-xl p-4">
               <div className="text-[11px] text-slate-400">Config</div>
               <div className="mt-2 space-y-1 text-[12px]">
                 <div className="flex items-center justify-between gap-3">
@@ -291,7 +291,7 @@ export default function AdminTradesPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="arbix-card arbix-3d rounded-xl p-4">
               <div className="text-[11px] text-slate-400">Checkpoints</div>
               <div className="mt-2 space-y-1 text-[12px]">
                 <div className="flex items-center justify-between gap-3">
@@ -309,7 +309,7 @@ export default function AdminTradesPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="arbix-card arbix-3d rounded-xl p-4">
               <div className="text-[11px] text-slate-400">Counts</div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-[12px]">
                 <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2">
@@ -340,7 +340,7 @@ export default function AdminTradesPage() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div className="arbix-card rounded-xl p-4 mt-4">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="text-sm font-semibold">Search</div>
@@ -377,7 +377,7 @@ export default function AdminTradesPage() {
           )}
 
           {isLoading && (
-            <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/70 p-6 text-[12px] text-slate-300">
+            <div className="mt-6 arbix-card rounded-xl p-6 text-[12px] text-slate-300">
               Loading logs...
             </div>
           )}

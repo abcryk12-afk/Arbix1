@@ -536,8 +536,8 @@ export default function AdminWithdrawalsPage() {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
-      <section className="border-b border-slate-800 bg-slate-950/95">
+    <div className="min-h-screen text-slate-50">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <h1 className="text-lg font-semibold tracking-tight md:text-xl">Deposit Requests</h1>
           <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
@@ -593,9 +593,9 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950">
+      <section className="bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
+          <div className="arbix-card rounded-2xl overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-800 text-[11px]">
               <thead className="bg-slate-950/90 text-slate-400">
                 <tr>
@@ -777,7 +777,7 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950/95">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <h1 className="text-lg font-semibold tracking-tight md:text-xl">Withdrawal Requests</h1>
           <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
@@ -785,7 +785,7 @@ export default function AdminWithdrawalsPage() {
             and create a withdraw transaction.
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-[11px]">
+          <div className="mt-3 flex flex-wrap items-center gap-2 arbix-card rounded-2xl px-3 py-2 text-[11px]">
             <span className="font-semibold text-slate-100">Auto Withdrawals:</span>
             <span className={autoWithdrawEnabled ? 'text-emerald-300' : 'text-amber-300'}>
               {isLoadingAutoWithdraw ? 'Loading...' : autoWithdrawEnabled ? 'ON' : 'OFF'}

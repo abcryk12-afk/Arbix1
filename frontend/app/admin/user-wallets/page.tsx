@@ -143,9 +143,9 @@ export default function AdminUserWalletsPage() {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
+    <div className="min-h-screen text-slate-50">
       {/* Header + Search */}
-      <section className="border-b border-slate-800 bg-slate-950/95">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-lg font-semibold tracking-tight md:text-xl">
@@ -168,9 +168,9 @@ export default function AdminUserWalletsPage() {
       </section>
 
       {/* Wallet inspector for a single selected user */}
-      <section className="bg-slate-950">
+      <section className="bg-transparent">
         <div className="mx-auto max-w-6xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 md:p-5">
+          <div className="arbix-card rounded-2xl p-4 md:p-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-slate-100 md:text-base">
@@ -194,7 +194,7 @@ export default function AdminUserWalletsPage() {
                   ) : (
                     filtered.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {u.name || '(No name)'}  {u.email}
+                        {u.name || '(No name)'} - {u.email}
                       </option>
                     ))
                   )}
@@ -287,9 +287,9 @@ export default function AdminUserWalletsPage() {
       </section>
 
       {/* Table */}
-      <section className="bg-slate-950">
+      <section className="bg-transparent">
         <div className="mx-auto max-w-6xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
+          <div className="arbix-card rounded-2xl overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-800 text-[11px]">
               <thead className="bg-slate-950/90 text-slate-400">
                 <tr>

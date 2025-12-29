@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type AdminUserListItem = {
@@ -336,7 +336,7 @@ export default function AdminUsersPage() {
     [activePackages],
   );
 
-  const fetchUsers = async (q: string) => {
+  const fetchUsers = useCallback(async (q: string) => {
     try {
       setIsLoadingUsers(true);
       const token = localStorage.getItem('adminToken');
@@ -376,7 +376,7 @@ export default function AdminUsersPage() {
     } finally {
       setIsLoadingUsers(false);
     }
-  };
+  }, [router]);
 
   const fetchUserDetails = async (id: string) => {
     try {
@@ -464,7 +464,7 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, fetchUsers]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -472,7 +472,7 @@ export default function AdminUsersPage() {
     }, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, fetchUsers]);
 
   useEffect(() => {
     if (selectedUserId) {
@@ -678,8 +678,8 @@ export default function AdminUsersPage() {
   }, [earningsByType]);
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
-      <section className="border-b border-slate-800 bg-slate-950/95">
+    <div className="min-h-screen text-slate-50">
+      <section className="border-b border-slate-800 bg-transparent">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -703,7 +703,7 @@ export default function AdminUsersPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-4 md:py-6">
         <div className="grid gap-4 md:grid-cols-[380px_1fr]">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
+          <div className="arbix-card rounded-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-100">Users List</h2>
@@ -734,7 +734,7 @@ export default function AdminUsersPage() {
                         type="button"
                         onClick={() => setSelectedUserId(u.id)}
                         className={
-                          'w-full text-left rounded-xl border px-3 py-3 transition ' +
+                          'arbix-3d w-full text-left rounded-xl border px-3 py-3 transition ' +
                           (isSelected
                             ? 'border-primary bg-primary/10'
                             : 'border-slate-800 bg-slate-950/50 hover:border-slate-600')
@@ -769,7 +769,7 @@ export default function AdminUsersPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
+          <div className="arbix-card rounded-2xl">
             <div className="border-b border-slate-800 px-4 py-3">
               <h2 className="text-sm font-semibold text-slate-100">User Details</h2>
               <p className="mt-0.5 text-[11px] text-slate-500">
