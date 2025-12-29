@@ -52,6 +52,7 @@ export default function AdminHeader() {
     { label: "Packages", href: "/admin/packages" },
     { label: "Trade Logs", href: "/admin/trades" },
     { label: "Notifications", href: "/admin/notifications" },
+    { label: "Logs", href: "/admin/logs" },
   ];
 
   return (

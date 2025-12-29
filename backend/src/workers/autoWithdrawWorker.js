@@ -6,7 +6,23 @@ const { Op } = require('sequelize');
 
 const models = require('../models');
 
+const { reportAutoWithdrawWorker, appendAutoWithdrawWorkerEvent } = require('../services/adminLogService');
+
 const { sequelize, Wallet, Transaction, WithdrawalRequest, SiteSetting } = models;
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+async function reportWorkerPatch(patch) {
+  try {
+    await reportAutoWithdrawWorker({
+      ...(patch && typeof patch === 'object' ? patch : {}),
+      lastSeenAt: nowIso(),
+      pid: process.pid,
+    });
+  } catch {}
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -579,6 +595,24 @@ async function main() {
   const loopMs = getLoopMs();
   const idleMs = getIdlePollMs();
 
+  await reportWorkerPatch({
+    startedAt: nowIso(),
+    withdrawalAddress: signer.address,
+    tokenContract: tokenAddress,
+    confirmations,
+    loopMs,
+    idleMs,
+    lastError: null,
+  });
+
+  await appendAutoWithdrawWorkerEvent('info', 'auto-withdraw worker started', {
+    withdrawalAddress: signer.address,
+    tokenContract: tokenAddress,
+    confirmations,
+    loopMs,
+    idleMs,
+  }).catch(() => {});
+
   if (isEnabledEnvFlag('WITHDRAW_DEBUG', false)) {
     console.log('[auto-withdraw] worker started', {
       withdrawalAddress: signer.address,
@@ -594,25 +628,39 @@ async function main() {
   while (true) {
     let didWork = false;
 
+    await reportWorkerPatch(null);
+
     try {
       const recovered = await recoverStuckProcessingWithoutTx();
       if (recovered) didWork = true;
+      if (recovered) {
+        await appendAutoWithdrawWorkerEvent('warn', `Recovered ${recovered} stuck processing withdrawals (no tx hash)`).catch(() => {});
+      }
     } catch (e) {
       console.error('Auto-withdraw recovery failed:', e?.message || e);
+      await appendAutoWithdrawWorkerEvent('error', `Auto-withdraw recovery failed: ${String(e?.message || e)}`).catch(() => {});
     }
 
     try {
       const finalized = await finalizeProcessing({ provider, confirmations });
       if (finalized) didWork = true;
+      if (finalized) {
+        await appendAutoWithdrawWorkerEvent('info', `Finalized ${finalized} auto-withdrawals`).catch(() => {});
+      }
     } catch (e) {
       console.error('Auto-withdraw finalize failed:', e?.message || e);
+      await appendAutoWithdrawWorkerEvent('error', `Auto-withdraw finalize failed: ${String(e?.message || e)}`).catch(() => {});
     }
 
     try {
       const pendingRes = await processPendingWithdrawals({ provider, signer, contract, confirmations });
       if (pendingRes?.processed) didWork = true;
+      if (pendingRes?.processed) {
+        await appendAutoWithdrawWorkerEvent('info', `Processed ${Number(pendingRes.processed || 0)} pending auto-withdrawals`).catch(() => {});
+      }
     } catch (e) {
       console.error('Auto-withdraw processing failed:', e?.message || e);
+      await appendAutoWithdrawWorkerEvent('error', `Auto-withdraw processing failed: ${String(e?.message || e)}`).catch(() => {});
     }
 
     const sleepMs = didWork ? loopMs : idleMs;
