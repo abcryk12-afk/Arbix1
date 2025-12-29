@@ -285,8 +285,9 @@ export default function WithdrawPage() {
           </h1>
           <p className="mt-2 text-sm text-slate-300 md:text-base">
             Withdraw your available USDT balance to a BNB Smart Chain (BEP20)
-            address. All withdrawals are processed manually by the admin team for
-            extra security.
+            address. Most withdrawals are processed instantly (within minutes). If
+            additional review is required, it may take 1–2 hours (rarely up to 24
+            hours).
           </p>
         </div>
       </section>

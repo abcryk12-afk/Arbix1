@@ -356,7 +356,7 @@ export default function DepositPage() {
           <p className="mt-2 text-slate-400">
             Most deposits are credited automatically after{' '}
             <span className="font-semibold text-slate-200">{confirmations} network confirmations</span>, typically within{' '}
-            <span className="font-semibold text-slate-200">5–15 minutes</span>. In rare cases, it may take up to{' '}
+            <span className="font-semibold text-slate-200">1–2 minutes</span>. In rare cases, it may take up to{' '}
             <span className="font-semibold text-slate-200">1–2 hours</span> depending on network conditions.
           </p>
         </div>
@@ -592,7 +592,7 @@ export default function DepositPage() {
               </li>
               <li>• Minimum deposit: {minDepositUsdt} USDT. Smaller deposits will not be credited.</li>
               <li>• Wrong network may result in permanent loss of funds.</li>
-              <li>• Typical confirmation time: 5–15 minutes, depending on network load.</li>
+              <li>• Typical confirmation time: 1–2 minutes, depending on network load.</li>
             </ul>
           </div>
         </div>
