@@ -37,7 +37,6 @@ function StatCard({ label, value, subLabel, accentClassName, loading }: StatCard
 }
 
 export default function DashboardFooter() {
-  const storageKey = 'arbix_footer_demo_v1';
   const [stats, setStats] = useState<{
     system: { daily: number; total: number; joiningsDaily?: number; joiningsTotal?: number };
     team: { daily: number; total: number; joiningsDaily?: number; joiningsTotal?: number };
@@ -45,14 +44,6 @@ export default function DashboardFooter() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [demoUpdatedAt, setDemoUpdatedAt] = useState<string | null>(null);
-  const [demo, setDemo] = useState({
-    systemDailyWithdrawals: 0,
-    systemTotalWithdrawals: 0,
-    systemDailyJoinings: 0,
-    systemTotalJoinings: 0,
-    hours: 0,
-  });
   const [display, setDisplay] = useState({
     systemDailyWithdrawals: 0,
     systemTotalWithdrawals: 0,
@@ -60,8 +51,6 @@ export default function DashboardFooter() {
     systemTotalJoinings: 0,
   });
   const displayRef = useRef(display);
-  const demoDayKeyRef = useRef<string | null>(null);
-  const demoLastStepAtRef = useRef<number | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -118,190 +107,29 @@ export default function DashboardFooter() {
 
   useEffect(() => {
     if (loading) return;
+    setHasAnimated(false);
+  }, [loading, stats?.updatedAt]);
 
-    const now = Date.now();
-    const nowKey = new Date().toDateString();
-    const baseTotalWithdrawals = Number(stats?.system?.total ?? 0);
-    const baseTotalJoinings = Number(stats?.system?.joiningsTotal ?? 0);
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const startOfTodayMs = startOfToday.getTime();
-
-    try {
-      const raw = localStorage.getItem(storageKey);
-      const parsed = raw ? JSON.parse(raw) : null;
-
-      const storedDemo = parsed?.demo;
-      const storedDayKey = typeof parsed?.dayKey === 'string' ? parsed.dayKey : null;
-      const storedLastStepAt = typeof parsed?.lastStepAt === 'number' ? parsed.lastStepAt : null;
-      const storedUpdatedAt = typeof parsed?.demoUpdatedAt === 'string' ? parsed.demoUpdatedAt : null;
-
-      if (storedDemo && typeof storedDemo === 'object') {
-        let nextDailyW = Number(storedDemo.systemDailyWithdrawals ?? 0);
-        let nextDailyJ = Number(storedDemo.systemDailyJoinings ?? 0);
-        let nextTotalW = Number(storedDemo.systemTotalWithdrawals ?? 0);
-        let nextTotalJ = Number(storedDemo.systemTotalJoinings ?? 0);
-        let nextHours = Number(storedDemo.hours ?? 0);
-
-        nextTotalW = Math.max(nextTotalW, baseTotalWithdrawals);
-        nextTotalJ = Math.max(nextTotalJ, baseTotalJoinings);
-
-        let dayKey = storedDayKey || nowKey;
-        let lastStepAt = storedLastStepAt || now;
-
-        if (dayKey !== nowKey) {
-          nextTotalW += nextDailyW;
-          nextTotalJ += nextDailyJ;
-          nextDailyW = 0;
-          nextDailyJ = 0;
-          nextHours = 0;
-          dayKey = nowKey;
-          lastStepAt = startOfTodayMs;
-        }
-
-        setDemo({
-          systemDailyWithdrawals: nextDailyW,
-          systemTotalWithdrawals: nextTotalW,
-          systemDailyJoinings: nextDailyJ,
-          systemTotalJoinings: nextTotalJ,
-          hours: nextHours,
-        });
-
-        demoDayKeyRef.current = dayKey;
-        demoLastStepAtRef.current = lastStepAt;
-        setDemoUpdatedAt(storedUpdatedAt || new Date().toISOString());
-        return;
-      }
-    } catch {
-      // ignore
-    }
-
-    setDemo({
-      systemDailyWithdrawals: 0,
-      systemTotalWithdrawals: baseTotalWithdrawals,
-      systemDailyJoinings: 0,
-      systemTotalJoinings: baseTotalJoinings,
-      hours: 0,
-    });
-    demoDayKeyRef.current = nowKey;
-    demoLastStepAtRef.current = now;
-    setDemoUpdatedAt(new Date().toISOString());
-  }, [loading, stats?.system?.total, stats?.system?.joiningsTotal]);
-
-  useEffect(() => {
-    if (loading) return;
-    try {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          demo,
-          dayKey: demoDayKeyRef.current,
-          lastStepAt: demoLastStepAtRef.current,
-          demoUpdatedAt,
-        }),
-      );
-    } catch {
-      // ignore
-    }
-  }, [loading, demo, demoUpdatedAt, storageKey]);
-
-  useEffect(() => {
-    if (loading) return;
-
-    const configuredTickMs = Number(process.env.NEXT_PUBLIC_FOOTER_DEMO_TICK_MS);
-    const stepMs = Number.isFinite(configuredTickMs) && configuredTickMs > 0
-      ? configuredTickMs
-      : 10 * 60 * 1000;
-
-    const dayCheckMs = Math.min(stepMs, 60 * 1000);
-
-    const withdrawalOptions = [40, 50, 60, 80, 100];
-    const joiningOptions = [2, 3];
-
-    const pick = (arr: number[]) => arr[Math.floor(Math.random() * arr.length)];
-
-    const syncNow = () => {
-      const now = Date.now();
-      const nowKey = new Date().toDateString();
-
-      if (!demoDayKeyRef.current) demoDayKeyRef.current = nowKey;
-      const prevKey = demoDayKeyRef.current;
-      const dayChanged = prevKey !== nowKey;
-
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      const startOfTodayMs = startOfToday.getTime();
-
-      if (!demoLastStepAtRef.current) demoLastStepAtRef.current = now;
-
-      let baseLastStepAt = demoLastStepAtRef.current;
-      if (dayChanged) {
-        demoDayKeyRef.current = nowKey;
-        baseLastStepAt = startOfTodayMs;
-        demoLastStepAtRef.current = baseLastStepAt;
-      }
-
-      const elapsed = now - baseLastStepAt;
-      const steps = Math.floor(elapsed / stepMs);
-      const safeSteps = steps > 200 ? 200 : steps;
-
-      if (!dayChanged && safeSteps <= 0) return;
-
-      setDemo((prev) => {
-        let nextDailyW = prev.systemDailyWithdrawals;
-        let nextDailyJ = prev.systemDailyJoinings;
-        let nextTotalW = prev.systemTotalWithdrawals;
-        let nextTotalJ = prev.systemTotalJoinings;
-        let hours = prev.hours;
-
-        if (dayChanged) {
-          nextTotalW += nextDailyW;
-          nextTotalJ += nextDailyJ;
-          nextDailyW = 0;
-          nextDailyJ = 0;
-          hours = 0;
-        }
-
-        for (let i = 0; i < safeSteps; i += 1) {
-          nextDailyW += pick(withdrawalOptions);
-          nextDailyJ += pick(joiningOptions);
-          hours += 1;
-        }
-
-        return {
-          systemDailyWithdrawals: nextDailyW,
-          systemTotalWithdrawals: nextTotalW,
-          systemDailyJoinings: nextDailyJ,
-          systemTotalJoinings: nextTotalJ,
-          hours,
-        };
-      });
-
-      if (steps > 200) {
-        demoLastStepAtRef.current = now;
-      } else {
-        demoLastStepAtRef.current = baseLastStepAt + safeSteps * stepMs;
-      }
-
-      setDemoUpdatedAt(new Date().toISOString());
-    };
-
-    syncNow();
-    const interval = setInterval(syncNow, dayCheckMs);
-    return () => clearInterval(interval);
-  }, [loading]);
-
-  const systemDailyWithdrawals = demo.systemDailyWithdrawals;
-  const systemTotalWithdrawals = demo.systemTotalWithdrawals;
-  const systemDailyJoinings = demo.systemDailyJoinings;
-  const systemTotalJoinings = demo.systemTotalJoinings;
+  const systemDailyWithdrawals = Number(stats?.system?.daily ?? 0);
+  const systemTotalWithdrawals = Number(stats?.system?.total ?? 0);
+  const systemDailyJoinings = Number(stats?.system?.joiningsDaily ?? 0);
+  const systemTotalJoinings = Number(stats?.system?.joiningsTotal ?? 0);
 
   const formatMoney = (n: number) => `$${n.toFixed(2)}`;
   const formatInt = (n: number) => Math.round(n).toLocaleString();
   const updatedLabel = loading
     ? 'Updating...'
-    : demoUpdatedAt
-      ? `Updated: ${new Date(demoUpdatedAt).toLocaleString()}`
+    : stats?.updatedAt
+      ? `Updated: ${new Intl.DateTimeFormat('en-GB', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+          timeZone: 'UTC',
+        }).format(new Date(stats.updatedAt))}`
       : 'Updated: just now';
 
   useEffect(() => {

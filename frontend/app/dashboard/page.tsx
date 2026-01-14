@@ -11,14 +11,6 @@ type Activity = {
   createdAt: string;
 };
 
-type Announcement = {
-  id: string;
-  title: string;
-  text: string;
-  createdAt?: string;
-  isRead?: boolean;
-};
-
 type KpiCardProps = {
   href: string;
   label: string;
@@ -95,16 +87,15 @@ function MiniStatCard({ label, value, accentClassName }: MiniStatCardProps) {
 
 export default function DashboardPage() {
   const [userName, setUserName] = useState('');
-  const [availableBalance, setAvailableBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [teamCounts, setTeamCounts] = useState({ l1: 0, l2: 0, l3: 0 });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitySummary, setActivitySummary] = useState<{ todayByLevel: { l1: number; l2: number; l3: number } } | null>(null);
   const [activityPage, setActivityPage] = useState(0);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [kpiHasAnimated, setKpiHasAnimated] = useState(false);
   const [kpiDisplay, setKpiDisplay] = useState({
-    availableBalance: 0,
+    totalCapital: 0,
+    activeCapital: 0,
     todayEarnings: 0,
     networkToday: 0,
     totalEarnings: 0,
@@ -127,6 +118,7 @@ export default function DashboardPage() {
   const [networkAll, setNetworkAll] = useState(0);
 
   const [activePackagesCount, setActivePackagesCount] = useState(0);
+  const [totalCapital, setTotalCapital] = useState(0);
   const [activeCapital, setActiveCapital] = useState(0);
   const [estimatedDailyProfit, setEstimatedDailyProfit] = useState(0);
 
@@ -157,6 +149,12 @@ export default function DashboardPage() {
       let networkTodayValue = 0;
       let networkAllValue = 0;
 
+      const token = localStorage.getItem('token');
+      if (!token) {
+        if (!cancelled) setIsLoading(false);
+        return;
+      }
+
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -168,37 +166,6 @@ export default function DashboardPage() {
       }
 
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          if (!cancelled) setIsLoading(false);
-          return;
-        }
-
-        const res = await fetch('/api/user/summary', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (!cancelled) {
-          if (data?.success) {
-            setAvailableBalance(Number(data?.wallet?.balance || 0));
-          } else {
-            setAvailableBalance(0);
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          setAvailableBalance(0);
-        }
-      }
-
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
         const res = await fetch('/api/user/referrals', {
           method: 'GET',
           headers: {
@@ -219,9 +186,6 @@ export default function DashboardPage() {
       }
 
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
         const res = await fetch('/api/user/packages', {
           method: 'GET',
           headers: {
@@ -234,6 +198,12 @@ export default function DashboardPage() {
           const active = packagesData.packages.filter((p: any) => p?.status === 'active');
 
           setActivePackagesCount(active.length);
+
+          const totalCapAll = packagesData.packages.reduce(
+            (sum: number, p: any) => sum + Number(p.capital || 0),
+            0,
+          );
+          setTotalCapital(totalCapAll);
 
           const totalCap = active.reduce(
             (sum: number, p: any) => sum + Number(p.capital || 0),
@@ -261,9 +231,6 @@ export default function DashboardPage() {
       }
 
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
         const res = await fetch('/api/user/referral-earnings', {
           method: 'GET',
           headers: {
@@ -281,9 +248,6 @@ export default function DashboardPage() {
       }
 
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
         const res = await fetch('/api/user/activity?limit=30', {
           method: 'GET',
           headers: {
@@ -356,33 +320,6 @@ export default function DashboardPage() {
         // ignore
       }
 
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const res = await fetch('/api/user/notifications?limit=10', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (!cancelled && data?.success && Array.isArray(data?.notifications)) {
-          setAnnouncements(
-            data.notifications.map((n: any) => ({
-              id: String(n.id),
-              title: String(n.title || 'Announcement'),
-              text: String(n.message || n.text || ''),
-              createdAt: n.createdAt ? String(n.createdAt) : undefined,
-              isRead: Boolean(n.isRead),
-            })),
-          );
-        }
-      } catch {
-        // ignore
-      }
-
       if (!cancelled) {
         setMyTradingToday(myTradingTodayValue);
         setMyTradingAll(myTradingAllValue);
@@ -406,7 +343,8 @@ export default function DashboardPage() {
     if (isLoading) return;
 
     const target = {
-      availableBalance,
+      totalCapital,
+      activeCapital,
       todayEarnings,
       networkToday,
       totalEarnings,
@@ -432,7 +370,8 @@ export default function DashboardPage() {
       const easeOut = 1 - Math.pow(1 - t, 3);
 
       setKpiDisplay({
-        availableBalance: target.availableBalance * easeOut,
+        totalCapital: target.totalCapital * easeOut,
+        activeCapital: target.activeCapital * easeOut,
         todayEarnings: target.todayEarnings * easeOut,
         networkToday: target.networkToday * easeOut,
         totalEarnings: target.totalEarnings * easeOut,
@@ -443,11 +382,12 @@ export default function DashboardPage() {
 
     requestAnimationFrame(tick);
   }, [
-    availableBalance,
+    activeCapital,
     isLoading,
     kpiHasAnimated,
     networkToday,
     prefersReducedMotion,
+    totalCapital,
     todayEarnings,
     totalEarnings,
   ]);
@@ -471,18 +411,18 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
             <KpiCard
-              href="/dashboard/withdraw"
-              label="Available Balance"
-              value={isLoading ? '$--' : `$${kpiDisplay.availableBalance.toFixed(2)}`}
-              subLabel="Ready to withdraw or invest"
+              href="/dashboard/packages"
+              label="Total Capital"
+              value={isLoading ? '$--' : `$${kpiDisplay.totalCapital.toFixed(2)}`}
+              subLabel="Total capital in all packages"
               accentClassName="bg-emerald-400"
               loading={isLoading}
             />
             <KpiCard
               href="/dashboard/invest"
-              label="My Today&apos;s Earnings"
-              value={isLoading ? '$--' : `$${kpiDisplay.todayEarnings.toFixed(2)}`}
-              subLabel="From trading & packages"
+              label="Total Active Capital"
+              value={isLoading ? '$--' : `$${kpiDisplay.activeCapital.toFixed(2)}`}
+              subLabel="Capital in active packages"
               accentClassName="bg-emerald-300"
               loading={isLoading}
             />
@@ -832,37 +772,6 @@ export default function DashboardPage() {
               <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
                 No recent activity yet.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Announcements / Notifications */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Announcements &amp; Notifications
-          </h2>
-          <div className="mt-3 space-y-2 text-[11px] text-slate-300">
-            {announcements.length ? (
-              announcements.map((n) => (
-                <div
-                  key={n.id}
-                  className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
-                >
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
-                  <p className="font-semibold text-slate-100">{n.title}</p>
-                  <p className="mt-1 text-slate-400">{n.text}</p>
-                  {n.createdAt ? (
-                    <p className="mt-2 text-[10px] text-slate-500">{new Date(n.createdAt).toLocaleString()}</p>
-                  ) : null}
-                </div>
-              ))
-            ) : (
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
-                No announcements right now.
               </div>
             )}
           </div>
