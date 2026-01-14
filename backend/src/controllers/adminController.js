@@ -14,6 +14,11 @@ const {
   getInvestmentPackagesConfig,
   setInvestmentPackagesConfig,
 } = require('../services/investmentPackageConfigService');
+const {
+  DEFAULT_OVERRIDES: DEFAULT_FOOTER_STATS_OVERRIDES,
+  getFooterStatsOverrides,
+  setFooterStatsOverrides,
+} = require('../services/footerStatsOverrideService');
 
 let notificationsColumnsCache = null;
 
@@ -30,6 +35,43 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check admin access',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.getFooterStatsOverridesSetting = async (req, res) => {
+  try {
+    const overrides = await getFooterStatsOverrides();
+    return res.status(200).json({
+      success: true,
+      overrides,
+      defaults: DEFAULT_FOOTER_STATS_OVERRIDES,
+    });
+  } catch (error) {
+    console.error('Get footer stats overrides setting error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to load footer stats overrides',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.setFooterStatsOverridesSetting = async (req, res) => {
+  try {
+    const input = req.body?.overrides != null ? req.body.overrides : req.body;
+    const saved = await setFooterStatsOverrides(input);
+
+    return res.status(200).json({
+      success: true,
+      overrides: saved,
+    });
+  } catch (error) {
+    console.error('Set footer stats overrides setting error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update footer stats overrides',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

@@ -17,6 +17,8 @@ const {
   setAdminNotificationEmails,
   getInvestmentPackagesSetting,
   setInvestmentPackagesSetting,
+  getFooterStatsOverridesSetting,
+  setFooterStatsOverridesSetting,
   getAutoWithdrawSetting,
   setAutoWithdrawSetting,
   listWallets,
@@ -47,6 +49,8 @@ router.get('/notification-emails', protect, requireAdminUser, getAdminNotificati
 router.put('/notification-emails', protect, requireAdminUser, auditAdminAction('admin_notification_emails.update', { entity: 'site_setting' }), setAdminNotificationEmails);
 router.get('/investment-packages', protect, requireAdminUser, getInvestmentPackagesSetting);
 router.put('/investment-packages', protect, requireAdminUser, auditAdminAction('investment_packages.update', { entity: 'site_setting' }), setInvestmentPackagesSetting);
+router.get('/footer-stats-overrides', protect, requireAdminUser, getFooterStatsOverridesSetting);
+router.put('/footer-stats-overrides', protect, requireAdminUser, auditAdminAction('footer_stats_overrides.update', { entity: 'site_setting' }), setFooterStatsOverridesSetting);
 router.get('/auto-withdraw', protect, requireAdminUser, getAutoWithdrawSetting);
 router.put('/auto-withdraw', protect, requireAdminUser, auditAdminAction('auto_withdraw.toggle', { entity: 'site_setting' }), setAutoWithdrawSetting);
 router.get('/users', protect, requireAdminUser, listUsers);

@@ -4,6 +4,7 @@ const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositReques
 const { ensureWalletForUser } = require('../services/walletService');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
 const { getInvestmentPackagesConfig } = require('../services/investmentPackageConfigService');
+const { getFooterStatsOverrides } = require('../services/footerStatsOverrideService');
 
 exports.getPublicInvestmentPackages = async (req, res) => {
   try {
@@ -1361,14 +1362,38 @@ exports.getFooterStats = async (req, res) => {
         })
       : 0;
 
+    let overrides = null;
+    try {
+      overrides = await getFooterStatsOverrides();
+    } catch {}
+
+    const systemOverrides = overrides?.system || {};
+
+    const adjustedSystemDailyWithdrawals = Math.max(
+      0,
+      (Number(systemDailyWithdrawals) || 0) + (Number(systemOverrides.dailyWithdrawals) || 0),
+    );
+    const adjustedSystemTotalWithdrawals = Math.max(
+      0,
+      (Number(systemTotalWithdrawals) || 0) + (Number(systemOverrides.totalWithdrawals) || 0),
+    );
+    const adjustedSystemDailyJoinings = Math.max(
+      0,
+      Math.trunc((Number(systemDailyJoinings) || 0) + (Number(systemOverrides.dailyJoinings) || 0)),
+    );
+    const adjustedSystemTotalJoinings = Math.max(
+      0,
+      Math.trunc((Number(systemTotalJoinings) || 0) + (Number(systemOverrides.totalJoinings) || 0)),
+    );
+
     res.status(200).json({
       success: true,
       stats: {
         system: {
-          daily: Number(systemDailyWithdrawals) || 0,
-          total: Number(systemTotalWithdrawals) || 0,
-          joiningsDaily: Number(systemDailyJoinings) || 0,
-          joiningsTotal: Number(systemTotalJoinings) || 0,
+          daily: adjustedSystemDailyWithdrawals,
+          total: adjustedSystemTotalWithdrawals,
+          joiningsDaily: adjustedSystemDailyJoinings,
+          joiningsTotal: adjustedSystemTotalJoinings,
         },
         team: {
           daily: Number(teamDailyWithdrawals) || 0,

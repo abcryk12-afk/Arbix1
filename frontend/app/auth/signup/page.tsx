@@ -219,9 +219,6 @@ export default function SignupPage() {
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl mb-4">
-            <span className="text-white font-bold text-2xl">A</span>
-          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Your Arbix Account</h1>
           <p className="text-slate-400">Sign up in a few easy steps, verify your email, and start earning with arbitrage trading.</p>
         </div>

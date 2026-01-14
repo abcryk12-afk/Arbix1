@@ -137,6 +137,15 @@ type InvestmentPackageConfig = {
   durationDays: number;
 };
 
+type FooterStatsOverrides = {
+  system: {
+    dailyWithdrawals: number;
+    totalWithdrawals: number;
+    dailyJoinings: number;
+    totalJoinings: number;
+  };
+};
+
 const ADMIN_USERS_PAGE_SIZE = 5;
 
 const KYC_PENDING: KycPending[] = [];
@@ -171,6 +180,19 @@ export default function AdminDashboardPage() {
   const [applyInvestmentPackagesToActive, setApplyInvestmentPackagesToActive] = useState(false);
   const [investmentPackagesMessage, setInvestmentPackagesMessage] = useState('');
   const [investmentPackagesMessageType, setInvestmentPackagesMessageType] = useState<'success' | 'error' | ''>('');
+
+  const [footerStatsOverrides, setFooterStatsOverrides] = useState<FooterStatsOverrides>({
+    system: {
+      dailyWithdrawals: 0,
+      totalWithdrawals: 0,
+      dailyJoinings: 0,
+      totalJoinings: 0,
+    },
+  });
+  const [isLoadingFooterStatsOverrides, setIsLoadingFooterStatsOverrides] = useState(false);
+  const [isSavingFooterStatsOverrides, setIsSavingFooterStatsOverrides] = useState(false);
+  const [footerStatsOverridesMessage, setFooterStatsOverridesMessage] = useState('');
+  const [footerStatsOverridesMessageType, setFooterStatsOverridesMessageType] = useState<'success' | 'error' | ''>('');
 
   const [manageUsers, setManageUsers] = useState<ManageUserListRow[]>([]);
   const [isLoadingManageUsers, setIsLoadingManageUsers] = useState(false);
@@ -234,6 +256,94 @@ export default function AdminDashboardPage() {
       }
     } catch {
       // ignore
+    }
+  };
+
+  const loadFooterStatsOverrides = async () => {
+    try {
+      setIsLoadingFooterStatsOverrides(true);
+      setFooterStatsOverridesMessage('');
+      setFooterStatsOverridesMessageType('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch('/api/admin/footer-stats-overrides', {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json().catch(() => null);
+      const overrides = data?.overrides;
+
+      if (data?.success && overrides && typeof overrides === 'object') {
+        setFooterStatsOverrides({
+          system: {
+            dailyWithdrawals: Number(overrides?.system?.dailyWithdrawals || 0),
+            totalWithdrawals: Number(overrides?.system?.totalWithdrawals || 0),
+            dailyJoinings: Number(overrides?.system?.dailyJoinings || 0),
+            totalJoinings: Number(overrides?.system?.totalJoinings || 0),
+          },
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingFooterStatsOverrides(false);
+    }
+  };
+
+  const saveFooterStatsOverrides = async () => {
+    try {
+      setIsSavingFooterStatsOverrides(true);
+      setFooterStatsOverridesMessage('');
+      setFooterStatsOverridesMessageType('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setFooterStatsOverridesMessage('Not logged in');
+        setFooterStatsOverridesMessageType('error');
+        return;
+      }
+
+      const res = await fetch('/api/admin/footer-stats-overrides', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ overrides: footerStatsOverrides }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!data?.success) {
+        setFooterStatsOverridesMessage(data?.message || 'Failed to update footer stats overrides');
+        setFooterStatsOverridesMessageType('error');
+        return;
+      }
+
+      const saved = data?.overrides;
+      if (saved && typeof saved === 'object') {
+        setFooterStatsOverrides({
+          system: {
+            dailyWithdrawals: Number(saved?.system?.dailyWithdrawals || 0),
+            totalWithdrawals: Number(saved?.system?.totalWithdrawals || 0),
+            dailyJoinings: Number(saved?.system?.dailyJoinings || 0),
+            totalJoinings: Number(saved?.system?.totalJoinings || 0),
+          },
+        });
+      }
+
+      setFooterStatsOverridesMessage('Footer stats overrides updated.');
+      setFooterStatsOverridesMessageType('success');
+    } catch {
+      setFooterStatsOverridesMessage('An error occurred. Please try again.');
+      setFooterStatsOverridesMessageType('error');
+    } finally {
+      setIsSavingFooterStatsOverrides(false);
     }
   };
 
@@ -573,6 +683,7 @@ export default function AdminDashboardPage() {
     await loadAdminStats();
     await loadRecentTransactions();
     await loadInvestmentPackages();
+    await loadFooterStatsOverrides();
   };
 
   useEffect(() => {
@@ -607,6 +718,7 @@ export default function AdminDashboardPage() {
           await loadAdminStats();
           await loadRecentTransactions();
           await loadInvestmentPackages();
+          await loadFooterStatsOverrides();
         }
       } catch {
         localStorage.removeItem('adminToken');
@@ -1004,6 +1116,125 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-slate-800 bg-transparent">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+                Footer Stats Control
+              </h2>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Add or subtract offsets for the user dashboard footer. Offsets are applied on top of real totals.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={saveFooterStatsOverrides}
+                disabled={isSavingFooterStatsOverrides || isLoadingFooterStatsOverrides}
+                className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-500 disabled:opacity-60"
+              >
+                {isSavingFooterStatsOverrides ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+
+          {footerStatsOverridesMessage && (
+            <div
+              className={
+                'mb-3 rounded-lg border px-3 py-2 text-[11px] ' +
+                (footerStatsOverridesMessageType === 'success'
+                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+              }
+            >
+              {footerStatsOverridesMessage}
+            </div>
+          )}
+
+          <div className="arbix-card rounded-2xl p-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <div className="text-[11px] text-slate-400">Daily Withdrawals Offset (System)</div>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={footerStatsOverrides.system.dailyWithdrawals}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setFooterStatsOverrides((prev) => ({
+                      ...prev,
+                      system: { ...prev.system, dailyWithdrawals: Number.isFinite(n) ? n : 0 },
+                    }));
+                  }}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <div className="text-[11px] text-slate-400">Total Withdrawals Offset (System)</div>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={footerStatsOverrides.system.totalWithdrawals}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setFooterStatsOverrides((prev) => ({
+                      ...prev,
+                      system: { ...prev.system, totalWithdrawals: Number.isFinite(n) ? n : 0 },
+                    }));
+                  }}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <div className="text-[11px] text-slate-400">Daily Joinings Offset (System)</div>
+                <input
+                  type="number"
+                  step="1"
+                  value={footerStatsOverrides.system.dailyJoinings}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setFooterStatsOverrides((prev) => ({
+                      ...prev,
+                      system: { ...prev.system, dailyJoinings: Number.isFinite(n) ? n : 0 },
+                    }));
+                  }}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <div className="text-[11px] text-slate-400">Total Joinings Offset (System)</div>
+                <input
+                  type="number"
+                  step="1"
+                  value={footerStatsOverrides.system.totalJoinings}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setFooterStatsOverrides((prev) => ({
+                      ...prev,
+                      system: { ...prev.system, totalJoinings: Number.isFinite(n) ? n : 0 },
+                    }));
+                  }}
+                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="mt-3 text-[11px] text-slate-400">
+              Tip: Use negative numbers to subtract. Final values shown to users will never go below 0.
             </div>
           </div>
         </div>
