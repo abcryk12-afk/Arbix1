@@ -411,10 +411,10 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
             <KpiCard
-              href="/dashboard/packages"
-              label="Total Capital"
-              value={isLoading ? '$--' : `$${kpiDisplay.totalCapital.toFixed(2)}`}
-              subLabel="Total capital in all packages"
+              href="/dashboard/invest"
+              label="Today Earnings"
+              value={isLoading ? '$--' : `$${kpiDisplay.todayEarnings.toFixed(2)}`}
+              subLabel="Estimated from your active packages"
               accentClassName="bg-emerald-400"
               loading={isLoading}
             />
