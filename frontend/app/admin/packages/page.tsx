@@ -63,6 +63,8 @@ export default function AdminPackagesPage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [query, setQuery] = useState('');
 
+  const [mobileTab, setMobileTab] = useState<'users' | 'packages'>('users');
+
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetailsResponse['user'] | null>(null);
   const [walletDetails, setWalletDetails] = useState<UserDetailsResponse['wallet'] | null>(null);
@@ -191,8 +193,43 @@ export default function AdminPackagesPage() {
         <p className="text-sm text-slate-400">Search users and review their package status.</p>
       </div>
 
+      <div className="mb-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-1 lg:hidden">
+        <div className="grid grid-cols-2 gap-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setMobileTab('users')}
+            className={
+              'rounded-xl px-3 py-2 font-medium transition-colors ' +
+              (mobileTab === 'users'
+                ? 'bg-slate-900 text-slate-50'
+                : 'text-slate-300 hover:bg-slate-900/50 hover:text-slate-100')
+            }
+          >
+            Users
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab('packages')}
+            disabled={!selectedUserId}
+            className={
+              'rounded-xl px-3 py-2 font-medium transition-colors disabled:opacity-40 ' +
+              (mobileTab === 'packages'
+                ? 'bg-slate-900 text-slate-50'
+                : 'text-slate-300 hover:bg-slate-900/50 hover:text-slate-100')
+            }
+          >
+            Packages
+          </button>
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
-        <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <section
+          className={
+            'rounded-2xl border border-slate-800 bg-slate-950/60 p-4 ' +
+            (mobileTab === 'users' ? '' : 'hidden lg:block')
+          }
+        >
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="text-sm font-semibold text-slate-100">Users</div>
             <div className="text-[11px] text-slate-500">{isLoadingUsers ? 'Loading…' : `${users.length} shown`}</div>
@@ -216,7 +253,12 @@ export default function AdminPackagesPage() {
                     <button
                       key={u.id}
                       type="button"
-                      onClick={() => setSelectedUserId(u.id)}
+                      onClick={() => {
+                        setSelectedUserId(u.id);
+                        if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches) {
+                          setMobileTab('packages');
+                        }
+                      }}
                       className={
                         'w-full px-3 py-3 text-left transition-colors ' +
                         (isActive ? 'bg-slate-900/70' : 'hover:bg-slate-900/40')
@@ -241,7 +283,23 @@ export default function AdminPackagesPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+        <section
+          className={
+            'rounded-2xl border border-slate-800 bg-slate-950/60 p-4 ' +
+            (mobileTab === 'packages' ? '' : 'hidden lg:block')
+          }
+        >
+          <div className="mb-3 flex items-center justify-between gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileTab('users')}
+              className="rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-200 hover:border-slate-700"
+            >
+              Back
+            </button>
+            <div className="text-xs text-slate-400">User packages</div>
+          </div>
+
           <div className="flex flex-col gap-1">
             <div className="text-sm font-semibold text-slate-100">User Packages</div>
             <div className="text-xs text-slate-500">
@@ -285,7 +343,63 @@ export default function AdminPackagesPage() {
             </div>
           </div>
 
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-800">
+          <div className="mt-4 grid gap-3 lg:hidden">
+            {!isLoadingDetails && packages.length === 0 ? (
+              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-sm text-slate-500">
+                No packages found for this user.
+              </div>
+            ) : (
+              packages.map((p) => (
+                <div key={p.id} className="arbix-card rounded-2xl p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-slate-100">{p.packageName}</div>
+                      <div className="mt-0.5 text-[11px] text-slate-500">#{p.id} • {p.packageId}</div>
+                    </div>
+                    <span
+                      className={
+                        'shrink-0 rounded-full border px-2 py-1 text-[11px] ' +
+                        (String(p.status).toLowerCase() === 'active'
+                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+                          : 'border-slate-700 bg-slate-900/30 text-slate-200')
+                      }
+                    >
+                      {p.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+                      <div className="text-[11px] text-slate-500">Capital</div>
+                      <div className="mt-0.5 font-medium text-slate-100">{Number(p.capital || 0).toLocaleString()}</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+                      <div className="text-[11px] text-slate-500">Daily ROI</div>
+                      <div className="mt-0.5 font-medium text-slate-100">{Number(p.dailyRoi || 0)}%</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+                      <div className="text-[11px] text-slate-500">Daily</div>
+                      <div className="mt-0.5 font-medium text-slate-100">{Number(p.dailyRevenue || 0).toLocaleString()}</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+                      <div className="text-[11px] text-slate-500">Total Earned</div>
+                      <div className="mt-0.5 font-medium text-slate-100">{Number(p.totalEarned || 0).toLocaleString()}</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+                      <div className="text-[11px] text-slate-500">Start</div>
+                      <div className="mt-0.5 font-medium text-slate-100">{fmtDate(p.startAt)}</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-2">
+                      <div className="text-[11px] text-slate-500">End</div>
+                      <div className="mt-0.5 font-medium text-slate-100">{fmtDate(p.endAt)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-slate-800 lg:block">
             <table className="min-w-[1050px] w-full border-collapse text-left text-xs">
               <thead>
                 <tr className="bg-slate-950 text-slate-400">

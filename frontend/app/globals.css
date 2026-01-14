@@ -204,6 +204,39 @@ body {
   animation: arbixPageEnter 360ms ease both;
 }
 
+.arbix-auth-card {
+  border-color: rgba(56, 189, 248, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.12),
+    0 24px 80px rgba(0, 0, 0, 0.48);
+}
+
+.arbix-auth-card::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(600px 220px at 50% 0%, rgba(56, 189, 248, 0.16), transparent 60%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+@keyframes arbixAuthFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+@media (hover: none) {
+  .arbix-auth-float {
+    animation: arbixAuthFloat 6s ease-in-out infinite;
+  }
+}
+
 @keyframes arbixPageEnter {
   0% {
     opacity: 0;
@@ -233,6 +266,9 @@ body {
   }
   .arbix-3d:hover {
     transform: none;
+  }
+  .arbix-auth-float {
+    animation: none;
   }
   .arbix-shine-active::after {
     animation: none;

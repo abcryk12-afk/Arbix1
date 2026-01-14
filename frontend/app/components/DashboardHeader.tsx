@@ -113,6 +113,7 @@ export default function DashboardHeader() {
       { label: 'Invest', href: '/dashboard/invest', match: 'prefix' },
       { label: 'Team', href: '/dashboard/team', match: 'prefix' },
       { label: 'Withdraw', href: '/dashboard/withdraw', match: 'prefix' },
+      { label: 'Education', href: '/education', match: 'prefix' },
       { label: 'Profile', href: '/profile', match: 'prefix' },
     ],
     []

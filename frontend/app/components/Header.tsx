@@ -39,6 +39,7 @@ export default function Header() {
     { name: "About", href: "/about" },
     { name: "How It Works", href: "/how-it-works" },
     { name: "Profit Plan", href: "/plans" },
+    { name: "Education", href: "/education" },
     { name: "Testimonials", href: "/testimonials" },
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
@@ -74,6 +75,7 @@ export default function Header() {
             <a href="/about" className="hover:text-white">About</a>
             <a href="/how-it-works" className="hover:text-white">How It Works</a>
             <a href="/plans" className="hover:text-white">Profit Plan</a>
+            <a href="/education" className="hover:text-white">Education</a>
             <a href="/testimonials" className="hover:text-white">Testimonials</a>
             <a href="/faq" className="hover:text-white">FAQ</a>
           </nav>

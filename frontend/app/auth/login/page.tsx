@@ -66,7 +66,7 @@ export default function LoginPage() {
           <p className="text-slate-400">SSL Protected • Encrypted Login</p>
         </div>
 
-        <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">
+        <div className="arbix-card arbix-3d arbix-shine arbix-shine-active arbix-auth-card arbix-auth-float backdrop-blur-lg rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email</label>

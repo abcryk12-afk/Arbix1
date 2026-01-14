@@ -10,6 +10,7 @@ export default function MobileMenu() {
     { name: "About", href: "/about" },
     { name: "How It Works", href: "/how-it-works" },
     { name: "Profit Plan", href: "#plans" },
+    { name: "Education", href: "/education" },
     { name: "Testimonials", href: "#testimonials" },
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },

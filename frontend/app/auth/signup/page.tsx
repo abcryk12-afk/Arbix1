@@ -223,7 +223,7 @@ export default function SignupPage() {
           <p className="text-slate-400">Sign up in a few easy steps, verify your email, and start earning with arbitrage trading.</p>
         </div>
 
-        <div className="bg-slate-800/30 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-8">
+        <div className="arbix-card arbix-3d arbix-shine arbix-shine-active arbix-auth-card arbix-auth-float backdrop-blur-lg rounded-2xl p-8">
           {step === 1 && (
             <form onSubmit={handleRegister} className="space-y-6">
               <div>
