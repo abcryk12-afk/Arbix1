@@ -218,7 +218,7 @@ export default function DashboardHeader() {
             className={
               'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
               'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none md:hidden'
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none'
             }
             aria-label="Daily Rewards"
           >
@@ -227,7 +227,7 @@ export default function DashboardHeader() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 3l2.2 4.5L19 8l-3.5 3.4.8 4.9L12 14.9 7.7 16.3l.8-4.9L5 8l4.8-.5L12 3z"
+                d="M12 8v13m0-13c-1.5 0-3-1.6-3-3.2C9 3.8 10 3 11.1 3c.9 0 1.5.5 1.9 1.1.4-.6 1-1.1 1.9-1.1C16 3 17 3.8 17 4.8 17 6.4 15.5 8 14 8m-6 2h8m-11 0h14a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3a1 1 0 011-1z"
               />
             </svg>
             {hasRewardReady && (
