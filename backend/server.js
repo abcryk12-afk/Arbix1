@@ -88,6 +88,7 @@ const ensureSchema = async () => {
       'profit',
       'referral_profit',
       'referral_bonus',
+      'daily_bonus',
     ];
 
     const merged = Array.from(new Set([...existingValues, ...desiredValues]));

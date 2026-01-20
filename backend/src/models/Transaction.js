@@ -21,7 +21,8 @@ const Transaction = db.define(
         'package_purchase',
         'profit',
         'referral_profit',
-        'referral_bonus'
+        'referral_bonus',
+        'daily_bonus'
       ),
       allowNull: false,
     },

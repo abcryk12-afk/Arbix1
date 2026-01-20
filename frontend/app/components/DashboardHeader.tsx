@@ -17,6 +17,7 @@ export default function DashboardHeader() {
   const [displayName, setDisplayName] = useState<string>('');
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [hasRewardReady, setHasRewardReady] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -105,6 +106,41 @@ export default function DashboardHeader() {
     return () => window.removeEventListener('arbix-notifications-updated', onUpdate);
   }, []);
 
+  useEffect(() => {
+    const fetchReward = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setHasRewardReady(false);
+          return;
+        }
+
+        const res = await fetch('/api/user/daily-checkin/status', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data?.success) {
+          setHasRewardReady(false);
+          return;
+        }
+
+        setHasRewardReady(Boolean(data?.canClaim));
+      } catch {
+        setHasRewardReady(false);
+      }
+    };
+
+    fetchReward();
+
+    const onUpdate = () => fetchReward();
+    window.addEventListener('arbix-daily-reward-updated', onUpdate);
+    return () => window.removeEventListener('arbix-daily-reward-updated', onUpdate);
+  }, []);
+
   const navItems: NavItem[] = useMemo(
     () => [
       { label: 'Dashboard', href: '/dashboard', match: 'exact' },
@@ -177,6 +213,28 @@ export default function DashboardHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/daily-rewards"
+            className={
+              'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
+              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none md:hidden'
+            }
+            aria-label="Daily Rewards"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 3l2.2 4.5L19 8l-3.5 3.4.8 4.9L12 14.9 7.7 16.3l.8-4.9L5 8l4.8-.5L12 3z"
+              />
+            </svg>
+            {hasRewardReady && (
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+            )}
+          </Link>
+
           <Link
             href="/dashboard/notifications"
             className={

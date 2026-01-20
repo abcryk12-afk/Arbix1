@@ -1,10 +1,150 @@
 const { Op } = require('sequelize');
 const { ethers } = require('ethers');
-const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, SiteSetting, sequelize } = require('../models');
+const { User, Wallet, Transaction, UserPackage, WithdrawalRequest, DepositRequest, Notification, SiteSetting, DailyCheckin, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
 const { getInvestmentPackagesConfig } = require('../services/investmentPackageConfigService');
 const { getFooterStatsOverrides } = require('../services/footerStatsOverrideService');
+
+const CHECKIN_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+const computeNextDay = (streakDay) => {
+  const day = Number(streakDay || 0);
+  if (day >= 7) return 1;
+  return day + 1;
+};
+
+const rewardAmountForDay = (day) => {
+  return Number(day) === 7 ? 0.5 : 0.25;
+};
+
+exports.getDailyCheckinStatus = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const now = new Date();
+
+    let wallet = await Wallet.findOne({ where: { user_id: userId } });
+    if (!wallet) {
+      wallet = await Wallet.create({ user_id: userId, balance: 0 });
+    }
+
+    let record = await DailyCheckin.findOne({ where: { user_id: userId } });
+    if (!record) {
+      record = await DailyCheckin.create({ user_id: userId, streak_day: 0, last_claimed_at: null });
+    }
+
+    const last = record.last_claimed_at ? new Date(record.last_claimed_at) : null;
+    const elapsed = last ? now.getTime() - last.getTime() : CHECKIN_INTERVAL_MS;
+    const remainingMs = Math.max(0, CHECKIN_INTERVAL_MS - elapsed);
+    const canClaim = remainingMs <= 0;
+    const nextDay = canClaim ? computeNextDay(record.streak_day) : null;
+    const amount = canClaim && nextDay ? rewardAmountForDay(nextDay) : null;
+
+    const streakDayForUi = canClaim && Number(record.streak_day) >= 7 ? 0 : Number(record.streak_day || 0);
+    const nextEligibleAt = last ? new Date(last.getTime() + CHECKIN_INTERVAL_MS) : null;
+
+    return res.status(200).json({
+      success: true,
+      canClaim,
+      nextDay: nextDay || (Number(record.streak_day) >= 7 ? 1 : Number(record.streak_day || 0) + 1),
+      amount: amount !== null ? amount : rewardAmountForDay(computeNextDay(record.streak_day)),
+      streakDay: streakDayForUi,
+      nextEligibleAt: nextEligibleAt ? nextEligibleAt.toISOString() : null,
+      remainingMs,
+      walletBalance: Number(wallet.balance || 0),
+    });
+  } catch (error) {
+    console.error('Daily check-in status error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch daily check-in status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.claimDailyCheckin = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const now = new Date();
+
+    const result = await Transaction.sequelize.transaction(async (t) => {
+      let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t });
+      if (!wallet) {
+        wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
+      }
+
+      let record = await DailyCheckin.findOne({ where: { user_id: userId }, transaction: t, lock: t.LOCK.UPDATE });
+      if (!record) {
+        record = await DailyCheckin.create(
+          { user_id: userId, streak_day: 0, last_claimed_at: null },
+          { transaction: t }
+        );
+      }
+
+      const last = record.last_claimed_at ? new Date(record.last_claimed_at) : null;
+      const elapsed = last ? now.getTime() - last.getTime() : CHECKIN_INTERVAL_MS;
+      const remainingMs = Math.max(0, CHECKIN_INTERVAL_MS - elapsed);
+      if (remainingMs > 0) {
+        return { ok: false, status: 400, message: 'Not eligible yet', remainingMs };
+      }
+
+      const dayToClaim = computeNextDay(record.streak_day);
+      const amount = rewardAmountForDay(dayToClaim);
+
+      wallet.balance = Number(wallet.balance || 0) + amount;
+      await wallet.save({ transaction: t });
+
+      record.streak_day = dayToClaim;
+      record.last_claimed_at = now;
+      await record.save({ transaction: t });
+
+      await Transaction.create(
+        {
+          user_id: userId,
+          type: 'daily_bonus',
+          amount,
+          created_by: req.user?.email || null,
+          note: `Daily check-in bonus (Day ${dayToClaim})`,
+        },
+        { transaction: t }
+      );
+
+      return {
+        ok: true,
+        walletBalance: Number(wallet.balance || 0),
+        reward: {
+          day: dayToClaim,
+          amount,
+          currency: 'USDT',
+          claimedAt: now.toISOString(),
+        },
+      };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({
+        success: false,
+        message: result.message || 'Unable to claim',
+        remainingMs: result.remainingMs,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Daily bonus claimed',
+      wallet: { balance: Number(result.walletBalance || 0) },
+      reward: result.reward,
+    });
+  } catch (error) {
+    console.error('Daily check-in claim error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to claim daily bonus',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
 
 exports.getPublicInvestmentPackages = async (req, res) => {
   try {

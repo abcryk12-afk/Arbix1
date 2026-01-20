@@ -17,6 +17,8 @@ const {
   listWithdrawalRequests,
   requestDeposit,
   listDepositRequests,
+  getDailyCheckinStatus,
+  claimDailyCheckin,
 } = require('../controllers/userController');
 
 router.get('/summary', protect, getSummary);
@@ -38,5 +40,8 @@ router.get('/deposit-requests', protect, listDepositRequests);
 
 router.post('/deposit_requests', protect, requestDeposit);
 router.get('/deposit_requests', protect, listDepositRequests);
+
+router.get('/daily-checkin/status', protect, getDailyCheckinStatus);
+router.post('/daily-checkin/claim', protect, claimDailyCheckin);
 
 module.exports = router;
