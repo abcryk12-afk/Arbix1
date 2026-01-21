@@ -273,9 +273,9 @@ export default function WithdrawPage() {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-transparent text-slate-50">
       {/* Header */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             WITHDRAWALS
@@ -293,7 +293,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Balance overview */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Your Withdrawable Balance
@@ -335,7 +335,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Processing time notice */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
           <div className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-950/80 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/80">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-500/60 to-transparent opacity-80" />
@@ -355,7 +355,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Network warning */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
           <div className="group relative overflow-hidden rounded-2xl border border-red-500/70 bg-red-950/30 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-400 hover:bg-red-950/50">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-400/70 to-transparent opacity-80" />
@@ -372,7 +372,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Withdrawal form */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Submit Withdrawal Request
@@ -462,7 +462,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Pending requests */}
-      <section className="border-b border-slate-800 bg-slate-950" ref={pendingSectionRef}>
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm" ref={pendingSectionRef}>
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Pending Withdrawals
@@ -508,7 +508,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Withdrawal history */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Withdrawal History
@@ -572,7 +572,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Security notes */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-[11px] text-slate-400 md:text-xs">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Important Security Notes
@@ -591,7 +591,7 @@ export default function WithdrawPage() {
       </section>
 
       {/* Support */}
-      <section className="bg-slate-950">
+      <section className="bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Need Help with Your Withdrawal?

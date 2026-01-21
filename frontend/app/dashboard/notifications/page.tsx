@@ -121,8 +121,8 @@ export default function DashboardNotificationsPage() {
   }, []);
 
   return (
-    <div className="min-h-[calc(100vh-140px)] bg-slate-950 text-slate-50">
-      <section className="border-b border-slate-800 bg-slate-950">
+    <div className="min-h-[calc(100vh-140px)] bg-transparent text-slate-50">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

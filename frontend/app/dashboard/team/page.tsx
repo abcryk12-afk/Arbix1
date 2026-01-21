@@ -228,9 +228,9 @@ export default function TeamEarningsPage() {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
+    <div className="bg-transparent text-slate-50 min-h-screen">
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 network-grid-bg">
+      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 network-grid-bg backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             REFERRALS
@@ -246,7 +246,7 @@ export default function TeamEarningsPage() {
       </section>
 
       {/* Referral Earnings */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
           <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Referral Earnings
@@ -351,7 +351,7 @@ export default function TeamEarningsPage() {
       </section>
 
       {/* Overview cards */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <div className="flex gap-3 overflow-x-auto pb-1 text-xs text-slate-200">
             <div className="arbix-card arbix-3d min-w-[130px] rounded-2xl p-3">
@@ -383,7 +383,7 @@ export default function TeamEarningsPage() {
       </section>
 
       {/* Referral Link */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
           <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Your Referral Link
@@ -419,7 +419,7 @@ export default function TeamEarningsPage() {
       </section>
 
       {/* Team list tabs */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 pt-4 md:pt-6">
           <div className="arbix-card arbix-3d flex gap-2 overflow-x-auto rounded-2xl p-2 text-[11px] text-slate-200">
             {[
@@ -478,7 +478,7 @@ export default function TeamEarningsPage() {
       </section>
 
       {/* Rules section */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
           <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Referral Income Rules
@@ -511,7 +511,7 @@ export default function TeamEarningsPage() {
       </section>
 
       {/* Support section */}
-      <section className="bg-slate-950">
+      <section className="bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-200 md:text-sm">
           <h2 className="text-sm font-semibold tracking-tight text-slate-50 md:text-base">
             Need Help?

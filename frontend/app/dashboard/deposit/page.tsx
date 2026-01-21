@@ -330,9 +330,9 @@ export default function DepositPage() {
       : '';
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
+    <div className="bg-transparent text-slate-50 min-h-screen">
       {/* Header */}
-      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 network-grid-bg">
+      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 network-grid-bg backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             WALLET
@@ -348,7 +348,7 @@ export default function DepositPage() {
       </section>
 
       {/* Wallet Overview */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Your Deposit Wallet Address
@@ -363,7 +363,7 @@ export default function DepositPage() {
       </section>
 
       {/* Balance Summary */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <div className="grid gap-3 text-xs text-slate-300 sm:grid-cols-3">
             <div className="arbix-card arbix-3d rounded-2xl p-4">
@@ -396,7 +396,7 @@ export default function DepositPage() {
       </section>
 
       {/* New Deposit Form */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">New Deposit</h2>
           <p className="mt-2 text-xs text-slate-400 md:text-sm">
@@ -486,7 +486,7 @@ export default function DepositPage() {
       {addressGenerated && (
         <section
           id="deposit-address-section"
-          className="border-b border-slate-800 bg-slate-950"
+          className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm"
         >
           <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
             <h2 className="text-sm font-semibold text-slate-50 md:text-base">
@@ -580,7 +580,7 @@ export default function DepositPage() {
       )}
 
       {/* Critical Instructions */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <div className="arbix-alert arbix-3d arbix-3d-red rounded-2xl p-4 text-xs text-red-100 md:text-sm">
             <p className="font-semibold">⚠ Important Deposit Instructions</p>
@@ -599,7 +599,7 @@ export default function DepositPage() {
       </section>
 
       {/* Live Status + Overview */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Deposit Status
@@ -647,7 +647,7 @@ export default function DepositPage() {
       </section>
 
       {/* Deposit History */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Deposit Requests
@@ -726,7 +726,7 @@ export default function DepositPage() {
       </section>
 
       {/* Help Section */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             If Your Deposit Is Not Showing
@@ -753,7 +753,7 @@ export default function DepositPage() {
       </section>
 
       {/* Security Notes */}
-      <section className="bg-slate-950">
+      <section className="bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Security Notice

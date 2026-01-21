@@ -365,8 +365,8 @@ export default function StartInvestmentPage() {
   }, []);
 
   return (
-    <div className="bg-slate-950 text-slate-50">
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+    <div className="bg-transparent text-slate-50">
+      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             INVESTMENTS
@@ -381,7 +381,7 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Your Arbix Wallet
@@ -421,7 +421,7 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Choose an Investment Package
@@ -538,7 +538,7 @@ export default function StartInvestmentPage() {
       {selectedConfig && showActivation && (
         <section
           id="activation-panel"
-          className="border-b border-slate-800 bg-slate-950"
+          className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm"
         >
           <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
             <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/80 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)]">
@@ -651,7 +651,7 @@ export default function StartInvestmentPage() {
 
       <section
         id="active-packages"
-        className="border-b border-slate-800 bg-slate-950"
+        className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm"
       >
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
@@ -731,7 +731,7 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Daily Earnings Wallet
@@ -763,14 +763,15 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950">
+      <section className="bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-[11px] text-slate-500 md:text-xs">
           <p>
             Past performance does not guarantee future results. Your capital is at
-            risk. All packages typically run for 365 days unless otherwise stated.
+            risk. Always invest responsibly.
           </p>
         </div>
       </section>
     </div>
   );
+
 }

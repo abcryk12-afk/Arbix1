@@ -86,8 +86,8 @@ export default function PackagesPage() {
   const formatMoney = (n: number) => `$${Number(n || 0).toFixed(2)}`;
 
   return (
-    <div className="bg-slate-950 text-slate-50">
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+    <div className="bg-transparent text-slate-50">
+      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 backdrop-blur-sm">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
             PACKAGES

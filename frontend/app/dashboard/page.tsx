@@ -414,9 +414,9 @@ export default function DashboardPage() {
   ]);
 
   return (
-    <div className="bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-50">
+    <div className="bg-transparent text-slate-50">
       {/* Welcome Block */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <p className="text-sm font-semibold text-slate-50">
             Welcome Back, {userName || 'User'} 👋 {isLoading ? <span className="text-[11px] text-slate-500">(loading...)</span> : null}
@@ -428,7 +428,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Quick Actions */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid grid-cols-3 gap-2 text-xs text-slate-300 sm:gap-3">
             <a
@@ -475,8 +475,68 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
+          <div className="grid grid-cols-2 gap-3 text-xs text-slate-200">
+            <a
+              href="/dashboard/invest"
+              className={
+                'arbix-card arbix-3d arbix-3d-emerald arbix-shine arbix-shine-active arbix-card-emerald group relative overflow-hidden rounded-2xl p-4 transition-all duration-200 ' +
+                'hover:-translate-y-0.5 motion-reduce:transform-none'
+              }
+            >
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
+              <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-emerald-500/15 blur-3xl animate-pulse" />
+              <div className="pointer-events-none absolute -bottom-20 -right-16 h-52 w-52 rounded-full bg-sky-500/14 blur-3xl animate-pulse" />
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-semibold tracking-[0.22em] text-slate-300/70">
+                    ACTIVE
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-emerald-200">🚀 Invest Now</p>
+                  <p className="mt-1 text-[11px] text-slate-300/80">
+                    Buy a package and start earning daily ROI.
+                  </p>
+                </div>
+                <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400 ring-4 ring-slate-900/40" />
+              </div>
+              <div className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-500/15 px-3 py-2 text-[11px] font-semibold text-emerald-100 ring-1 ring-emerald-400/25 transition group-hover:bg-emerald-500/20">
+                🚀 Start Investment
+              </div>
+            </a>
+
+            <a
+              href="/dashboard/daily-rewards"
+              className={
+                'arbix-card arbix-3d arbix-3d-amber arbix-shine arbix-shine-active arbix-shine-amber arbix-card-amber group relative overflow-hidden rounded-2xl p-4 transition-all duration-200 ' +
+                'hover:-translate-y-0.5 motion-reduce:transform-none'
+              }
+            >
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
+              <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-amber-400/14 blur-3xl animate-pulse" />
+              <div className="pointer-events-none absolute -bottom-20 -right-16 h-52 w-52 rounded-full bg-violet-500/12 blur-3xl animate-pulse" />
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-semibold tracking-[0.22em] text-slate-300/70">
+                    BONUS
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-amber-200">🎁 Daily Check-in Bonus</p>
+                  <p className="mt-1 text-[11px] text-slate-300/80">
+                    Claim your daily reward every 24 hours.
+                  </p>
+                </div>
+                <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-300 ring-4 ring-slate-900/40" />
+              </div>
+              <div className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-amber-500/15 px-3 py-2 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-300/25 transition group-hover:bg-amber-500/20">
+                🎁 Open Daily Bonus
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Top Summary Cards */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
             <KpiCard
@@ -516,7 +576,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Earnings Breakdown */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <div className="grid gap-3 text-xs text-slate-300 md:grid-cols-2">
             <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)]">
@@ -583,7 +643,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Active Packages Overview */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Active Packages Overview
@@ -622,7 +682,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Team Snapshot */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Team Snapshot
@@ -655,7 +715,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Recent Activity Feed */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Recent Activity
