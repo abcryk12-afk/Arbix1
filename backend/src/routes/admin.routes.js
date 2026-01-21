@@ -41,6 +41,11 @@ const {
   removeLogo,
 } = require('../controllers/brandingController');
 
+const {
+  getAdminSiteTheme,
+  setAdminSiteTheme,
+} = require('../controllers/siteThemeController');
+
 router.use(requireAdminKey);
 
 router.get('/check', protect, requireAdminUser, checkAccess);
@@ -53,6 +58,8 @@ router.get('/footer-stats-overrides', protect, requireAdminUser, getFooterStatsO
 router.put('/footer-stats-overrides', protect, requireAdminUser, auditAdminAction('footer_stats_overrides.update', { entity: 'site_setting' }), setFooterStatsOverridesSetting);
 router.get('/auto-withdraw', protect, requireAdminUser, getAutoWithdrawSetting);
 router.put('/auto-withdraw', protect, requireAdminUser, auditAdminAction('auto_withdraw.toggle', { entity: 'site_setting' }), setAutoWithdrawSetting);
+router.get('/site-theme', protect, requireAdminUser, getAdminSiteTheme);
+router.put('/site-theme', protect, requireAdminUser, auditAdminAction('site_theme.update', { entity: 'site_setting' }), setAdminSiteTheme);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/status', protect, requireAdminUser, updateUserStatus);

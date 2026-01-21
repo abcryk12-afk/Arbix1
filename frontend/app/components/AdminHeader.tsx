@@ -4,11 +4,25 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+type SiteTheme = 'light' | 'dark';
+
+function normalizeTheme(theme: unknown): SiteTheme {
+  return theme === 'light' ? 'light' : 'dark';
+}
+
+function applyThemeToDocument(theme: SiteTheme) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.style.colorScheme = theme;
+}
+
 export default function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [adminName, setAdminName] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [siteTheme, setSiteTheme] = useState<SiteTheme>('dark');
+  const [themeLoading, setThemeLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -25,6 +39,41 @@ export default function AdminHeader() {
     setMobileOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTheme = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) return;
+
+        setThemeLoading(true);
+        const res = await fetch('/api/admin/site-theme', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => null);
+        const theme = normalizeTheme(data?.theme);
+        if (!cancelled) {
+          setSiteTheme(theme);
+          applyThemeToDocument(theme);
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setThemeLoading(false);
+      }
+    };
+
+    loadTheme();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if ((pathname || "").startsWith("/admin/login")) return null;
 
   const handleLogout = () => {
@@ -35,6 +84,36 @@ export default function AdminHeader() {
       // ignore
     }
     router.push("/admin/login");
+  };
+
+  const handleToggleTheme = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const nextTheme: SiteTheme = siteTheme === 'dark' ? 'light' : 'dark';
+      setThemeLoading(true);
+
+      const res = await fetch('/api/admin/site-theme', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ theme: nextTheme }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (data?.success) {
+        const saved = normalizeTheme(data?.theme);
+        setSiteTheme(saved);
+        applyThemeToDocument(saved);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setThemeLoading(false);
+    }
   };
 
   const isActive = (href: string) => {
@@ -102,6 +181,42 @@ export default function AdminHeader() {
           </div>
           <button
             type="button"
+            onClick={handleToggleTheme}
+            disabled={themeLoading}
+            className="hidden items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60 disabled:opacity-60 md:inline-flex"
+            aria-label="Toggle site theme"
+          >
+            <span className="inline-flex h-4 w-4 items-center justify-center">
+              {siteTheme === 'dark' ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
+                  />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m0-11.314L7.05 7.05m9.9 9.9 1.414 1.414"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8a4 4 0 100 8 4 4 0 000-8z"
+                  />
+                </svg>
+              )}
+            </span>
+            <span>{siteTheme === 'dark' ? 'Dark' : 'Light'}</span>
+          </button>
+          <button
+            type="button"
             onClick={handleLogout}
             className="hidden rounded-lg border border-rose-700/70 bg-rose-500/10 px-3 py-1.5 text-[11px] font-medium text-rose-100 transition-colors duration-150 hover:border-rose-500 hover:bg-rose-500/20 md:inline-flex"
           >
@@ -114,6 +229,15 @@ export default function AdminHeader() {
             View Site
           </Link>
           <div className="flex items-center gap-2 md:hidden">
+            <button
+              type="button"
+              onClick={handleToggleTheme}
+              disabled={themeLoading}
+              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 px-2 text-[11px] text-slate-200 disabled:opacity-60"
+              aria-label="Toggle site theme"
+            >
+              {siteTheme === 'dark' ? 'Dark' : 'Light'}
+            </button>
             <Link
               href="/"
               className="rounded-lg border border-slate-700 bg-slate-950/40 px-2 py-1 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60"
