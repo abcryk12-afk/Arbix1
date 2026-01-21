@@ -23,6 +23,17 @@ export default function DashboardHeader() {
   const [themePref, setThemePref] = useState<UserThemePref>('default');
   const [themeBusy, setThemeBusy] = useState(false);
 
+  const effectiveTheme = useMemo<'light' | 'dark'>(() => {
+    if (themePref === 'light' || themePref === 'dark') return themePref;
+    const fromDom =
+      typeof document !== 'undefined'
+        ? (document.documentElement.getAttribute('data-theme') as 'light' | 'dark' | null)
+        : null;
+    return fromDom === 'light' ? 'light' : 'dark';
+  }, [themePref]);
+
+  const nextTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
+
   const normalizeThemePref = (v: any): UserThemePref => {
     if (v === 'light') return 'light';
     if (v === 'dark') return 'dark';
@@ -119,11 +130,7 @@ export default function DashboardHeader() {
     };
   }, []);
 
-  const cycleThemePref = () => {
-    const order: UserThemePref[] = ['default', 'dark', 'light'];
-    const idx = order.indexOf(themePref);
-    return order[(idx + 1) % order.length];
-  };
+  const toggleThemePref = () => nextTheme;
 
   const saveThemePref = async (next: UserThemePref) => {
     if (themeBusy) return;
@@ -330,7 +337,7 @@ export default function DashboardHeader() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => saveThemePref(cycleThemePref())}
+            onClick={() => saveThemePref(toggleThemePref())}
             disabled={themeBusy}
             className={
               'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
@@ -339,9 +346,9 @@ export default function DashboardHeader() {
               (themeBusy ? 'opacity-70' : '')
             }
             aria-label="Toggle theme"
-            title={themePref === 'default' ? 'Theme: Default' : `Theme: ${themePref}`}
+            title={`Switch to ${nextTheme}`}
           >
-            {themePref === 'light' ? (
+            {nextTheme === 'light' ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -350,7 +357,7 @@ export default function DashboardHeader() {
                   d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m0-11.314L7.05 7.464m10.9 10.9l1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"
                 />
               </svg>
-            ) : themePref === 'dark' ? (
+            ) : (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -359,18 +366,9 @@ export default function DashboardHeader() {
                   d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
                 />
               </svg>
-            ) : (
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
             )}
 
-            <span className="sr-only">{themePref}</span>
+            <span className="sr-only">Switch to {nextTheme}</span>
           </button>
 
           <Link
@@ -473,7 +471,7 @@ export default function DashboardHeader() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => saveThemePref(cycleThemePref())}
+                  onClick={() => saveThemePref(toggleThemePref())}
                   disabled={themeBusy}
                   className={
                     'inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-100 ' +
@@ -481,7 +479,7 @@ export default function DashboardHeader() {
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none'
                   }
                 >
-                  Theme
+                  {nextTheme === 'light' ? 'Light' : 'Dark'}
                 </button>
 
                 <button
