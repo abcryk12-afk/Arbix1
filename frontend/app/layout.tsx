@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { ThemeProvider } from "./providers";
+import ThemeBoot from "./components/ThemeBoot";
 import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
@@ -20,15 +20,14 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
-      <body className="min-h-screen transition-colors duration-200 bg-slate-950 text-slate-50">
-        <ThemeProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-        </ThemeProvider>
+    <html lang="en" data-theme="dark">
+      <body className="min-h-screen bg-slate-950 text-slate-50">
+        <ThemeBoot />
+        <div className="min-h-screen flex flex-col">
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
       </body>
     </html>
   );

@@ -4,15 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
-type UserThemePref = 'default' | 'light' | 'dark';
-
 type NavItem = {
   label: string;
   href: string;
   match?: 'exact' | 'prefix';
 };
 
-export default function DashboardHeader() {
+ export default function DashboardHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -20,41 +18,6 @@ export default function DashboardHeader() {
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasRewardReady, setHasRewardReady] = useState(false);
-  const [themePref, setThemePref] = useState<UserThemePref>('default');
-  const [themeBusy, setThemeBusy] = useState(false);
-
-  const effectiveTheme = useMemo<'light' | 'dark'>(() => {
-    if (themePref === 'light' || themePref === 'dark') return themePref;
-    const fromDom =
-      typeof document !== 'undefined'
-        ? (document.documentElement.getAttribute('data-theme') as 'light' | 'dark' | null)
-        : null;
-    return fromDom === 'light' ? 'light' : 'dark';
-  }, [themePref]);
-
-  const nextTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
-
-  const normalizeThemePref = (v: any): UserThemePref => {
-    if (v === 'light') return 'light';
-    if (v === 'dark') return 'dark';
-    return 'default';
-  };
-
-  const applyThemeToDocument = (theme: 'light' | 'dark') => {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.style.colorScheme = theme;
-  };
-
-  const applyGlobalTheme = async () => {
-    try {
-      const res = await fetch('/api/public/site-theme', { cache: 'no-store' });
-      const data = await res.json().catch(() => null);
-      const t = data?.theme === 'light' ? 'light' : 'dark';
-      applyThemeToDocument(t);
-    } catch {
-      applyThemeToDocument('dark');
-    }
-  };
 
   useEffect(() => {
     const refresh = () => {
@@ -87,91 +50,6 @@ export default function DashboardHeader() {
       window.removeEventListener('arbix-user-updated', onUserUpdated);
     };
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadPref = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setThemePref('default');
-          return;
-        }
-
-        const res = await fetch('/api/user/theme', {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json().catch(() => null);
-        if (cancelled) return;
-
-        const pref = normalizeThemePref(data?.themePreference);
-        setThemePref(pref);
-
-        if (pref === 'light' || pref === 'dark') {
-          applyThemeToDocument(pref);
-        }
-      } catch {
-        if (!cancelled) setThemePref('default');
-      }
-    };
-
-    loadPref();
-
-    const onThemeUpdated = () => loadPref();
-    window.addEventListener('arbix-theme-updated', onThemeUpdated);
-    return () => {
-      cancelled = true;
-      window.removeEventListener('arbix-theme-updated', onThemeUpdated);
-    };
-  }, []);
-
-  const toggleThemePref = () => nextTheme;
-
-  const saveThemePref = async (next: UserThemePref) => {
-    if (themeBusy) return;
-    setThemeBusy(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setThemePref('default');
-        await applyGlobalTheme();
-        return;
-      }
-
-      const res = await fetch('/api/user/theme', {
-        method: 'PUT',
-        cache: 'no-store',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ theme: next === 'default' ? 'default' : next }),
-      });
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok || !data?.success) {
-        return;
-      }
-
-      setThemePref(next);
-
-      if (next === 'light' || next === 'dark') {
-        applyThemeToDocument(next);
-      } else {
-        await applyGlobalTheme();
-      }
-
-      window.dispatchEvent(new Event('arbix-theme-updated'));
-    } finally {
-      setThemeBusy(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -335,42 +213,6 @@ export default function DashboardHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => saveThemePref(toggleThemePref())}
-            disabled={themeBusy}
-            className={
-              'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
-              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none ' +
-              (themeBusy ? 'opacity-70' : '')
-            }
-            aria-label="Toggle theme"
-            title={`Switch to ${nextTheme}`}
-          >
-            {nextTheme === 'light' ? (
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m0-11.314L7.05 7.464m10.9 10.9l1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"
-                />
-              </svg>
-            ) : (
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
-                />
-              </svg>
-            )}
-
-            <span className="sr-only">Switch to {nextTheme}</span>
-          </button>
-
           <Link
             href="/dashboard/daily-rewards"
             className={
@@ -469,19 +311,6 @@ export default function DashboardHeader() {
             <div className="mb-3 flex items-center justify-between">
               <div className="text-xs text-slate-200">{displayName || 'Account'}</div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => saveThemePref(toggleThemePref())}
-                  disabled={themeBusy}
-                  className={
-                    'inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-100 ' +
-                    'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none'
-                  }
-                >
-                  {nextTheme === 'light' ? 'Light' : 'Dark'}
-                </button>
-
                 <button
                   type="button"
                   onClick={handleLogout}
