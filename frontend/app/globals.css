@@ -48,6 +48,67 @@ html[data-theme="light"] .bg-slate-800 {
   background-color: rgba(255, 255, 255, 0.88) !important;
 }
 
+html[data-theme="light"] .bg-slate-950\/95,
+html[data-theme="light"] .bg-slate-950\/98,
+html[data-theme="light"] .bg-slate-950\/90,
+html[data-theme="light"] .bg-slate-950\/80,
+html[data-theme="light"] .bg-slate-950\/70,
+html[data-theme="light"] .bg-slate-950\/60,
+html[data-theme="light"] .bg-slate-950\/50,
+html[data-theme="light"] .bg-slate-950\/40,
+html[data-theme="light"] .bg-slate-950\/30,
+html[data-theme="light"] .bg-slate-950\/20,
+html[data-theme="light"] .bg-slate-950\/10,
+html[data-theme="light"] .bg-slate-900\/95,
+html[data-theme="light"] .bg-slate-900\/90,
+html[data-theme="light"] .bg-slate-900\/80,
+html[data-theme="light"] .bg-slate-900\/70,
+html[data-theme="light"] .bg-slate-900\/60,
+html[data-theme="light"] .bg-slate-900\/50,
+html[data-theme="light"] .bg-slate-900\/40,
+html[data-theme="light"] .bg-slate-900\/30,
+html[data-theme="light"] .bg-slate-900\/20,
+html[data-theme="light"] .bg-slate-900\/10 {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+}
+
+html[data-theme="light"] .bg-slate-800\/90,
+html[data-theme="light"] .bg-slate-800\/80,
+html[data-theme="light"] .bg-slate-800\/70,
+html[data-theme="light"] .bg-slate-800\/60,
+html[data-theme="light"] .bg-slate-800\/50,
+html[data-theme="light"] .bg-slate-800\/40,
+html[data-theme="light"] .bg-slate-800\/30,
+html[data-theme="light"] .bg-slate-800\/20,
+html[data-theme="light"] .bg-slate-800\/15,
+html[data-theme="light"] .bg-slate-800\/10 {
+  background-color: rgba(241, 245, 249, 0.82) !important;
+}
+
+html[data-theme="light"] .ring-slate-950,
+html[data-theme="light"] .ring-slate-900 {
+  --tw-ring-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+html[data-theme="light"] .shadow-\[0_0_0_1px_rgba\(15\,23\,42\,0\.9\)\] {
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme="light"] .arbix-3d {
+  --arbix-3d-border: rgba(10, 95, 255, 0.26);
+  --arbix-3d-glow: rgba(10, 95, 255, 0.12);
+}
+
+html[data-theme="light"] .arbix-3d:hover {
+  box-shadow:
+    0 0 0 1px rgba(10, 95, 255, 0.10),
+    0 22px 75px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .arbix-shine {
+  --arbix-shine-accent: rgba(10, 95, 255, 0.14);
+}
+
 html[data-theme="light"] .bg-transparent {
   background-color: transparent !important;
 }
