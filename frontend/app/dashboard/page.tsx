@@ -475,48 +475,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-3 md:py-4">
-          <div className="grid grid-cols-2 gap-2 text-xs text-slate-200">
-            <a
-              href="/dashboard/invest"
-              className={
-                'arbix-card arbix-3d arbix-3d-emerald arbix-shine arbix-shine-active arbix-card-emerald group relative overflow-hidden rounded-xl p-3 transition-all duration-200 ' +
-                'hover:-translate-y-0.5 motion-reduce:transform-none'
-              }
-            >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
-              <div className="pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full bg-emerald-500/14 blur-3xl animate-pulse" />
-              <div className="pointer-events-none absolute -bottom-24 -right-24 h-44 w-44 rounded-full bg-sky-500/12 blur-3xl animate-pulse" />
-              <p className="text-[10px] font-semibold tracking-[0.22em] text-slate-300/70">ACTIVE</p>
-              <p className="mt-1 text-[12px] font-semibold text-emerald-200">🚀 Start Investment</p>
-              <p className="mt-1 text-[10px] text-slate-300/75">Buy a package &amp; start earning.</p>
-              <div className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500/15 px-3 py-1.5 text-[10px] font-semibold text-emerald-100 ring-1 ring-emerald-400/25 transition group-hover:bg-emerald-500/20">
-                🚀 Invest Now
-              </div>
-            </a>
-
-            <a
-              href="/dashboard/daily-rewards"
-              className={
-                'arbix-card arbix-3d arbix-3d-amber arbix-shine arbix-shine-active arbix-shine-amber arbix-card-amber group relative overflow-hidden rounded-xl p-3 transition-all duration-200 ' +
-                'hover:-translate-y-0.5 motion-reduce:transform-none'
-              }
-            >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
-              <div className="pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full bg-amber-400/13 blur-3xl animate-pulse" />
-              <div className="pointer-events-none absolute -bottom-24 -right-24 h-44 w-44 rounded-full bg-violet-500/11 blur-3xl animate-pulse" />
-              <p className="text-[10px] font-semibold tracking-[0.22em] text-slate-300/70">BONUS</p>
-              <p className="mt-1 text-[12px] font-semibold text-amber-200">🎁 Daily Check-in</p>
-              <p className="mt-1 text-[10px] text-slate-300/75">Claim bonus every 24 hours.</p>
-              <div className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-amber-500/15 px-3 py-1.5 text-[10px] font-semibold text-amber-100 ring-1 ring-amber-300/25 transition group-hover:bg-amber-500/20">
-                🎁 Open Daily Bonus
-              </div>
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* Top Summary Cards */}
       <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
