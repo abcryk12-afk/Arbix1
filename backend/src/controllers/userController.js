@@ -708,6 +708,64 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+exports.getThemePreference = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, { attributes: ['id', 'theme_preference'] });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      themePreference: user.theme_preference || null,
+    });
+  } catch (error) {
+    console.error('Get user theme preference error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch theme preference',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.setThemePreference = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const raw = req.body?.theme;
+
+    const normalized = raw === null || raw === undefined || raw === '' || raw === 'default'
+      ? null
+      : String(raw).toLowerCase();
+
+    if (normalized !== null && !['light', 'dark'].includes(normalized)) {
+      return res.status(400).json({ success: false, message: 'Invalid theme. Use light, dark, or default.' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.theme_preference = normalized;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Theme preference updated',
+      themePreference: user.theme_preference || null,
+    });
+  } catch (error) {
+    console.error('Set user theme preference error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update theme preference',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.listDepositRequests = async (req, res) => {
   try {
     const userId = req.user.id;

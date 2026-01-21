@@ -68,6 +68,34 @@ const ensureSchema = async () => {
   await sequelize.sync();
 
   try {
+    const [colsRaw] = await sequelize.query('SHOW COLUMNS FROM users');
+    const cols = Array.isArray(colsRaw) ? colsRaw : [];
+    const colSet = new Set(cols.map((c) => String(c.Field || '').toLowerCase()).filter(Boolean));
+
+    if (!colSet.has('theme_preference')) {
+      await sequelize.query("ALTER TABLE users ADD COLUMN theme_preference ENUM('light','dark') NULL");
+    } else {
+      const [rows] = await sequelize.query("SHOW COLUMNS FROM users LIKE 'theme_preference'");
+      const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+      const rawType = row?.Type ? String(row.Type) : '';
+      const existingValues = rawType.startsWith('enum(')
+        ? rawType
+            .slice(5, -1)
+            .split(',')
+            .map((s) => s.trim())
+            .map((s) => s.replace(/^'/, '').replace(/'$/, ''))
+            .filter(Boolean)
+        : [];
+      const desiredValues = ['light', 'dark'];
+      const merged = Array.from(new Set([...existingValues, ...desiredValues]));
+      if (merged.length && desiredValues.some((v) => !existingValues.includes(v))) {
+        const enumSql = merged.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');
+        await sequelize.query(`ALTER TABLE users MODIFY COLUMN theme_preference ENUM(${enumSql}) NULL`);
+      }
+    }
+  } catch (e) {}
+
+  try {
     const [rows] = await sequelize.query("SHOW COLUMNS FROM transactions LIKE 'type'");
     const row = Array.isArray(rows) && rows.length ? rows[0] : null;
     const rawType = row?.Type ? String(row.Type) : '';

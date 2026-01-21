@@ -80,6 +80,11 @@ const User = db.define('User', {
     allowNull: true,
     field: 'reset_token_expires_at'
   },
+  theme_preference: {
+    type: DataTypes.ENUM('light', 'dark'),
+    allowNull: true,
+    field: 'theme_preference',
+  },
 }, {
   tableName: 'users',
   freezeTableName: true,

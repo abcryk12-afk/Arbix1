@@ -8,6 +8,8 @@ const {
   listNotifications,
   markNotificationsRead,
   updateProfile,
+  getThemePreference,
+  setThemePreference,
   getFooterStats,
   getReferrals,
   getReferralEarnings,
@@ -27,6 +29,8 @@ router.get('/notifications', protect, listNotifications);
 router.post('/notifications/read', protect, markNotificationsRead);
 router.put('/notifications/read', protect, markNotificationsRead);
 router.put('/profile', protect, updateProfile);
+router.get('/theme', protect, getThemePreference);
+router.put('/theme', protect, setThemePreference);
 router.get('/footer-stats', protect, getFooterStats);
 router.get('/referrals', protect, getReferrals);
 router.get('/referral-earnings', protect, getReferralEarnings);

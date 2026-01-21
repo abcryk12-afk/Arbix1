@@ -7,7 +7,8 @@ export async function POST(request) {
     const body = await request.json();
     const { email, secretCode } = body;
 
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
 
     // Forward to backend admin login route with email + secret code
     const response = await fetch(`${baseUrl}/api/admin/login`, {

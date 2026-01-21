@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
     const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
 
@@ -40,7 +41,8 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
     const adminKey = process.env.ADMIN_API_KEY;
     const authHeader = request.headers.get('authorization') || '';
 
