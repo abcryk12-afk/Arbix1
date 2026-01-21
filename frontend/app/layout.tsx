@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ThemeBoot from "./components/ThemeBoot";
@@ -8,6 +8,9 @@ import type { ReactNode } from 'react';
 export const metadata: Metadata = {
   title: "ArbiPro / Arbix",
   description: "Automated Arbitrage Trading + MLM Investment Platform",
+};
+
+export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
     { media: '(prefers-color-scheme: light)', color: '#f8faff' },
