@@ -16,24 +16,43 @@ body {
 }
 
 html[data-theme="light"] body {
-  background: #f6f8ff;
-  color: #0b1220;
+  background: #f8faff;
+  background: linear-gradient(135deg, #f8faff 0%, #f2f5ff 100%);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html[data-theme="light"] .text-slate-50,
 html[data-theme="light"] .text-slate-100,
 html[data-theme="light"] .text-white {
-  color: #0b1220 !important;
+  color: #0f172a !important;
 }
 
 html[data-theme="light"] .text-slate-200,
 html[data-theme="light"] .text-slate-300 {
-  color: #22324a !important;
+  color: #334155 !important;
 }
 
 html[data-theme="light"] .text-slate-400,
 html[data-theme="light"] .text-slate-500 {
-  color: #556a86 !important;
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .text-slate-600 {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .text-slate-700 {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .text-slate-800 {
+  color: #1e293b !important;
+}
+
+html[data-theme="light"] .text-slate-900 {
+  color: #0f172a !important;
 }
 
 html[data-theme="light"] .border-slate-900,
@@ -45,7 +64,9 @@ html[data-theme="light"] .border-slate-700 {
 html[data-theme="light"] .bg-slate-950,
 html[data-theme="light"] .bg-slate-900,
 html[data-theme="light"] .bg-slate-800 {
-  background-color: rgba(252, 253, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 html[data-theme="light"] .bg-slate-950\/95,
@@ -69,7 +90,9 @@ html[data-theme="light"] .bg-slate-900\/40,
 html[data-theme="light"] .bg-slate-900\/30,
 html[data-theme="light"] .bg-slate-900\/20,
 html[data-theme="light"] .bg-slate-900\/10 {
-  background-color: rgba(250, 252, 255, 0.78) !important;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 html[data-theme="light"] .bg-slate-800\/90,
@@ -95,8 +118,21 @@ html[data-theme="light"] .shadow-\[0_0_0_1px_rgba\(15\,23\,42\,0\.9\)\] {
 }
 
 html[data-theme="light"] .arbix-3d {
-  --arbix-3d-border: rgba(99, 102, 241, 0.32);
-  --arbix-3d-glow: rgba(99, 102, 241, 0.14);
+  --arbix-3d-border: rgba(99, 102, 241, 0.2);
+  --arbix-3d-glow: rgba(99, 102, 241, 0.1);
+  transition: all 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+html[data-theme="light"] .arbix-3d:hover {
+  --arbix-3d-border: rgba(99, 102, 241, 0.3);
+  --arbix-3d-glow: rgba(99, 102, 241, 0.18);
+  transform: translateY(-2px);
+}
+
+/* Enhanced button states for light theme */
+html[data-theme="light"] .arbix-3d:active {
+  transform: translateY(0);
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25), 0 4px 20px rgba(99, 102, 241, 0.15) !important;
 }
 
 html[data-theme="light"] .arbix-3d:hover {
@@ -106,7 +142,42 @@ html[data-theme="light"] .arbix-3d:hover {
 }
 
 html[data-theme="light"] .arbix-shine {
-  --arbix-shine-accent: rgba(99, 102, 241, 0.18);
+  --arbix-shine-accent: rgba(99, 102, 241, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-theme="light"] .arbix-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  transform: rotate(30deg);
+  animation: shine 3s infinite;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+html[data-theme="light"] .arbix-shine:hover::after {
+  opacity: 0.7;
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) rotate(30deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(30deg);
+  }
 }
 
 html[data-theme="light"] .bg-transparent {
@@ -114,12 +185,23 @@ html[data-theme="light"] .bg-transparent {
 }
 
 html[data-theme="light"] .arbix-card {
-  border: 1px solid rgba(25, 45, 80, 0.14);
-  background: linear-gradient(180deg, rgba(252, 253, 255, 0.92), rgba(240, 245, 255, 0.92));
+  border: 1px solid rgba(203, 213, 225, 0.4);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
   box-shadow:
-    0 0 0 1px rgba(25, 45, 80, 0.05),
-    0 20px 70px rgba(15, 23, 42, 0.12);
-  backdrop-filter: blur(12px);
+    0 4px 30px rgba(0, 0, 0, 0.03),
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+html[data-theme="light"] .arbix-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
 }
 
 html[data-theme="light"] .arbix-card::before {
@@ -139,12 +221,13 @@ html[data-theme="light"] .arbix-alert {
 
 html[data-theme="light"] .network-grid-bg::before {
   background-image:
-    radial-gradient(circle at 0 0, rgba(99, 102, 241, 0.16) 0, transparent 58%),
-    radial-gradient(circle at 100% 100%, rgba(14, 165, 233, 0.14) 0, transparent 58%),
-    linear-gradient(rgba(71, 85, 105, 0.26) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(71, 85, 105, 0.26) 1px, transparent 1px);
-  opacity: 0.6;
-  mix-blend-mode: normal;
+    radial-gradient(circle at 0 0, rgba(79, 70, 229, 0.12) 0, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.12) 0, transparent 55%),
+    linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+  background-size: 380px 380px, 420px 420px, 80px 80px, 80px 80px;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
 }
 
 .network-grid-bg::before {
