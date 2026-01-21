@@ -255,11 +255,42 @@ html[data-theme="light"] .network-grid-bg::before {
     linear-gradient(180deg, #0b1630 0%, #070f22 55%, #050b16 100%);
 }
 
+.arbix-dashboard-bg.network-grid-bg::before {
+  opacity: 0.38;
+}
+
+.arbix-dashboard-bg::after {
+  content: "";
+  position: absolute;
+  inset: -140px;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='0%25' stop-color='%230ea5e9' stop-opacity='.9'/%3E%3Cstop offset='60%25' stop-color='%230ea5e9' stop-opacity='.15'/%3E%3Cstop offset='100%25' stop-color='%230ea5e9' stop-opacity='0'/%3E%3C/radialGradient%3E%3ClinearGradient id='l' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2338bdf8' stop-opacity='.55'/%3E%3Cstop offset='50%25' stop-color='%2322c55e' stop-opacity='.4'/%3E%3Cstop offset='100%25' stop-color='%238b5cf6' stop-opacity='.45'/%3E%3C/linearGradient%3E%3Cfilter id='b'%3E%3CfeGaussianBlur stdDeviation='0.6'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='1200' height='600' fill='none'/%3E%3Cg stroke='url(%23l)' stroke-width='1.2' stroke-linecap='round' opacity='.85'%3E%3Cpath d='M40 420 L140 340 L260 380 L360 290 L470 330 L560 240 L690 300 L820 220 L940 260 L1120 180'/%3E%3Cpath d='M60 250 L170 210 L260 180 L360 160 L520 120 L660 150 L760 110 L900 90 L1100 60'/%3E%3Cpath d='M110 520 L240 460 L330 520 L460 450 L620 500 L760 430 L920 470 L1110 410'/%3E%3Cpath d='M220 250 L300 320 L420 300 L520 360 L640 330 L740 380 L860 340 L980 400'/%3E%3C/g%3E%3Cg filter='url(%23b)'%3E%3Cg fill='url(%23g)'%3E%3Ccircle cx='140' cy='340' r='10'/%3E%3Ccircle cx='360' cy='290' r='12'/%3E%3Ccircle cx='560' cy='240' r='11'/%3E%3Ccircle cx='820' cy='220' r='12'/%3E%3Ccircle cx='940' cy='260' r='10'/%3E%3Ccircle cx='260' cy='180' r='10'/%3E%3Ccircle cx='520' cy='120' r='12'/%3E%3Ccircle cx='760' cy='110' r='11'/%3E%3Ccircle cx='900' cy='90' r='10'/%3E%3Ccircle cx='240' cy='460' r='10'/%3E%3Ccircle cx='460' cy='450' r='12'/%3E%3Ccircle cx='760' cy='430' r='10'/%3E%3Ccircle cx='1110' cy='410' r='12'/%3E%3Ccircle cx='420' cy='300' r='10'/%3E%3Ccircle cx='640' cy='330' r='11'/%3E%3Ccircle cx='860' cy='340' r='10'/%3E%3C/g%3E%3Cg fill='%23e0f2fe' opacity='.9'%3E%3Ccircle cx='140' cy='340' r='2.2'/%3E%3Ccircle cx='360' cy='290' r='2.4'/%3E%3Ccircle cx='560' cy='240' r='2.3'/%3E%3Ccircle cx='820' cy='220' r='2.4'/%3E%3Ccircle cx='940' cy='260' r='2.2'/%3E%3Ccircle cx='260' cy='180' r='2.2'/%3E%3Ccircle cx='520' cy='120' r='2.4'/%3E%3Ccircle cx='760' cy='110' r='2.3'/%3E%3Ccircle cx='900' cy='90' r='2.2'/%3E%3Ccircle cx='240' cy='460' r='2.2'/%3E%3Ccircle cx='460' cy='450' r='2.4'/%3E%3Ccircle cx='760' cy='430' r='2.2'/%3E%3Ccircle cx='1110' cy='410' r='2.4'/%3E%3Ccircle cx='420' cy='300' r='2.2'/%3E%3Ccircle cx='640' cy='330' r='2.3'/%3E%3Ccircle cx='860' cy='340' r='2.2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-size: 1200px 600px;
+  background-repeat: repeat;
+  animation: arbixMeshDrift 34s linear infinite;
+}
+
+.arbix-dashboard-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
 html[data-theme="light"] .arbix-dashboard-bg {
   background:
     radial-gradient(900px 420px at 10% 0%, rgba(99, 102, 241, 0.14) 0, transparent 58%),
     radial-gradient(820px 420px at 90% 100%, rgba(14, 165, 233, 0.12) 0, transparent 62%),
     linear-gradient(135deg, #f8faff 0%, #eef2ff 55%, #f6f8ff 100%);
+}
+
+html[data-theme="light"] .arbix-dashboard-bg.network-grid-bg::before {
+  opacity: 0.22;
+}
+
+html[data-theme="light"] .arbix-dashboard-bg::after {
+  opacity: 0.22;
+  mix-blend-mode: multiply;
 }
 
 @keyframes networkGridDrift {
@@ -271,6 +302,21 @@ html[data-theme="light"] .arbix-dashboard-bg {
   }
   100% {
     transform: translate3d(-40px, -20px, 0) rotate(360deg) scale(1.02);
+  }
+}
+
+@keyframes arbixMeshDrift {
+  0% {
+    background-position: 0px 0px;
+    transform: translate3d(-18px, -10px, 0);
+  }
+  50% {
+    background-position: 320px 120px;
+    transform: translate3d(18px, 10px, 0);
+  }
+  100% {
+    background-position: 640px 240px;
+    transform: translate3d(-18px, -10px, 0);
   }
 }
 
