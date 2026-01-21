@@ -515,6 +515,69 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Fourth Section: Mini Action Buttons */}
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-3">
+          <div className="grid grid-cols-2 gap-2">
+            <a
+              href="/dashboard/invest"
+              className={
+                'arbix-card arbix-3d arbix-3d-emerald arbix-shine group relative flex min-w-0 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 py-2 text-center transition-all duration-200 ' +
+                'hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(45,212,191,0.35)] motion-reduce:transform-none'
+              }
+            >
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 shrink-0 text-emerald-300"
+              >
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.1z" />
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+              </svg>
+              <span className="min-w-0 truncate text-[11px] font-semibold text-emerald-100">Invest Now</span>
+            </a>
+
+            <a
+              href="/dashboard/daily-rewards"
+              className={
+                'arbix-card arbix-3d arbix-3d-amber arbix-shine group relative flex min-w-0 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 py-2 text-center transition-all duration-200 ' +
+                'hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(251,191,36,0.30)] motion-reduce:transform-none'
+              }
+            >
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 shrink-0 text-amber-300"
+              >
+                <rect x="3" y="8" width="18" height="4" rx="1" />
+                <path d="M12 8v13" />
+                <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+                <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 12 8a4.8 8 0 0 1 4.5 5" />
+              </svg>
+              <span className="min-w-0 truncate text-[11px] font-semibold text-amber-100">Daily Check-in</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Earnings Breakdown */}
       <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
