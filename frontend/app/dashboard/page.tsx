@@ -88,6 +88,7 @@ function MiniStatCard({ label, value, accentClassName }: MiniStatCardProps) {
 export default function DashboardPage() {
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [teamCounts, setTeamCounts] = useState({ l1: 0, l2: 0, l3: 0 });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitySummary, setActivitySummary] = useState<{ todayByLevel: { l1: number; l2: number; l3: number } } | null>(null);
@@ -163,6 +164,26 @@ export default function DashboardPage() {
         }
       } catch {
         // ignore
+      }
+
+      try {
+        const res = await fetch('/api/user/summary', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled) {
+          if (data?.success) {
+            setWalletBalance(Number(data?.wallet?.balance || 0));
+          } else {
+            setWalletBalance(0);
+          }
+        }
+      } catch {
+        if (!cancelled) setWalletBalance(0);
       }
 
       try {
@@ -406,6 +427,54 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Quick Actions */}
+      <section className="border-b border-slate-800 bg-slate-950">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
+          <div className="grid grid-cols-3 gap-2 text-xs text-slate-300 sm:gap-3">
+            <a
+              href="/dashboard/deposit"
+              className={
+                'arbix-card arbix-3d relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ' +
+                'hover:-translate-y-0.5 motion-reduce:transform-none'
+              }
+            >
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200/55 to-transparent" />
+              <p className="text-[10px] font-semibold tracking-wide text-slate-400">TOTAL USER BALANCE</p>
+              <p className={"mt-1 text-sm font-semibold text-slate-100 " + (isLoading ? 'animate-pulse' : '')}>
+                {isLoading ? '$--' : `$${Number(walletBalance || 0).toFixed(2)}`}
+              </p>
+              <p className="mt-1 text-[10px] text-slate-500">Wallet balance</p>
+            </a>
+
+            <a
+              href="/dashboard/deposit"
+              className={
+                'arbix-card arbix-3d arbix-3d-emerald arbix-shine group relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-200 ' +
+                'hover:-translate-y-0.5 hover:shadow-[0_0_45px_rgba(45,212,191,0.45)] motion-reduce:transform-none'
+              }
+            >
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
+              <p className="text-[10px] font-semibold tracking-wide text-slate-400">DEPOSIT</p>
+              <p className="mt-1 text-sm font-semibold text-emerald-400">Add Funds</p>
+              <p className="mt-1 text-[10px] text-slate-500">USDT (BEP20)</p>
+            </a>
+
+            <a
+              href="/dashboard/withdraw"
+              className={
+                'arbix-card arbix-3d arbix-3d-red arbix-shine arbix-shine-red group relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-200 ' +
+                'hover:-translate-y-0.5 hover:shadow-[0_0_45px_rgba(248,113,113,0.40)] motion-reduce:transform-none'
+              }
+            >
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-400/70 to-transparent" />
+              <p className="text-[10px] font-semibold tracking-wide text-slate-400">WITHDRAW</p>
+              <p className="mt-1 text-sm font-semibold text-rose-300">Cash Out</p>
+              <p className="mt-1 text-[10px] text-slate-500">To wallet</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Top Summary Cards */}
       <section className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
@@ -509,61 +578,6 @@ export default function DashboardPage() {
                 My Team &amp; Earnings
               </a>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
-            Quick Actions
-          </h2>
-          <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
-            <a
-              href="/dashboard/deposit"
-              className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
-                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
-              }
-            >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
-              Deposit Funds
-            </a>
-            <a
-              href="/dashboard/invest"
-              className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
-                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
-              }
-            >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
-              Start Investment
-            </a>
-            <a
-              href="/dashboard/withdraw"
-              className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
-                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
-              }
-            >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
-              Withdraw Funds
-            </a>
-            <a
-              href="/dashboard/team"
-              className={
-                'group relative flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 px-3 py-3 text-[11px] font-medium text-slate-200 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] ' +
-                'transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:text-slate-50 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none motion-reduce:transition-none'
-              }
-            >
-              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
-              My Team &amp; Earnings
-            </a>
           </div>
         </div>
       </section>
