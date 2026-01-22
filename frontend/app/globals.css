@@ -272,6 +272,30 @@ html[data-theme="light"] .network-grid-bg::before {
   animation: arbixMeshDrift 34s linear infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .network-grid-bg::before {
+    animation: none;
+  }
+
+  .arbix-dashboard-bg::after {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .network-grid-bg::before {
+    inset: -80px;
+    animation: none;
+    opacity: 0.7;
+  }
+
+  .arbix-dashboard-bg::after {
+    inset: -100px;
+    animation: none;
+    opacity: 0.48;
+  }
+}
+
 .arbix-dashboard-bg > * {
   position: relative;
   z-index: 1;

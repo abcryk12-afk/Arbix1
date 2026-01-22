@@ -15,7 +15,8 @@ const computeNextDay = (streakDay) => {
 };
 
 const rewardAmountForDay = (day) => {
-  return Number(day) === 7 ? 0.5 : 0.25;
+  const n = Math.min(Math.max(Number(day) || 1, 1), 7);
+  return Number((n * 0.05).toFixed(2));
 };
 
 exports.getDailyCheckinStatus = async (req, res) => {
