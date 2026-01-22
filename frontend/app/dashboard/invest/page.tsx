@@ -124,6 +124,7 @@ type ActivePackage = {
 
 export default function StartInvestmentPage() {
   const [availableBalance, setAvailableBalance] = useState(0);
+  const [rewardBalance, setRewardBalance] = useState(0);
   const [dailyRewards, setDailyRewards] = useState(0);
   const [totalActiveCapital, setTotalActiveCapital] = useState(0);
   const [activePackages, setActivePackages] = useState<ActivePackage[]>([]);
@@ -209,7 +210,7 @@ export default function StartInvestmentPage() {
     selectedConfig?.capital === 'flex'
       ? eliteCapital
       : selectedConfig?.capital || 0;
-  const hasEnoughBalance = availableBalance >= requiredCapital;
+  const hasEnoughBalance = availableBalance + rewardBalance >= requiredCapital;
 
   const expectedDailyEarnings = useMemo(() => {
     if (!selectedConfig) return 0;
@@ -273,6 +274,7 @@ export default function StartInvestmentPage() {
 
       setShowActivation(false);
       setAvailableBalance(Number(data?.wallet?.balance || 0));
+      setRewardBalance(Number(data?.wallet?.rewardBalance || 0));
 
       const listRes = await fetch('/api/user/packages', {
         method: 'GET',
@@ -324,6 +326,7 @@ export default function StartInvestmentPage() {
         const summary = await summaryRes.json();
         if (!cancelled && summary?.success) {
           setAvailableBalance(Number(summary?.wallet?.balance || 0));
+          setRewardBalance(Number(summary?.wallet?.rewardBalance || 0));
         }
 
         const packagesRes = await fetch('/api/user/packages', {
@@ -386,7 +389,7 @@ export default function StartInvestmentPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Your Arbix Wallet
           </h2>
-          <div className="mt-4 grid gap-3 text-xs text-slate-300 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 text-xs text-slate-300 sm:grid-cols-4">
             <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_24px_70px_rgba(16,185,129,0.15)]">
               <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
               <p className="text-[11px] text-slate-400">Available Balance</p>
@@ -397,6 +400,18 @@ export default function StartInvestmentPage() {
                 Available to purchase new packages
               </p>
             </div>
+
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/35 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.25),0_24px_70px_rgba(167,139,250,0.12)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
+              <p className="text-[11px] text-slate-400">Reward Balance</p>
+              <p className="mt-1 text-lg font-semibold text-violet-200">
+                {isLoading ? '—' : `${rewardBalance.toFixed(2)} USDT`}
+              </p>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Bonus wallet (used first when activating)
+              </p>
+            </div>
+
             <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_24px_70px_rgba(245,158,11,0.15)]">
               <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-amber-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
               <p className="text-[11px] text-slate-400">Daily Earnings</p>
@@ -596,6 +611,12 @@ export default function StartInvestmentPage() {
                     <span className="text-slate-400">Available Balance:</span>{' '}
                     <span className="font-semibold text-emerald-400">
                       {availableBalance.toFixed(2)} USDT
+                    </span>
+                  </p>
+                  <p>
+                    <span className="text-slate-400">Reward Balance:</span>{' '}
+                    <span className="font-semibold text-violet-200">
+                      {rewardBalance.toFixed(2)} USDT
                     </span>
                   </p>
                   <p>

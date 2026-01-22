@@ -20,6 +20,12 @@ const Wallet = db.define(
       allowNull: false,
       defaultValue: 0,
     },
+    reward_balance: {
+      type: DataTypes.DECIMAL(18, 8),
+      allowNull: false,
+      defaultValue: 0,
+      field: 'reward_balance',
+    },
     currency: {
       type: DataTypes.STRING(10),
       allowNull: false,

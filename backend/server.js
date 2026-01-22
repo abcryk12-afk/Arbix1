@@ -96,6 +96,15 @@ const ensureSchema = async () => {
   } catch (e) {}
 
   try {
+    const [colsRaw] = await sequelize.query('SHOW COLUMNS FROM wallets');
+    const cols = Array.isArray(colsRaw) ? colsRaw : [];
+    const colSet = new Set(cols.map((c) => String(c.Field || '').toLowerCase()).filter(Boolean));
+    if (!colSet.has('reward_balance')) {
+      await sequelize.query('ALTER TABLE wallets ADD COLUMN reward_balance DECIMAL(18,8) NOT NULL DEFAULT 0');
+    }
+  } catch (e) {}
+
+  try {
     const [rows] = await sequelize.query("SHOW COLUMNS FROM transactions LIKE 'type'");
     const row = Array.isArray(rows) && rows.length ? rows[0] : null;
     const rawType = row?.Type ? String(row.Type) : '';

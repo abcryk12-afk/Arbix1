@@ -11,6 +11,7 @@ type StatusResponse = {
   nextEligibleAt?: string | null;
   remainingMs?: number;
   walletBalance?: number;
+  rewardBalance?: number;
   message?: string;
   _fetchedAt?: number;
 };
@@ -116,7 +117,7 @@ export default function DailyRewardsPage() {
         return;
       }
 
-      setToast(`Claimed $${formatMoney(Number(data?.reward?.amount || 0))} USDT successfully`);
+      setToast(`Reward bonus +$${formatMoney(Number(data?.reward?.amount || 0))} USDT added successfully`);
       setCelebrate(true);
       window.dispatchEvent(new Event('arbix-daily-reward-updated'));
       setTimeout(() => setCelebrate(false), 2600);
@@ -174,12 +175,22 @@ export default function DailyRewardsPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2 text-right">
-                <div className="text-[11px] text-slate-400">Wallet Balance</div>
-                <div className="text-sm font-semibold text-slate-100">
-                  {status?.walletBalance !== undefined ? `$${formatMoney(Number(status.walletBalance))}` : '--'}
+              <div className="grid gap-2 text-right">
+                <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2">
+                  <div className="text-[11px] text-slate-400">Reward Bonus</div>
+                  <div className="text-sm font-semibold text-emerald-200">
+                    {status?.rewardBalance !== undefined ? `$${formatMoney(Number(status.rewardBalance))}` : '--'}
+                  </div>
+                  <div className="text-[10px] text-slate-500">USDT</div>
                 </div>
-                <div className="text-[10px] text-slate-500">USDT</div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2">
+                  <div className="text-[11px] text-slate-400">Wallet Balance</div>
+                  <div className="text-sm font-semibold text-slate-100">
+                    {status?.walletBalance !== undefined ? `$${formatMoney(Number(status.walletBalance))}` : '--'}
+                  </div>
+                  <div className="text-[10px] text-slate-500">USDT</div>
+                </div>
               </div>
             </div>
 

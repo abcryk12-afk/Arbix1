@@ -53,6 +53,7 @@ exports.getDailyCheckinStatus = async (req, res) => {
       nextEligibleAt: nextEligibleAt ? nextEligibleAt.toISOString() : null,
       remainingMs,
       walletBalance: Number(wallet.balance || 0),
+      rewardBalance: Number(wallet.reward_balance || 0),
     });
   } catch (error) {
     console.error('Daily check-in status error:', error);
@@ -93,7 +94,7 @@ exports.claimDailyCheckin = async (req, res) => {
       const dayToClaim = computeNextDay(record.streak_day);
       const amount = rewardAmountForDay(dayToClaim);
 
-      wallet.balance = Number(wallet.balance || 0) + amount;
+      wallet.reward_balance = Number(wallet.reward_balance || 0) + amount;
       await wallet.save({ transaction: t });
 
       record.streak_day = dayToClaim;
@@ -114,6 +115,7 @@ exports.claimDailyCheckin = async (req, res) => {
       return {
         ok: true,
         walletBalance: Number(wallet.balance || 0),
+        rewardBalance: Number(wallet.reward_balance || 0),
         reward: {
           day: dayToClaim,
           amount,
@@ -134,7 +136,10 @@ exports.claimDailyCheckin = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Daily bonus claimed',
-      wallet: { balance: Number(result.walletBalance || 0) },
+      wallet: {
+        balance: Number(result.walletBalance || 0),
+        rewardBalance: Number(result.rewardBalance || 0),
+      },
       reward: result.reward,
     });
   } catch (error) {
@@ -200,6 +205,7 @@ exports.getSummary = async (req, res) => {
       },
       wallet: {
         balance: Number(wallet.balance),
+        rewardBalance: Number(wallet.reward_balance || 0),
       },
       transactions: transactions.map((t) => ({
         id: t.id,
@@ -1116,11 +1122,16 @@ exports.activatePackage = async (req, res) => {
       }
 
       const available = Number(wallet.balance || 0);
-      if (available < cap) {
+      const rewardAvailable = Number(wallet.reward_balance || 0);
+      const useReward = Math.min(rewardAvailable, cap);
+      const remaining = cap - useReward;
+
+      if (available < remaining) {
         return { ok: false, status: 400, message: 'Insufficient balance' };
       }
 
-      wallet.balance = available - cap;
+      wallet.reward_balance = rewardAvailable - useReward;
+      wallet.balance = available - remaining;
       await wallet.save({ transaction: t });
 
       const pkg = await UserPackage.create(
@@ -1161,7 +1172,10 @@ exports.activatePackage = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Package activated',
-      wallet: { balance: Number(result.wallet.balance) },
+      wallet: {
+        balance: Number(result.wallet.balance),
+        rewardBalance: Number(result.wallet.reward_balance || 0),
+      },
       package: {
         id: result.pkg.id,
         packageId: result.pkg.package_id,
