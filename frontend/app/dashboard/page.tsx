@@ -89,6 +89,8 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralCopied, setReferralCopied] = useState(false);
   const [teamCounts, setTeamCounts] = useState({ l1: 0, l2: 0, l3: 0 });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitySummary, setActivitySummary] = useState<{ todayByLevel: { l1: number; l2: number; l3: number } } | null>(null);
@@ -106,6 +108,15 @@ export default function DashboardPage() {
     if (typeof window === 'undefined') return false;
     return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
   }, []);
+
+  const referralLink = useMemo(() => {
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : 'https://arbix.space') ||
+      'https://arbix.space';
+    if (!referralCode) return `${base}/auth/signup`;
+    return `${base}/auth/signup?ref=${encodeURIComponent(referralCode)}`;
+  }, [referralCode]);
 
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [networkToday, setNetworkToday] = useState(0);
@@ -161,6 +172,7 @@ export default function DashboardPage() {
         if (storedUser) {
           const u = JSON.parse(storedUser);
           setUserName(u?.name || u?.email || '');
+          setReferralCode(u?.referral_code || u?.referralCode || '');
         }
       } catch {
         // ignore
@@ -184,6 +196,28 @@ export default function DashboardPage() {
         }
       } catch {
         if (!cancelled) setWalletBalance(0);
+      }
+
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!cancelled && data?.success && data?.user) {
+          const code = data.user?.referral_code || data.user?.referralCode || '';
+          setReferralCode(code);
+          try {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // ignore
       }
 
       try {
@@ -359,6 +393,29 @@ export default function DashboardPage() {
   }, []);
 
   const teamTotal = l1Count + l2Count + l3Count;
+
+  const handleCopyReferralLink = async () => {
+    try {
+      setReferralCopied(false);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(referralLink);
+      } else {
+        const el = document.createElement('textarea');
+        el.value = referralLink;
+        el.setAttribute('readonly', '');
+        el.style.position = 'fixed';
+        el.style.left = '-9999px';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      }
+      setReferralCopied(true);
+      window.setTimeout(() => setReferralCopied(false), 2000);
+    } catch {
+      setReferralCopied(false);
+    }
+  };
 
   useEffect(() => {
     if (isLoading) return;
@@ -640,6 +697,63 @@ export default function DashboardPage() {
               >
                 My Team &amp; Earnings
               </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-3">
+          <div
+            className={
+              'arbix-card arbix-3d arbix-shine group relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ' +
+              'hover:-translate-y-0.5 motion-reduce:transform-none'
+            }
+          >
+            <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-white/10" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200/55 to-transparent" />
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold tracking-wide text-slate-400">REFERRAL LINK</div>
+                <div className="mt-1 truncate text-[11px] font-medium text-slate-100">{referralLink}</div>
+                <div className="mt-1 text-[10px] text-slate-500">Invite friends and earn referral rewards.</div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCopyReferralLink}
+                className={
+                  'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-all ' +
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 ' +
+                  (referralCopied
+                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-100'
+                    : 'border-slate-700 bg-slate-950/40 text-slate-100 hover:border-slate-500 hover:bg-slate-900/50')
+                }
+                aria-label="Copy referral link"
+              >
+                <span>{referralCopied ? 'Copied' : 'Copy'}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                >
+                  {referralCopied ? (
+                    <path d="M20 6 9 17l-5-5" />
+                  ) : (
+                    <>
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </>
+                  )}
+                </svg>
+              </button>
             </div>
           </div>
         </div>
