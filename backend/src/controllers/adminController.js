@@ -241,9 +241,13 @@ exports.setInvestmentPackagesSetting = async (req, res) => {
     });
   } catch (error) {
     console.error('Set investment packages setting error:', error);
+    const code = error?.original?.code || error?.parent?.code || error?.code || undefined;
+    const dbMessage = error?.original?.sqlMessage || error?.parent?.sqlMessage || undefined;
     return res.status(500).json({
       success: false,
       message: 'Failed to update investment packages',
+      code,
+      dbMessage,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

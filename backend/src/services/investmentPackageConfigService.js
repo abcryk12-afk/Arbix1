@@ -70,7 +70,9 @@ async function getStoredInvestmentPackagesConfig() {
   try {
     try {
       await SiteSetting.sync();
-    } catch {}
+    } catch (err) {
+      console.error('SiteSetting sync failed (get investment packages config):', err);
+    }
 
     const row = await SiteSetting.findOne({ where: { key: SETTINGS_KEY }, raw: true });
     if (!row || !row.value) return null;
@@ -116,13 +118,19 @@ async function setInvestmentPackagesConfig(nextConfig) {
   try {
     try {
       await SiteSetting.sync();
-    } catch {}
+    } catch (err) {
+      console.error('SiteSetting sync failed (set investment packages config):', err);
+      throw err;
+    }
 
     await SiteSetting.upsert({
       key: SETTINGS_KEY,
       value: JSON.stringify({ packages: sanitized }),
     });
-  } catch {}
+  } catch (err) {
+    console.error('Failed to persist investment packages config:', err);
+    throw err;
+  }
 
   return sanitized;
 }
