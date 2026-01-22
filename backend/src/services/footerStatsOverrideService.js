@@ -39,7 +39,9 @@ async function getFooterStatsOverrides() {
   try {
     try {
       await SiteSetting.sync();
-    } catch {}
+    } catch (err) {
+      console.error('SiteSetting sync failed (get footer stats overrides):', err);
+    }
 
     const row = await SiteSetting.findOne({ where: { key: SETTINGS_KEY }, raw: true });
     if (!row || !row.value) return DEFAULT_OVERRIDES;
@@ -66,13 +68,19 @@ async function setFooterStatsOverrides(nextOverrides) {
   try {
     try {
       await SiteSetting.sync();
-    } catch {}
+    } catch (err) {
+      console.error('SiteSetting sync failed (set footer stats overrides):', err);
+      throw err;
+    }
 
     await SiteSetting.upsert({
       key: SETTINGS_KEY,
       value: JSON.stringify(sanitized),
     });
-  } catch {}
+  } catch (err) {
+    console.error('Failed to persist footer stats overrides:', err);
+    throw err;
+  }
 
   return sanitized;
 }

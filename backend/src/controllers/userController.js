@@ -65,6 +65,75 @@ exports.getDailyCheckinStatus = async (req, res) => {
   }
 };
 
+exports.getFooterDemoStats = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfTodayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    const HOUR_MS = 60 * 60 * 1000;
+    const demoEpochUtcMs = Date.UTC(2025, 0, 1, 0, 0, 0);
+    const nowHourIndex = Math.max(0, Math.floor((now.getTime() - demoEpochUtcMs) / HOUR_MS));
+    const todayStartHourIndex = Math.max(0, Math.floor((startOfTodayUtc.getTime() - demoEpochUtcMs) / HOUR_MS));
+
+    const joiningsDailyBase = sumHourlyRange('footer_demo_joinings', todayStartHourIndex, nowHourIndex, 80, 100, 0);
+    const joiningsTotalBase = sumHourlyRange('footer_demo_joinings', 0, nowHourIndex, 80, 100, 0);
+
+    const withdrawalsDailyBase = sumHourlyRange('footer_demo_withdrawals', todayStartHourIndex, nowHourIndex, 800, 1000, 2);
+    const withdrawalsTotalBase = sumHourlyRange('footer_demo_withdrawals', 0, nowHourIndex, 800, 1000, 2);
+
+    let overrides = null;
+    try {
+      overrides = await getFooterStatsOverrides();
+    } catch {}
+
+    const systemOverrides = overrides?.system || {};
+
+    const adjustedSystemDailyWithdrawals = Math.max(
+      0,
+      (Number(withdrawalsDailyBase) || 0) + (Number(systemOverrides.dailyWithdrawals) || 0),
+    );
+    const adjustedSystemTotalWithdrawals = Math.max(
+      0,
+      (Number(withdrawalsTotalBase) || 0) + (Number(systemOverrides.totalWithdrawals) || 0),
+    );
+    const adjustedSystemDailyJoinings = Math.max(
+      0,
+      Math.trunc((Number(joiningsDailyBase) || 0) + (Number(systemOverrides.dailyJoinings) || 0)),
+    );
+    const adjustedSystemTotalJoinings = Math.max(
+      0,
+      Math.trunc((Number(joiningsTotalBase) || 0) + (Number(systemOverrides.totalJoinings) || 0)),
+    );
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        system: {
+          daily: adjustedSystemDailyWithdrawals,
+          total: adjustedSystemTotalWithdrawals,
+          joiningsDaily: adjustedSystemDailyJoinings,
+          joiningsTotal: adjustedSystemTotalJoinings,
+        },
+        team: {
+          daily: 0,
+          total: 0,
+          joiningsDaily: 0,
+          joiningsTotal: 0,
+        },
+        updatedAt: new Date().toISOString(),
+        timezone: 'UTC',
+      },
+    });
+  } catch (error) {
+    console.error('Get footer demo stats error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch footer demo stats',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.claimDailyCheckin = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -1480,6 +1549,23 @@ function dailyValueForKey(seedKey, min, max) {
   const rand = mulberry32(hashSeed(seedKey));
   const v = min + rand() * (max - min);
   return Math.round(v);
+}
+
+function hourlyValueForKey(seedKey, min, max, decimals) {
+  const rand = mulberry32(hashSeed(seedKey));
+  const v = min + rand() * (max - min);
+  if (Number.isFinite(decimals) && decimals > 0) return Number(v.toFixed(decimals));
+  return Math.round(v);
+}
+
+function sumHourlyRange(seedPrefix, fromHourIndex, toHourIndex, min, max, decimals) {
+  const start = Math.max(0, Math.floor(Number(fromHourIndex) || 0));
+  const end = Math.max(start, Math.floor(Number(toHourIndex) || 0));
+  let sum = 0;
+  for (let h = start; h <= end; h++) {
+    sum += hourlyValueForKey(`${seedPrefix}_${h}`, min, max, decimals);
+  }
+  return sum;
 }
 
 function daysBetweenUtc(start, end) {

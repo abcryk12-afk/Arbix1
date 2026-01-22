@@ -11,6 +11,7 @@ const {
   getThemePreference,
   setThemePreference,
   getFooterStats,
+  getFooterDemoStats,
   getReferrals,
   getReferralEarnings,
   activatePackage,
@@ -32,6 +33,7 @@ router.put('/profile', protect, updateProfile);
 router.get('/theme', protect, getThemePreference);
 router.put('/theme', protect, setThemePreference);
 router.get('/footer-stats', protect, getFooterStats);
+router.get('/footer-demo-stats', protect, getFooterDemoStats);
 router.get('/referrals', protect, getReferrals);
 router.get('/referral-earnings', protect, getReferralEarnings);
 router.post('/activate-package', protect, activatePackage);

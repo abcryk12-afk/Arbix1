@@ -75,7 +75,7 @@ export default function DashboardFooter() {
           return;
         }
 
-        const res = await fetch('/api/user/footer-stats', {
+        const res = await fetch('/api/user/footer-demo-stats', {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -100,8 +100,10 @@ export default function DashboardFooter() {
     };
 
     run();
+    const interval = setInterval(run, 60 * 1000);
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, []);
 
