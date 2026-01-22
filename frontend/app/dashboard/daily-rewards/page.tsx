@@ -55,7 +55,7 @@ export default function DailyRewardsPage() {
 
     return Array.from({ length: 7 }).map((_, idx) => {
       const day = idx + 1;
-      const amount = day === 7 ? 0.5 : 0.25;
+      const amount = Number((day * 0.05).toFixed(2));
 
       const isClaimed = lastClaimedDay >= day;
       const isToday = canClaim && nextDay === day;
