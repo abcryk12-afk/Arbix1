@@ -180,6 +180,26 @@ html[data-theme="light"] .arbix-shine:hover::after {
   }
 }
 
+.arbix-name-glow {
+  font-weight: 800;
+  background: linear-gradient(90deg, rgba(45, 212, 191, 1), rgba(56, 189, 248, 1), rgba(167, 139, 250, 1));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.22)) drop-shadow(0 0 18px rgba(167, 139, 250, 0.12));
+  animation: arbixNameGlowPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes arbixNameGlowPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.18)) drop-shadow(0 0 14px rgba(167, 139, 250, 0.10));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.34)) drop-shadow(0 0 22px rgba(167, 139, 250, 0.16));
+  }
+}
+
 html[data-theme="light"] .bg-transparent {
   background-color: transparent !important;
 }
@@ -278,6 +298,10 @@ html[data-theme="light"] .network-grid-bg::before {
   }
 
   .arbix-dashboard-bg::after {
+    animation: none;
+  }
+
+  .arbix-name-glow {
     animation: none;
   }
 }

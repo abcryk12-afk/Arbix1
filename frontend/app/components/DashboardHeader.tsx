@@ -172,11 +172,12 @@ type NavItem = {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-slate-800 bg-gradient-to-b from-slate-950/95 via-slate-950/92 to-slate-950/85 backdrop-blur shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200/15 to-transparent" />
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white overflow-hidden">
+            <div className="arbix-3d arbix-shine flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-primary text-sm font-bold text-white shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-white/10">
               {logoDataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={logoDataUrl} alt="Arbix" className="h-9 w-9 object-contain" />

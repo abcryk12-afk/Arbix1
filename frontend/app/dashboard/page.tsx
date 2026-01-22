@@ -476,7 +476,8 @@ export default function DashboardPage() {
       <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
           <p className="text-sm font-semibold text-slate-50">
-            Welcome Back, {userName || 'User'} 👋 {isLoading ? <span className="text-[11px] text-slate-500">(loading...)</span> : null}
+            Welcome Back, <span className="arbix-name-glow">{userName || 'User'}</span> 👋{' '}
+            {isLoading ? <span className="text-[11px] text-slate-500">(loading...)</span> : null}
           </p>
           <p className="mt-1 text-xs text-slate-400 md:text-sm">
             Here&apos;s your overview for today.
@@ -707,53 +708,99 @@ export default function DashboardPage() {
           <div
             className={
               'arbix-card arbix-3d arbix-shine group relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ' +
-              'hover:-translate-y-0.5 motion-reduce:transform-none'
+              'hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(226,232,240,0.16),0_0_38px_rgba(56,189,248,0.14)] motion-reduce:transform-none'
             }
           >
-            <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-white/10" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200/55 to-transparent" />
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[10px] font-semibold tracking-wide text-slate-400">REFERRAL LINK</div>
-                <div className="mt-1 truncate text-[11px] font-medium text-slate-100">{referralLink}</div>
-                <div className="mt-1 text-[10px] text-slate-500">Invite friends and earn referral rewards.</div>
+            <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-slate-200/20" />
+            <div className="pointer-events-none absolute inset-0 rounded-2xl border border-slate-500/40" />
+            <div className="pointer-events-none absolute -inset-0.5 rounded-[18px] opacity-70 blur-md transition-opacity duration-200 group-hover:opacity-100" style={{ background: 'linear-gradient(135deg, rgba(45,212,191,0.22), rgba(56,189,248,0.18), rgba(167,139,250,0.18))' }} />
+            <div className="relative">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-semibold tracking-wide text-slate-400">REFERRAL LINK</div>
+                  <div className="mt-1 truncate text-[11px] font-medium text-slate-100">{referralLink}</div>
+                  <div className="mt-1 text-[10px] text-slate-500">Invite friends and earn referral rewards.</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyReferralLink}
+                  className={
+                    'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-all ' +
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 ' +
+                    (referralCopied
+                      ? 'border-emerald-400/55 bg-emerald-500/10 text-emerald-100'
+                      : 'border-slate-600/70 bg-slate-950/40 text-slate-100 hover:border-slate-400/80 hover:bg-slate-900/50')
+                  }
+                  aria-label="Copy referral link"
+                >
+                  <span>{referralCopied ? 'Copied' : 'Copy'}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                  >
+                    {referralCopied ? (
+                      <path d="M20 6 9 17l-5-5" />
+                    ) : (
+                      <>
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </>
+                    )}
+                  </svg>
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={handleCopyReferralLink}
-                className={
-                  'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-all ' +
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 ' +
-                  (referralCopied
-                    ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-100'
-                    : 'border-slate-700 bg-slate-950/40 text-slate-100 hover:border-slate-500 hover:bg-slate-900/50')
-                }
-                aria-label="Copy referral link"
-              >
-                <span>{referralCopied ? 'Copied' : 'Copy'}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-4 w-4"
-                >
-                  {referralCopied ? (
-                    <path d="M20 6 9 17l-5-5" />
-                  ) : (
-                    <>
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </>
-                  )}
-                </svg>
-              </button>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="text-[10px] font-medium text-slate-500">Share</div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-900/50"
+                    aria-label="Share on Facebook"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                    </svg>
+                  </a>
+
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(referralLink)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-900/50"
+                    aria-label="Share on WhatsApp"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <path d="M20 12a8 8 0 0 1-13.3 6L4 20l2.2-2.7A8 8 0 1 1 20 12z" />
+                      <path d="M9.5 10.5c1.2 2.3 2.7 3.8 5 5" />
+                    </svg>
+                  </a>
+
+                  <a
+                    href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-900/50"
+                    aria-label="Share on Telegram"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <path d="M22 2 11 13" />
+                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
