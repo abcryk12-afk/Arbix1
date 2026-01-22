@@ -1504,6 +1504,9 @@ export default function AdminDashboardPage() {
             <a href="/admin/logs" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
               Admin Logs
             </a>
+            <a href="/admin/records" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+              Records
+            </a>
           </div>
         </div>
       </section>

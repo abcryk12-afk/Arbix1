@@ -12,6 +12,7 @@ const {
   listUsers,
   getUserDetails,
   updateUserStatus,
+  setUserWithdrawalHold,
   deleteUser,
   getAdminNotificationEmails,
   setAdminNotificationEmails,
@@ -33,6 +34,7 @@ const {
   updateDepositRequestStatus,
   listTradeLogs,
   sendNotification,
+  listBalanceRecords,
 } = require('../controllers/adminController');
 
 const {
@@ -62,6 +64,7 @@ router.get('/site-theme', protect, requireAdminUser, getAdminSiteTheme);
 router.put('/site-theme', protect, requireAdminUser, auditAdminAction('site_theme.update', { entity: 'site_setting' }), setAdminSiteTheme);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
+router.put('/users/:id/withdrawal-hold', protect, requireAdminUser, auditAdminAction('user.withdrawal_hold', { entity: 'user' }), setUserWithdrawalHold);
 router.put('/users/:id/status', protect, requireAdminUser, updateUserStatus);
 router.post('/users/:id/status', protect, requireAdminUser, updateUserStatus);
 router.put('/users/:id', protect, requireAdminUser, updateUserStatus);
@@ -81,6 +84,8 @@ router.post('/withdrawal-requests/update', protect, requireAdminUser, auditAdmin
 router.get('/deposit-requests', protect, requireAdminUser, listDepositRequests);
 router.post('/deposit-requests', protect, requireAdminUser, auditAdminAction('deposit_request.update', { entity: 'deposit_request' }), updateDepositRequestStatus);
 router.post('/deposit-requests/update', protect, requireAdminUser, auditAdminAction('deposit_request.update', { entity: 'deposit_request' }), updateDepositRequestStatus);
+
+router.get('/records', protect, requireAdminUser, listBalanceRecords);
 
 router.get('/trade-logs', protect, requireAdminUser, listTradeLogs);
 

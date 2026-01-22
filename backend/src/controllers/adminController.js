@@ -40,6 +40,148 @@ exports.checkAccess = async (req, res) => {
   }
 };
 
+exports.listBalanceRecords = async (req, res) => {
+  try {
+    const typeRaw = String(req.query.type || '').trim().toLowerCase();
+    const type = typeRaw === 'withdraw' || typeRaw === 'withdrawal' ? 'withdraw' : typeRaw === 'deposit' ? 'deposit' : null;
+    if (!type) {
+      return res.status(400).json({ success: false, message: 'type must be deposit or withdraw' });
+    }
+
+    const limit = Math.min(Math.max(Number(req.query.limit || 7), 1), 200);
+    const offset = Math.max(0, Number(req.query.offset || 0));
+    const q = req.query.q ? String(req.query.q).trim() : '';
+
+    const where = {
+      type,
+      note: { [Op.like]: '%Request #%' },
+    };
+
+    if (q) {
+      const maybeId = Number(q);
+      const userWhere = {};
+      const or = [];
+      if (Number.isFinite(maybeId) && maybeId > 0) {
+        or.push({ id: maybeId });
+      }
+      or.push({ name: { [Op.like]: `%${q}%` } });
+      or.push({ email: { [Op.like]: `%${q}%` } });
+      or.push({ referral_code: { [Op.like]: `%${q}%` } });
+      userWhere[Op.or] = or;
+
+      const users = await User.findAll({ where: userWhere, raw: true, attributes: ['id'] });
+      const userIds = (users || []).map((u) => u.id);
+      if (!userIds.length) {
+        return res.status(200).json({
+          success: true,
+          type,
+          q,
+          limit,
+          offset,
+          totalCount: 0,
+          totalAmount: 0,
+          records: [],
+        });
+      }
+      where.user_id = userIds;
+    }
+
+    const [rows, totalAmountRaw, totalCount] = await Promise.all([
+      Transaction.findAll({
+        where,
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        offset,
+        raw: true,
+        attributes: ['id', 'user_id', 'type', 'amount', 'note', 'created_by', [sequelize.col('created_at'), 'createdAt']],
+      }),
+      Transaction.sum('amount', { where }),
+      Transaction.count({ where }),
+    ]);
+
+    const userIds = Array.from(new Set((rows || []).map((r) => r.user_id).filter(Boolean)));
+    const users = userIds.length
+      ? await User.findAll({
+          where: { id: userIds },
+          raw: true,
+          attributes: ['id', 'name', 'email', ['referral_code', 'referralCode']],
+        })
+      : [];
+    const userMap = new Map((users || []).map((u) => [u.id, u]));
+
+    const totalAmount = Number(totalAmountRaw || 0);
+
+    return res.status(200).json({
+      success: true,
+      type,
+      q,
+      limit,
+      offset,
+      totalCount: Number(totalCount || 0),
+      totalAmount: Number.isFinite(totalAmount) ? totalAmount : 0,
+      records: (rows || []).map((r) => {
+        const u = userMap.get(r.user_id) || {};
+        return {
+          id: r.id,
+          userId: r.user_id,
+          userName: u.name || null,
+          email: u.email || null,
+          referralCode: u.referralCode || null,
+          amount: Number(r.amount || 0),
+          createdAt: r.createdAt || null,
+          note: r.note || null,
+        };
+      }),
+    });
+  } catch (error) {
+    console.error('Admin list balance records error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to list records',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.setUserWithdrawalHold = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isFinite(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid user id' });
+    }
+
+    const enabled = Boolean(req.body?.enabled);
+    const rawNote = req.body?.note;
+    const note = rawNote == null ? null : String(rawNote).trim();
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.withdrawal_hold_enabled = enabled;
+    user.withdrawal_hold_note = enabled ? (note || null) : null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: enabled ? 'User withdrawals are now on hold' : 'User withdrawals have been unheld',
+      user: {
+        id: user.id,
+        withdrawalHoldEnabled: Boolean(user.withdrawal_hold_enabled),
+        withdrawalHoldNote: user.withdrawal_hold_note || null,
+      },
+    });
+  } catch (error) {
+    console.error('Admin set user withdrawal hold error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update withdrawal hold',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
 exports.getFooterStatsOverridesSetting = async (req, res) => {
   try {
     const overrides = await getFooterStatsOverrides();
@@ -924,6 +1066,8 @@ exports.getUserDetails = async (req, res) => {
         'name',
         'email',
         'phone',
+        ['withdrawal_hold_enabled', 'withdrawalHoldEnabled'],
+        ['withdrawal_hold_note', 'withdrawalHoldNote'],
         ['cnic_passport', 'cnicPassport'],
         ['referral_code', 'referralCode'],
         ['referred_by_id', 'referredById'],
@@ -1020,6 +1164,8 @@ exports.getUserDetails = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone || null,
+        withdrawalHoldEnabled: Boolean(user.withdrawalHoldEnabled),
+        withdrawalHoldNote: user.withdrawalHoldNote != null ? String(user.withdrawalHoldNote) : null,
         cnicPassport: user.cnicPassport || null,
         referralCode: user.referralCode || null,
         referredById: user.referredById || null,
@@ -1389,6 +1535,8 @@ exports.listUsers = async (req, res) => {
         'name',
         'email',
         'phone',
+        ['withdrawal_hold_enabled', 'withdrawalHoldEnabled'],
+        ['withdrawal_hold_note', 'withdrawalHoldNote'],
         ['kyc_status', 'kycStatus'],
         ['account_status', 'accountStatus'],
         ['referral_code', 'referralCode'],
@@ -1420,6 +1568,8 @@ exports.listUsers = async (req, res) => {
           walletPublicAddress: u.walletPublicAddress || null,
           kycStatus: u.kycStatus || null,
           accountStatus: u.accountStatus,
+          withdrawalHoldEnabled: Boolean(u.withdrawalHoldEnabled),
+          withdrawalHoldNote: u.withdrawalHoldNote != null ? String(u.withdrawalHoldNote) : null,
           createdAt: u.createdAt,
           balance: w ? Number(w.balance) : 0,
         };
