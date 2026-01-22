@@ -133,7 +133,7 @@ type InvestmentPackageConfig = {
   name: string;
   capital: number | 'flex';
   minCapital?: number;
-  dailyRoi: number;
+  dailyRoi: number | string;
   durationDays: number;
 };
 
@@ -390,6 +390,20 @@ export default function AdminDashboardPage() {
         return;
       }
 
+      const cleanedPackages: any = {};
+      for (const [id, pkg] of Object.entries(investmentPackages || {})) {
+        const p: any = pkg && typeof pkg === 'object' ? { ...(pkg as any) } : {};
+
+        const roiRaw = p.dailyRoi;
+        if (roiRaw != null) {
+          const s = String(roiRaw).trim().replace(/%/g, '').replace(/\s+/g, '');
+          const n = parseFloat(s);
+          p.dailyRoi = Number.isFinite(n) ? n : 0;
+        }
+
+        cleanedPackages[String(id)] = p;
+      }
+
       const res = await fetch('/api/admin/investment-packages', {
         method: 'PUT',
         headers: {
@@ -397,7 +411,7 @@ export default function AdminDashboardPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          packages: investmentPackages,
+          packages: cleanedPackages,
           applyToActive: applyInvestmentPackagesToActive,
         }),
       });
@@ -456,7 +470,7 @@ export default function AdminDashboardPage() {
             userId: String(u.id),
             referralCode: String(u.referralCode || ''),
             kycStatus: String(u.kycStatus || 'pending'),
-          })),
+          }))
         );
       } else {
         setManageUsers([]);
@@ -1367,15 +1381,16 @@ export default function AdminDashboardPage() {
                             <input
                               value={pkg?.dailyRoi != null ? String(pkg.dailyRoi) : ''}
                               onChange={(e) => {
-                                const n = Number(e.target.value);
+                                const nextRaw = e.target.value;
                                 setInvestmentPackages((prev) => ({
                                   ...prev,
                                   [String(id)]: {
                                     ...(prev[String(id)] || ({} as any)),
-                                    dailyRoi: Number.isFinite(n) ? n : 0,
+                                    dailyRoi: nextRaw,
                                   },
                                 }));
                               }}
+                              inputMode="decimal"
                               className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
                               placeholder="1.5"
                             />
