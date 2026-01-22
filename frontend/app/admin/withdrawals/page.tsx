@@ -24,6 +24,15 @@ import { useRouter } from 'next/navigation';
   userBalance: number;
 };
 
+type AdminUserSearchRow = {
+  id: string;
+  name: string;
+  email: string;
+  referralCode: string;
+  withdrawalHoldEnabled?: boolean;
+  withdrawalHoldNote?: string | null;
+};
+
 type DepositRequestsResponse = {
   success: boolean;
   message?: string;
@@ -73,6 +82,8 @@ type UserDetailsResponse = {
     name: string | null;
     email: string | null;
     phone: string | null;
+    withdrawalHoldEnabled?: boolean | null;
+    withdrawalHoldNote?: string | null;
     referralCode: string | null;
     referredById: number | null;
     kycStatus: string | null;
@@ -155,10 +166,139 @@ export default function AdminWithdrawalsPage() {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
 
+  const [holdUserQuery, setHoldUserQuery] = useState('');
+  const [holdUserResults, setHoldUserResults] = useState<AdminUserSearchRow[]>([]);
+  const [isSearchingHoldUsers, setIsSearchingHoldUsers] = useState(false);
+  const [holdSelectedUserId, setHoldSelectedUserId] = useState<string>('');
+  const [holdSelectedUserDetails, setHoldSelectedUserDetails] = useState<UserDetailsResponse | null>(null);
+  const [holdActionMessage, setHoldActionMessage] = useState('');
+  const [holdActionType, setHoldActionType] = useState<'success' | 'error' | ''>('');
+
   useEffect(() => {
     const t = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) return;
+
+        const q = holdUserQuery.trim();
+        if (!q) {
+          setHoldUserResults([]);
+          return;
+        }
+
+        setIsSearchingHoldUsers(true);
+        const res = await fetch(`/api/admin/users?limit=15&q=${encodeURIComponent(q)}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+
+        if (data?.success && Array.isArray(data?.users)) {
+          setHoldUserResults(
+            data.users.map((u: any) => ({
+              id: String(u.id),
+              name: String(u.name || ''),
+              email: String(u.email || ''),
+              referralCode: String(u.referralCode || ''),
+              withdrawalHoldEnabled: Boolean(u.withdrawalHoldEnabled),
+              withdrawalHoldNote: u.withdrawalHoldNote != null ? String(u.withdrawalHoldNote) : null,
+            })),
+          );
+        } else {
+          setHoldUserResults([]);
+        }
+      } catch {
+        if (!cancelled) setHoldUserResults([]);
+      } finally {
+        if (!cancelled) setIsSearchingHoldUsers(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [holdUserQuery]);
+
+  const loadHoldUserDetails = async (userId: string) => {
+    try {
+      setHoldActionMessage('');
+      setHoldActionType('');
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json().catch(() => null);
+      if (!data?.success) {
+        setHoldSelectedUserDetails(null);
+        setHoldActionMessage(data?.message || 'Failed to load user');
+        setHoldActionType('error');
+        return;
+      }
+      setHoldSelectedUserDetails(data);
+    } catch {
+      setHoldSelectedUserDetails(null);
+      setHoldActionMessage('Failed to load user');
+      setHoldActionType('error');
+    }
+  };
+
+  const setWithdrawalHold = async (enabled: boolean) => {
+    try {
+      setHoldActionMessage('');
+      setHoldActionType('');
+
+      if (!holdSelectedUserId) {
+        setHoldActionMessage('Please select a user first');
+        setHoldActionType('error');
+        return;
+      }
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+
+      let note: string | undefined;
+      if (enabled) {
+        note = window.prompt('Withdrawal hold note (shown to user on withdrawal attempt):') || '';
+      }
+
+      const res = await fetch(`/api/admin/users/${holdSelectedUserId}/withdrawal-hold`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ enabled, note }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!data?.success) {
+        setHoldActionMessage(data?.message || 'Failed to update withdrawal hold');
+        setHoldActionType('error');
+        return;
+      }
+
+      setHoldActionMessage(data?.message || (enabled ? 'Withdrawal hold enabled' : 'Withdrawal hold disabled'));
+      setHoldActionType('success');
+      await loadHoldUserDetails(holdSelectedUserId);
+    } catch {
+      setHoldActionMessage('Failed to update withdrawal hold');
+      setHoldActionType('error');
+    }
+  };
 
   const filteredRequests = useMemo(() => {
     if (filterStatus === 'pending') {
@@ -531,6 +671,38 @@ export default function AdminWithdrawalsPage() {
       }
     } catch {
       setActionMessage('An error occurred while updating the request');
+      setActionType('error');
+    }
+  };
+
+  const handleSetWithdrawalHold = async (userId: string, hold: boolean, note: string) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setActionMessage('Not logged in');
+        setActionType('error');
+        return;
+      }
+
+      const res = await fetch(`/api/admin/users/${userId}/withdrawal-hold`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ hold, note }),
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        setActionMessage(data.message || 'Updated successfully');
+        setActionType('success');
+      } else {
+        setActionMessage(data?.message || 'Failed to update withdrawal hold');
+        setActionType('error');
+      }
+    } catch {
+      setActionMessage('An error occurred while updating the withdrawal hold');
       setActionType('error');
     }
   };
@@ -1215,6 +1387,131 @@ export default function AdminWithdrawalsPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 pb-10 text-xs text-slate-300 md:text-sm">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
+            <div className="border-b border-slate-800 px-4 py-3">
+              <h2 className="text-sm font-semibold text-slate-100">Withdrawal Hold Control (Per User)</h2>
+              <p className="mt-0.5 text-[11px] text-slate-500">
+                Search a user and place withdrawals on hold with a note. The note is shown only when the user submits a withdrawal request.
+              </p>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[11px] text-slate-400">Search user (id / name / email / referral)</label>
+                  <input
+                    value={holdUserQuery}
+                    onChange={(e) => setHoldUserQuery(e.target.value)}
+                    className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                    placeholder="Search..."
+                  />
+                  <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/50">
+                    <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
+                      <div className="text-[11px] font-semibold text-slate-200">Results</div>
+                      <div className="text-[10px] text-slate-500">{isSearchingHoldUsers ? 'Searching...' : `${holdUserResults.length}`}</div>
+                    </div>
+                    <div className="max-h-64 overflow-auto">
+                      {holdUserResults.length === 0 ? (
+                        <div className="px-3 py-4 text-[11px] text-slate-500">Type to search users.</div>
+                      ) : (
+                        holdUserResults.map((u) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={async () => {
+                              setHoldSelectedUserId(u.id);
+                              await loadHoldUserDetails(u.id);
+                            }}
+                            className={
+                              'w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-slate-900/60 ' +
+                              (holdSelectedUserId === u.id ? 'bg-slate-900/70' : '')
+                            }
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div>
+                                <div className="font-semibold text-slate-100">{u.email || u.name || `User #${u.id}`}</div>
+                                <div className="text-[10px] text-slate-500">#{u.id} · {u.referralCode || '-'}</div>
+                              </div>
+                              <div className={
+                                'rounded-full px-2 py-0.5 text-[10px] ' +
+                                (u.withdrawalHoldEnabled ? 'bg-amber-950/40 text-amber-200 border border-amber-500/50' : 'bg-emerald-950/20 text-emerald-300 border border-emerald-600/40')
+                              }>
+                                {u.withdrawalHoldEnabled ? 'HOLD' : 'OK'}
+                              </div>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {holdActionMessage && (
+                    <div className={
+                      'rounded-lg border px-3 py-2 text-[11px] ' +
+                      (holdActionType === 'success'
+                        ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
+                        : 'border-red-500/60 bg-red-950/20 text-red-200')
+                    }>
+                      {holdActionMessage}
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="text-[11px] font-semibold text-slate-200">Selected User</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
+                      <div><span className="text-slate-500">ID:</span> {holdSelectedUserDetails?.user?.id ?? (holdSelectedUserId || '-')}</div>
+                      <div><span className="text-slate-500">Name:</span> {holdSelectedUserDetails?.user?.name || '-'}</div>
+                      <div><span className="text-slate-500">Email:</span> {holdSelectedUserDetails?.user?.email || '-'}</div>
+                      <div><span className="text-slate-500">Phone:</span> {holdSelectedUserDetails?.user?.phone || '-'}</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] font-semibold text-slate-200">Withdrawal Hold</div>
+                        <div className="mt-0.5 text-[10px] text-slate-500">
+                          Current: {holdSelectedUserDetails?.user?.withdrawalHoldEnabled ? 'ON (Hold)' : 'OFF'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setWithdrawalHold(true)}
+                          disabled={!holdSelectedUserId}
+                          className="rounded-lg bg-amber-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-amber-500 disabled:opacity-60"
+                        >
+                          Hold
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setWithdrawalHold(false)}
+                          disabled={!holdSelectedUserId}
+                          className="rounded-lg bg-slate-700 px-3 py-2 text-[11px] font-medium text-white hover:bg-slate-600 disabled:opacity-60"
+                        >
+                          Unhold
+                        </button>
+                      </div>
+                    </div>
+
+                    {holdSelectedUserDetails?.user?.withdrawalHoldEnabled && (
+                      <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-950/20 p-3 text-[11px] text-amber-200">
+                        <div className="font-semibold">Hold Note (shown to user)</div>
+                        <div className="mt-1 whitespace-pre-wrap text-amber-200/90">{holdSelectedUserDetails?.user?.withdrawalHoldNote || '-'}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -22,6 +22,12 @@ const {
 
 let notificationsColumnsCache = null;
 
+const shouldRetryWithoutWithdrawalHoldFields = (err) => {
+  const msg = String(err?.original?.sqlMessage || err?.original?.message || err?.message || '');
+  const low = msg.toLowerCase();
+  return low.includes("unknown column") && (low.includes('withdrawal_hold_enabled') || low.includes('withdrawal_hold_note'));
+};
+
 exports.checkAccess = async (req, res) => {
   try {
     res.status(200).json({
@@ -1059,25 +1065,43 @@ exports.getUserDetails = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid user id' });
     }
 
-    const user = await User.findByPk(userId, {
-      raw: true,
-      attributes: [
-        'id',
-        'name',
-        'email',
-        'phone',
-        ['withdrawal_hold_enabled', 'withdrawalHoldEnabled'],
-        ['withdrawal_hold_note', 'withdrawalHoldNote'],
-        ['cnic_passport', 'cnicPassport'],
-        ['referral_code', 'referralCode'],
-        ['referred_by_id', 'referredById'],
-        ['kyc_status', 'kycStatus'],
-        ['account_status', 'accountStatus'],
-        'role',
-        ['wallet_public_address', 'walletPublicAddress'],
-        [sequelize.col('created_at'), 'createdAt'],
-      ],
-    });
+    const baseAttributes = [
+      'id',
+      'name',
+      'email',
+      'phone',
+      ['withdrawal_hold_enabled', 'withdrawalHoldEnabled'],
+      ['withdrawal_hold_note', 'withdrawalHoldNote'],
+      ['cnic_passport', 'cnicPassport'],
+      ['referral_code', 'referralCode'],
+      ['referred_by_id', 'referredById'],
+      ['kyc_status', 'kycStatus'],
+      ['account_status', 'accountStatus'],
+      'role',
+      ['wallet_public_address', 'walletPublicAddress'],
+      [sequelize.col('created_at'), 'createdAt'],
+    ];
+
+    let user;
+    try {
+      user = await User.findByPk(userId, {
+        raw: true,
+        attributes: baseAttributes,
+      });
+    } catch (err) {
+      if (!shouldRetryWithoutWithdrawalHoldFields(err)) throw err;
+      const attributesWithoutHold = baseAttributes.filter(
+        (a) => !Array.isArray(a) || (a[0] !== 'withdrawal_hold_enabled' && a[0] !== 'withdrawal_hold_note'),
+      );
+      user = await User.findByPk(userId, {
+        raw: true,
+        attributes: attributesWithoutHold,
+      });
+      if (user) {
+        user.withdrawalHoldEnabled = false;
+        user.withdrawalHoldNote = null;
+      }
+    }
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -1524,29 +1548,52 @@ exports.listUsers = async (req, res) => {
       where[Op.or] = or;
     }
 
-    const users = await User.findAll({
-      where,
-      order: [[sequelize.col('created_at'), 'DESC']],
-      limit,
-      offset,
-      raw: true,
-      attributes: [
-        'id',
-        'name',
-        'email',
-        'phone',
-        ['withdrawal_hold_enabled', 'withdrawalHoldEnabled'],
-        ['withdrawal_hold_note', 'withdrawalHoldNote'],
-        ['kyc_status', 'kycStatus'],
-        ['account_status', 'accountStatus'],
-        ['referral_code', 'referralCode'],
-        ['referred_by_id', 'referredById'],
-        ['cnic_passport', 'cnicPassport'],
-        'role',
-        ['wallet_public_address', 'walletPublicAddress'],
-        [sequelize.col('created_at'), 'createdAt'],
-      ],
-    });
+    const baseAttributes = [
+      'id',
+      'name',
+      'email',
+      'phone',
+      ['withdrawal_hold_enabled', 'withdrawalHoldEnabled'],
+      ['withdrawal_hold_note', 'withdrawalHoldNote'],
+      ['kyc_status', 'kycStatus'],
+      ['account_status', 'accountStatus'],
+      ['referral_code', 'referralCode'],
+      ['referred_by_id', 'referredById'],
+      ['cnic_passport', 'cnicPassport'],
+      'role',
+      ['wallet_public_address', 'walletPublicAddress'],
+      [sequelize.col('created_at'), 'createdAt'],
+    ];
+
+    let users;
+    try {
+      users = await User.findAll({
+        where,
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        offset,
+        raw: true,
+        attributes: baseAttributes,
+      });
+    } catch (err) {
+      if (!shouldRetryWithoutWithdrawalHoldFields(err)) throw err;
+      const attributesWithoutHold = baseAttributes.filter(
+        (a) => !Array.isArray(a) || (a[0] !== 'withdrawal_hold_enabled' && a[0] !== 'withdrawal_hold_note'),
+      );
+      users = await User.findAll({
+        where,
+        order: [[sequelize.col('created_at'), 'DESC']],
+        limit,
+        offset,
+        raw: true,
+        attributes: attributesWithoutHold,
+      });
+      users = (users || []).map((u) => ({
+        ...u,
+        withdrawalHoldEnabled: false,
+        withdrawalHoldNote: null,
+      }));
+    }
 
     const userIds = users.map((u) => u.id);
     const wallets = await Wallet.findAll({ where: { user_id: userIds }, raw: true });

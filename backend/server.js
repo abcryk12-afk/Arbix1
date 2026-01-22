@@ -93,6 +93,13 @@ const ensureSchema = async () => {
         await sequelize.query(`ALTER TABLE users MODIFY COLUMN theme_preference ENUM(${enumSql}) NULL`);
       }
     }
+
+    if (!colSet.has('withdrawal_hold_enabled')) {
+      await sequelize.query('ALTER TABLE users ADD COLUMN withdrawal_hold_enabled TINYINT(1) NOT NULL DEFAULT 0');
+    }
+    if (!colSet.has('withdrawal_hold_note')) {
+      await sequelize.query('ALTER TABLE users ADD COLUMN withdrawal_hold_note TEXT NULL');
+    }
   } catch (e) {}
 
   try {

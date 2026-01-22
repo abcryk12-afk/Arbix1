@@ -32,6 +32,7 @@ export default function WithdrawPage() {
   const [saveAddress, setSaveAddress] = useState(false);
   const [addressError, setAddressError] = useState('');
   const [amountError, setAmountError] = useState('');
+  const [withdrawHoldNote, setWithdrawHoldNote] = useState<string | null>(null);
   const [savedAddresses] = useState<string[]>([]); // demo stored address
 
   const [pending, setPending] = useState<PendingWithdrawal[]>([]);
@@ -200,6 +201,7 @@ export default function WithdrawPage() {
     e.preventDefault();
     setAddressError('');
     setAmountError('');
+    setWithdrawHoldNote(null);
 
     const addrErr = validateAddress(address.trim());
     const amtErr = validateAmount(amount);
@@ -231,6 +233,13 @@ export default function WithdrawPage() {
 
       const data = await res.json();
       if (!data?.success) {
+        if (String(data?.code || '') === 'WITHDRAWAL_HOLD') {
+          const note = data?.holdNote != null ? String(data.holdNote) : '';
+          setWithdrawHoldNote(note || null);
+          setAmountError(typeof data?.message === 'string' ? data.message : 'Withdrawals are currently on hold');
+          return;
+        }
+
         const msg = typeof data?.message === 'string' ? data.message : 'Failed to submit withdrawal request';
         setAmountError(msg);
         return;
@@ -377,6 +386,13 @@ export default function WithdrawPage() {
           <h2 className="text-sm font-semibold text-slate-50 md:text-base">
             Submit Withdrawal Request
           </h2>
+
+          {withdrawHoldNote && (
+            <div className="mt-4 rounded-2xl border border-amber-500/60 bg-amber-950/20 p-4 text-[11px] text-amber-200">
+              <div className="font-semibold">Withdrawals are currently on hold for your account.</div>
+              <div className="mt-1 whitespace-pre-wrap text-amber-200/90">{withdrawHoldNote}</div>
+            </div>
+          )}
 
           <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
             <div>

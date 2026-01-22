@@ -189,7 +189,8 @@ export default function DashboardPage() {
         const data = await res.json();
         if (!cancelled) {
           if (data?.success) {
-            setWalletBalance(Number(data?.wallet?.balance || 0));
+            const total = data?.wallet?.totalBalance;
+            setWalletBalance(Number(total ?? data?.wallet?.balance ?? 0));
           } else {
             setWalletBalance(0);
           }

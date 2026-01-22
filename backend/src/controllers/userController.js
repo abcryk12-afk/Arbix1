@@ -275,6 +275,7 @@ exports.getSummary = async (req, res) => {
       wallet: {
         balance: Number(wallet.balance),
         rewardBalance: Number(wallet.reward_balance || 0),
+        totalBalance: Number(wallet.balance || 0) + Number(wallet.reward_balance || 0),
       },
       transactions: transactions.map((t) => ({
         id: t.id,
@@ -1057,6 +1058,17 @@ exports.requestWithdrawal = async (req, res) => {
 
     const result = await Transaction.sequelize.transaction(async (t) => {
       const user = await User.findByPk(userId, { transaction: t });
+
+      if (user && Boolean(user.withdrawal_hold_enabled)) {
+        return {
+          ok: false,
+          status: 403,
+          code: 'WITHDRAWAL_HOLD',
+          holdNote: user.withdrawal_hold_note || null,
+          message: 'Your withdrawals are currently on hold. Please contact support for assistance.',
+        };
+      }
+
       let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t, lock: t.LOCK.UPDATE });
       if (!wallet) {
         wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
@@ -1113,7 +1125,12 @@ exports.requestWithdrawal = async (req, res) => {
     });
 
     if (!result.ok) {
-      return res.status(result.status || 400).json({ success: false, message: result.message || 'Failed to submit withdrawal request' });
+      return res.status(result.status || 400).json({
+        success: false,
+        message: result.message || 'Failed to submit withdrawal request',
+        code: result.code,
+        holdNote: result.holdNote,
+      });
     }
 
     Promise.resolve()

@@ -85,6 +85,17 @@ const User = db.define('User', {
     allowNull: true,
     field: 'theme_preference',
   },
+  withdrawal_hold_enabled: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: 'withdrawal_hold_enabled',
+  },
+  withdrawal_hold_note: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'withdrawal_hold_note',
+  },
 }, {
   tableName: 'users',
   freezeTableName: true,
