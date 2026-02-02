@@ -121,8 +121,8 @@ export default function EducationPage() {
         className={
           'rounded-xl px-3 py-2 text-xs font-medium transition-colors ' +
           (active
-            ? 'bg-slate-900 text-slate-50'
-            : 'text-slate-300 hover:bg-slate-900/60 hover:text-slate-100')
+            ? 'bg-surface/40 text-fg'
+            : 'text-muted hover:opacity-95')
         }
       >
         {label}
@@ -131,19 +131,19 @@ export default function EducationPage() {
   };
 
   return (
-    <main className="arbix-page-enter min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <main className="arbix-page-enter min-h-screen bg-page text-fg">
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="arbix-card rounded-3xl p-6 md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950/60 px-3 py-1 text-[11px] text-slate-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/30 px-3 py-1 text-[11px] text-muted">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
                 Arbix Education
               </div>
-              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">
+              <h1 className="mt-3 text-2xl font-semibold tracking-tight text-heading md:text-3xl">
                 Learn, grow, and invest smarter.
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-400">
+              <p className="mt-2 max-w-2xl text-sm text-muted">
                 A professional learning hub for Arbix users: guides, videos, and premium modules for logged-in members.
               </p>
             </div>
@@ -152,14 +152,14 @@ export default function EducationPage() {
               {isLoggedIn ? (
                 <Link
                   href="/dashboard"
-                  className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                  className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                 >
                   Go to Dashboard
                 </Link>
               ) : (
                 <Link
                   href="/auth/login"
-                  className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                  className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                 >
                   Login to Unlock Premium
                 </Link>
@@ -168,21 +168,21 @@ export default function EducationPage() {
               {isLoggedIn && !hasActivePackage ? (
                 <Link
                   href="/dashboard/packages"
-                  className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-xs text-slate-200 hover:border-slate-700"
+                  className="rounded-xl border border-border bg-surface/40 px-4 py-2 text-xs text-fg transition hover:opacity-95"
                 >
                   Activate a Package
                 </Link>
               ) : null}
               <Link
                 href="/contact"
-                className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-xs text-slate-200 hover:border-slate-700"
+                className="rounded-xl border border-border bg-surface/40 px-4 py-2 text-xs text-fg transition hover:opacity-95"
               >
                 Need Help?
               </Link>
             </div>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/50 p-1">
+          <div className="mt-5 rounded-2xl border border-border bg-surface/40 p-1">
             <div className="flex flex-wrap gap-1">
               {tabButton('overview', 'Overview')}
               {tabButton('articles', 'Articles')}
@@ -196,52 +196,52 @@ export default function EducationPage() {
         {tab === 'overview' && (
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="arbix-card rounded-3xl p-6">
-              <div className="text-sm font-semibold text-slate-100">What you will learn</div>
-              <div className="mt-3 grid gap-2 text-sm text-slate-300">
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-                  <div className="text-[11px] text-slate-500">01</div>
-                  <div className="mt-1 font-medium text-slate-100">Platform flow</div>
-                  <div className="mt-1 text-[11px] text-slate-400">Account, deposit, packages, daily earnings, withdrawals.</div>
+              <div className="text-sm font-semibold text-heading">What you will learn</div>
+              <div className="mt-3 grid gap-2 text-sm text-muted">
+                <div className="rounded-2xl border border-border bg-surface/40 p-4">
+                  <div className="text-[11px] text-muted">01</div>
+                  <div className="mt-1 font-medium text-heading">Platform flow</div>
+                  <div className="mt-1 text-[11px] text-muted">Account, deposit, packages, daily earnings, withdrawals.</div>
                 </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-                  <div className="text-[11px] text-slate-500">02</div>
-                  <div className="mt-1 font-medium text-slate-100">Security discipline</div>
-                  <div className="mt-1 text-[11px] text-slate-400">Avoid scams, protect credentials, reduce risk mistakes.</div>
+                <div className="rounded-2xl border border-border bg-surface/40 p-4">
+                  <div className="text-[11px] text-muted">02</div>
+                  <div className="mt-1 font-medium text-heading">Security discipline</div>
+                  <div className="mt-1 text-[11px] text-muted">Avoid scams, protect credentials, reduce risk mistakes.</div>
                 </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-                  <div className="text-[11px] text-slate-500">03</div>
-                  <div className="mt-1 font-medium text-slate-100">Premium strategies</div>
-                  <div className="mt-1 text-[11px] text-slate-400">For logged-in users: structured modules and resources.</div>
+                <div className="rounded-2xl border border-border bg-surface/40 p-4">
+                  <div className="text-[11px] text-muted">03</div>
+                  <div className="mt-1 font-medium text-heading">Premium strategies</div>
+                  <div className="mt-1 text-[11px] text-muted">For logged-in users: structured modules and resources.</div>
                 </div>
               </div>
             </div>
 
             <div className="arbix-card rounded-3xl p-6">
-              <div className="text-sm font-semibold text-slate-100">Quick start</div>
+              <div className="text-sm font-semibold text-heading">Quick start</div>
               <div className="mt-3 grid gap-2">
                 <button
                   type="button"
                   onClick={() => setTab('articles')}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left text-sm text-slate-200 hover:border-slate-700"
+                  className="rounded-2xl border border-border bg-surface/40 p-4 text-left text-sm text-fg transition hover:opacity-95"
                 >
-                  <div className="font-medium text-slate-100">Read guides</div>
-                  <div className="mt-1 text-[11px] text-slate-400">Start with simple explanations and important warnings.</div>
+                  <div className="font-medium text-heading">Read guides</div>
+                  <div className="mt-1 text-[11px] text-muted">Start with simple explanations and important warnings.</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setTab('videos')}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left text-sm text-slate-200 hover:border-slate-700"
+                  className="rounded-2xl border border-border bg-surface/40 p-4 text-left text-sm text-fg transition hover:opacity-95"
                 >
-                  <div className="font-medium text-slate-100">Watch videos</div>
-                  <div className="mt-1 text-[11px] text-slate-400">Short walkthroughs to minimize mistakes.</div>
+                  <div className="font-medium text-heading">Watch videos</div>
+                  <div className="mt-1 text-[11px] text-muted">Short walkthroughs to minimize mistakes.</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setTab('premium')}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left text-sm text-slate-200 hover:border-slate-700"
+                  className="rounded-2xl border border-border bg-surface/40 p-4 text-left text-sm text-fg transition hover:opacity-95"
                 >
-                  <div className="font-medium text-slate-100">Explore premium</div>
-                  <div className="mt-1 text-[11px] text-slate-400">Login required to view full premium modules.</div>
+                  <div className="font-medium text-heading">Explore premium</div>
+                  <div className="mt-1 text-[11px] text-muted">Login required to view full premium modules.</div>
                 </button>
               </div>
             </div>
@@ -254,19 +254,19 @@ export default function EducationPage() {
               <a
                 key={a.title}
                 href={a.href}
-                className="arbix-card arbix-3d rounded-3xl p-6 hover:text-white"
+                className="arbix-card arbix-3d rounded-3xl p-6 transition hover:opacity-95"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-semibold text-slate-100">{a.title}</div>
+                  <div className="text-sm font-semibold text-heading">{a.title}</div>
                   {a.badge ? (
-                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-1 text-[10px] text-blue-200">
+                    <span className="rounded-full border border-border bg-muted px-2 py-1 text-[10px] text-muted">
                       {a.badge}
                     </span>
                   ) : null}
                 </div>
-                <div className="mt-2 text-sm text-slate-400">{a.description}</div>
-                <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-slate-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <div className="mt-2 text-sm text-muted">{a.description}</div>
+                <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
                   Open
                 </div>
               </a>
@@ -283,14 +283,14 @@ export default function EducationPage() {
                 className="arbix-card arbix-3d rounded-3xl p-6"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-sm font-semibold text-slate-100">{r.title}</div>
-                  <span className="rounded-full border border-slate-800 bg-slate-950/50 px-2 py-1 text-[10px] text-slate-300">
+                  <div className="text-sm font-semibold text-heading">{r.title}</div>
+                  <span className="rounded-full border border-border bg-surface/30 px-2 py-1 text-[10px] text-muted">
                     PDF
                   </span>
                 </div>
-                <div className="mt-2 text-sm text-slate-400">{r.description}</div>
-                <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-slate-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                <div className="mt-2 text-sm text-muted">{r.description}</div>
+                <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted" />
                   Open
                 </div>
               </Link>
@@ -307,16 +307,16 @@ export default function EducationPage() {
                 className="arbix-card arbix-3d rounded-3xl p-6"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-sm font-semibold text-slate-100">{v.title}</div>
+                  <div className="text-sm font-semibold text-heading">{v.title}</div>
                   {v.duration ? (
-                    <span className="rounded-full border border-slate-800 bg-slate-950/50 px-2 py-1 text-[10px] text-slate-300">
+                    <span className="rounded-full border border-border bg-surface/30 px-2 py-1 text-[10px] text-muted">
                       {v.duration}
                     </span>
                   ) : null}
                 </div>
-                <div className="mt-2 text-sm text-slate-400">{v.description}</div>
-                <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-slate-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                <div className="mt-2 text-sm text-muted">{v.description}</div>
+                <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-muted">
+                  <span className="h-1.5 w-1.5 rounded-full bg-info" />
                   Open
                 </div>
               </Link>
@@ -329,22 +329,22 @@ export default function EducationPage() {
             <div className="arbix-card rounded-3xl p-6">
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-slate-100">Premium Modules</div>
-                  <div className="mt-1 text-sm text-slate-400">
+                  <div className="text-sm font-semibold text-heading">Premium Modules</div>
+                  <div className="mt-1 text-sm text-muted">
                     Full access is available for users with an active package.
                   </div>
                 </div>
                 {!isLoggedIn ? (
                   <Link
                     href="/auth/login"
-                    className="inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                    className="inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                   >
                     Login
                   </Link>
                 ) : !hasActivePackage ? (
                   <Link
                     href="/dashboard/packages"
-                    className="inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                    className="inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                   >
                     Activate Package
                   </Link>
@@ -362,39 +362,39 @@ export default function EducationPage() {
                       }
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-sm font-semibold text-slate-100">{m.title}</div>
-                        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-200">
+                        <div className="text-sm font-semibold text-heading">{m.title}</div>
+                        <span className="rounded-full border border-border bg-warning/10 px-2 py-1 text-[10px] text-warning-fg">
                           {m.badge || 'Premium'}
                         </span>
                       </div>
-                      <div className="mt-2 text-sm text-slate-400">{m.description}</div>
-                      <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-slate-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      <div className="mt-2 text-sm text-muted">{m.description}</div>
+                      <div className="mt-4 inline-flex items-center gap-2 text-[11px] text-muted">
+                        <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                         {isCheckingEligibility ? 'Checking...' : isLoggedIn && hasActivePackage ? 'Open' : 'Locked'}
                       </div>
                     </Link>
 
                     {(!isLoggedIn || !hasActivePackage) && (
-                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl border border-slate-800 bg-slate-950/50 backdrop-blur-sm">
+                      <div className="absolute inset-0 flex items-center justify-center rounded-3xl border border-border bg-surface/80 backdrop-blur-sm">
                         <div className="text-center">
                           {!isLoggedIn ? (
                             <>
-                              <div className="text-xs font-semibold text-slate-100">Login required</div>
-                              <div className="mt-1 text-[11px] text-slate-400">Unlock premium modules</div>
+                              <div className="text-xs font-semibold text-heading">Login required</div>
+                              <div className="mt-1 text-[11px] text-muted">Unlock premium modules</div>
                               <Link
                                 href="/auth/login"
-                                className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                                className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                               >
                                 Login
                               </Link>
                             </>
                           ) : (
                             <>
-                              <div className="text-xs font-semibold text-slate-100">Active package required</div>
-                              <div className="mt-1 text-[11px] text-slate-400">Activate any package to unlock</div>
+                              <div className="text-xs font-semibold text-heading">Active package required</div>
+                              <div className="mt-1 text-[11px] text-muted">Activate any package to unlock</div>
                               <Link
                                 href="/dashboard/packages"
-                                className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                                className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                               >
                                 Activate Package
                               </Link>
@@ -408,7 +408,7 @@ export default function EducationPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-3xl border border-slate-800 bg-slate-950/60 p-5 text-sm text-slate-400">
+            <div className="mt-4 rounded-3xl border border-border bg-surface/30 p-5 text-sm text-muted">
               Want us to add specific lessons (Urdu/Hindi/English), PDFs, or a structured course plan? Share your topics list and I will organize it as modules.
             </div>
           </div>

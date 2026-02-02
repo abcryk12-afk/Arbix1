@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 
+const THEME_STORAGE_KEY = 'arbix_theme_override';
+
 type ThemeContextType = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
@@ -14,54 +16,38 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children, initialTheme = 'dark' }: { children: React.ReactNode; initialTheme?: Theme }) {
   const [theme, setTheme] = useState<Theme>(initialTheme);
-  const [mounted, setMounted] = useState(false);
 
   // Apply theme to document
   useEffect(() => {
-    // Only apply the theme if it's light, otherwise keep the default dark theme
-    if (theme === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.documentElement.style.colorScheme = 'light';
-      document.body.className = 'light-theme';
-      
-      // Save theme preference
-      try {
-        localStorage.setItem('theme', 'light');
-      } catch (e) {
-        // LocalStorage might be disabled
-      }
-    } else {
-      // For dark theme, remove any light theme attributes to fall back to default dark theme
-      document.documentElement.removeAttribute('data-theme');
-      document.documentElement.style.colorScheme = '';
-      document.body.className = '';
-      
-      try {
-        localStorage.removeItem('theme');
-      } catch (e) {
-        // LocalStorage might be disabled
-      }
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.style.colorScheme = theme;
+
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
     }
-    
-    setMounted(true);
   }, [theme]);
 
   // Initial theme setup
   useEffect(() => {
     // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme) {
+    let savedTheme: Theme | null = null;
+    try {
+      savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    } catch {
+      savedTheme = null;
+    }
+
+    if (savedTheme === 'light' || savedTheme === 'dark') {
       setTheme(savedTheme);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark');
     } else {
-      setTheme('light');
+      setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     }
     
     // Watch for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
+      if (!localStorage.getItem(THEME_STORAGE_KEY)) {
         setTheme(e.matches ? 'dark' : 'light');
       }
     };
@@ -73,11 +59,6 @@ export function ThemeProvider({ children, initialTheme = 'dark' }: { children: R
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
-
-  // Don't render the app until we've determined the theme to prevent flash of wrong theme
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>

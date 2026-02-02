@@ -14,64 +14,64 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t border-slate-800 bg-slate-950/95">
-      <div className="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-400">
+    <footer className="border-t border-border bg-surface/90 shadow-theme-sm">
+      <div className="mx-auto max-w-6xl px-4 py-8 text-xs text-muted">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <div className="col-span-2 space-y-2 md:col-span-1">
-            <div className="text-sm font-semibold text-slate-100">Arbix</div>
+            <div className="text-sm font-semibold text-heading">Arbix</div>
             <p className="text-[11px] leading-relaxed">
               Automated arbitrage &amp; managed passive income platform with a
               structured referral model.
             </p>
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-100">Quick Links</div>
+            <div className="text-sm font-semibold text-heading">Quick Links</div>
             <ul className="mt-2 space-y-1.5">
               <li>
-                <a href="/about" className="hover:text-white hover:underline">
+                <a href="/about" className="hover:text-heading hover:underline">
                   About Us
                 </a>
               </li>
               <li>
                 <a
                   href="/how-it-works"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   How It Works
                 </a>
               </li>
               <li>
-                <a href="/plans" className="hover:text-white hover:underline">
+                <a href="/plans" className="hover:text-heading hover:underline">
                   Investment Plans
                 </a>
               </li>
               <li>
                 <a
                   href="/testimonials"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   Testimonials
                 </a>
               </li>
               <li>
-                <a href="/faq" className="hover:text-white hover:underline">
+                <a href="/faq" className="hover:text-heading hover:underline">
                   FAQ
                 </a>
               </li>
             </ul>
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-100">Legal</div>
+            <div className="text-sm font-semibold text-heading">Legal</div>
             <ul className="mt-2 space-y-1.5">
               <li>
-                <a href="/terms" className="hover:text-white hover:underline">
+                <a href="/terms" className="hover:text-heading hover:underline">
                   Terms of Service
                 </a>
               </li>
               <li>
                 <a
                   href="/privacy"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   Privacy Policy
                 </a>
@@ -79,7 +79,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/aml-kyc"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   AML Policy
                 </a>
@@ -87,7 +87,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/risk-disclosure"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   Risk Disclosure
                 </a>
@@ -95,13 +95,13 @@ export default function Footer() {
             </ul>
           </div>
           <div className="col-span-2 md:col-span-1">
-            <div className="text-sm font-semibold text-slate-100">
+            <div className="text-sm font-semibold text-heading">
               Contact &amp; Support
             </div>
             <ul className="mt-2 space-y-1.5">
               <li className="flex items-center gap-2">
                 <svg
-                  className="h-4 w-4 text-slate-500"
+                  className="h-4 w-4 text-subtle"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -115,14 +115,14 @@ export default function Footer() {
                 </svg>
                 <a
                   href="mailto:support@arbix.space"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   support@arbix.space
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <svg
-                  className="h-4 w-4 text-slate-500"
+                  className="h-4 w-4 text-subtle"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -138,7 +138,7 @@ export default function Footer() {
                   href="https://t.me/arbix_support"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-heading hover:underline"
                 >
                   @arbix_support
                 </a>
@@ -146,22 +146,22 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-8 border-t border-slate-800 pt-6">
-          <div className="flex flex-col items-center justify-between gap-4 text-center text-xs text-slate-500 sm:flex-row sm:text-left">
+        <div className="mt-8 border-t border-border pt-6">
+          <div className="flex flex-col items-center justify-between gap-4 text-center text-xs text-subtle sm:flex-row sm:text-left">
             <p>© 2026 Arbix. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <a href="/terms" className="hover:text-slate-300 hover:underline">
+              <a href="/terms" className="hover:text-muted hover:underline">
                 Terms
               </a>
               <a
                 href="/privacy"
-                className="hover:text-slate-300 hover:underline"
+                className="hover:text-muted hover:underline"
               >
                 Privacy
               </a>
               <a
                 href="/aml-kyc"
-                className="hover:text-slate-300 hover:underline"
+                className="hover:text-muted hover:underline"
               >
                 AML Policy
               </a>

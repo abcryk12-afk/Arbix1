@@ -18,6 +18,8 @@ type NavItem = {
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasRewardReady, setHasRewardReady] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'colorful'>('dark');
+  const [themeLoading, setThemeLoading] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -68,6 +70,19 @@ type NavItem = {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    const read = () => {
+      const t = document.documentElement.getAttribute('data-theme');
+      const next = t === 'light' || t === 'dark' || t === 'colorful' ? t : 'dark';
+      setTheme(next);
+    };
+
+    read();
+    const observer = new MutationObserver(() => read());
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -171,13 +186,51 @@ type NavItem = {
     router.replace('/auth/login');
   };
 
+  const requestThemeChange = (nextTheme: 'light' | 'dark' | 'colorful', persist: 'override' | 'clear') => {
+    try {
+      window.dispatchEvent(new CustomEvent('arbix-theme-change', { detail: { theme: nextTheme, persist } }));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleToggleTheme = async () => {
+    const themeOrder: Array<'light' | 'dark' | 'colorful'> = ['light', 'dark', 'colorful'];
+    const nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % themeOrder.length] || 'dark';
+    setThemeLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const res = await fetch('/api/user/theme', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ theme: nextTheme }),
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.success) {
+          requestThemeChange(nextTheme, 'clear');
+          return;
+        }
+      }
+
+      requestThemeChange(nextTheme, 'override');
+    } catch {
+      requestThemeChange(nextTheme, 'override');
+    } finally {
+      setThemeLoading(false);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800 bg-gradient-to-b from-slate-950/95 via-slate-950/92 to-slate-950/85 backdrop-blur shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200/15 to-transparent" />
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/30 backdrop-blur shadow-theme-md">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/20 to-transparent" />
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="arbix-3d arbix-shine flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-primary text-sm font-bold text-white shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_12px_32px_rgba(0,0,0,0.35)] ring-1 ring-white/10">
+            <div className="arbix-3d arbix-shine flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-primary text-sm font-bold text-primary-fg shadow-theme-sm border border-border/20">
               {logoDataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={logoDataUrl} alt="Arbix" className="h-9 w-9 object-contain" />
@@ -186,13 +239,13 @@ type NavItem = {
               )}
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight text-slate-100">Arbix</div>
-              <div className="text-[11px] text-slate-400">Dashboard</div>
+              <div className="text-sm font-semibold tracking-tight text-heading">Arbix</div>
+              <div className="text-[11px] text-muted">Dashboard</div>
             </div>
           </Link>
         </div>
 
-        <nav className="hidden items-center gap-2 text-xs text-slate-200 md:flex">
+        <nav className="hidden items-center gap-2 text-xs text-muted md:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -200,12 +253,12 @@ type NavItem = {
               className={
                 (
                   'relative rounded-lg px-3 py-2 transition-colors duration-150 ' +
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 ' +
+                  'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ' +
                   'motion-reduce:transition-none '
                 ) +
                 (isActive(item)
-                  ? 'bg-slate-800 text-slate-50 after:absolute after:inset-x-2 after:bottom-1 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/70 after:to-transparent'
-                  : 'text-slate-300 hover:bg-slate-900/60 hover:text-slate-100')
+                  ? 'bg-card text-heading after:absolute after:inset-x-2 after:bottom-1 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/70 after:to-transparent'
+                  : 'text-muted hover:text-heading')
               }
             >
               {item.label}
@@ -214,12 +267,49 @@ type NavItem = {
         </nav>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleToggleTheme}
+            disabled={themeLoading}
+            className={
+              'hidden items-center justify-center rounded-lg border border-border bg-surface/40 p-2 text-fg ' +
+              'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 disabled:opacity-60 md:inline-flex '
+            }
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
+                />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m0-11.314L7.05 7.05m9.9 9.9 1.414 1.414"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8a4 4 0 100 8 4 4 0 000-8z"
+                />
+              </svg>
+            )}
+          </button>
+
           <Link
             href="/dashboard/daily-rewards"
             className={
-              'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
-              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none'
+              'relative inline-flex items-center justify-center rounded-lg border border-border bg-surface/40 p-2 text-fg ' +
+              'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 ' +
+              'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none'
             }
             aria-label="Daily Rewards"
           >
@@ -241,16 +331,16 @@ type NavItem = {
               <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 12 8a4.8 8 0 0 1 4.5 5" />
             </svg>
             {hasRewardReady && (
-              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-warning border-2 border-border" />
             )}
           </Link>
 
           <Link
             href="/dashboard/notifications"
             className={
-              'relative inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
-              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none'
+              'relative inline-flex items-center justify-center rounded-lg border border-border bg-surface/40 p-2 text-fg ' +
+              'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 ' +
+              'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none'
             }
             aria-label="Notifications"
           >
@@ -263,22 +353,22 @@ type NavItem = {
               />
             </svg>
             {hasUnreadNotifications && (
-              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-success border-2 border-border" />
             )}
           </Link>
 
-          <div className="hidden text-right text-[11px] text-slate-300 md:block">
-            <div className="font-medium text-slate-100">{displayName || 'Account'}</div>
-            <div className="text-slate-500">Logged in</div>
+          <div className="hidden text-right text-[11px] text-muted md:block">
+            <div className="font-medium text-heading">{displayName || 'Account'}</div>
+            <div className="text-muted">Logged in</div>
           </div>
 
           <button
             type="button"
             onClick={handleLogout}
             className={
-              'hidden rounded-lg border border-rose-900/60 bg-rose-500/5 px-3 py-2 text-[11px] font-medium text-rose-100 ' +
-              'transition-colors duration-150 hover:border-rose-500/70 hover:bg-rose-500/10 ' +
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30 motion-reduce:transition-none md:inline-flex'
+              'hidden rounded-lg border border-border bg-danger/10 px-3 py-2 text-[11px] font-medium text-fg ' +
+              'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 ' +
+              'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none md:inline-flex'
             }
           >
             Logout
@@ -288,9 +378,9 @@ type NavItem = {
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
             className={
-              'inline-flex rounded-lg border border-slate-700 bg-slate-950/40 p-2 text-slate-100 ' +
-              'transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/50 ' +
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none md:hidden'
+              'inline-flex rounded-lg border border-border bg-surface/40 p-2 text-fg ' +
+              'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 ' +
+              'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none md:hidden'
             }
             aria-label="Toggle dashboard menu"
           >
@@ -316,18 +406,54 @@ type NavItem = {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-slate-800 bg-slate-950 md:hidden">
+        <div className="border-t border-border bg-surface md:hidden">
           <div className="mx-auto max-w-6xl px-4 py-3">
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs text-slate-200">{displayName || 'Account'}</div>
+              <div className="text-xs text-muted">{displayName || 'Account'}</div>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleTheme}
+                  disabled={themeLoading}
+                  className={
+                    'inline-flex items-center justify-center rounded-lg border border-border bg-surface/40 p-2 text-fg ' +
+                    'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 disabled:opacity-60'
+                  }
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364-1.414 1.414M7.05 16.95l-1.414 1.414m0-11.314L7.05 7.05m9.9 9.9 1.414 1.414"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8a4 4 0 100 8 4 4 0 000-8z"
+                      />
+                    </svg>
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={handleLogout}
                   className={
-                    'rounded-lg border border-rose-900/60 bg-rose-500/5 px-3 py-1.5 text-[11px] text-rose-100 ' +
-                    'transition-colors duration-150 hover:border-rose-500/70 hover:bg-rose-500/10 ' +
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30 motion-reduce:transition-none'
+                    'rounded-lg border border-border bg-danger/10 px-3 py-1.5 text-[11px] text-fg ' +
+                    'transition-colors duration-150 hover:shadow-theme-sm hover:opacity-95 ' +
+                    'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none'
                   }
                 >
                   Logout
@@ -344,11 +470,11 @@ type NavItem = {
                   className={
                     (
                       'rounded-lg border px-3 py-2 text-xs transition-colors duration-150 ' +
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none '
+                      'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none '
                     ) +
                     (isActive(item)
-                      ? 'border-slate-700 bg-slate-800 text-slate-50'
-                      : 'border-slate-800 text-slate-200 hover:border-slate-700 hover:bg-slate-900/50')
+                      ? 'border-border bg-card text-heading'
+                      : 'border-border text-muted hover:opacity-95')
                   }
                 >
                   {item.label}
@@ -361,11 +487,11 @@ type NavItem = {
                 className={
                   (
                     'rounded-lg border px-3 py-2 text-xs transition-colors duration-150 ' +
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 motion-reduce:transition-none '
+                    'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 motion-reduce:transition-none '
                   ) +
                   (isActive({ label: 'Notifications', href: '/dashboard/notifications', match: 'prefix' })
-                    ? 'border-slate-700 bg-slate-800 text-slate-50'
-                    : 'border-slate-800 text-slate-200 hover:border-slate-700 hover:bg-slate-900/50')
+                    ? 'border-border bg-card text-heading'
+                    : 'border-border text-muted hover:opacity-95')
                 }
               >
                 Notifications

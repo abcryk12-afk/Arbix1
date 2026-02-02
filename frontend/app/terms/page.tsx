@@ -1,16 +1,16 @@
 export default function TermsPage() {
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-page text-fg">
       {/* Hero */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             LEGAL
           </p>
           <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             Terms &amp; Conditions
           </h1>
-          <p className="mt-3 text-sm text-slate-300 md:text-base">
+          <p className="mt-3 text-sm text-muted md:text-base">
             Please read these Terms &amp; Conditions carefully before using the Arbix
             platform. By accessing or using the platform, you agree to be bound by
             these terms.
@@ -19,35 +19,35 @@ export default function TermsPage() {
       </section>
 
       {/* 1. Definitions */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">1. Definitions</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">1. Definitions</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>
-              <span className="font-semibold text-slate-100">Arbitrage:</span> The
+              <span className="font-semibold text-heading">Arbitrage:</span> The
               practice of buying an asset on one exchange and selling it on another
               to capture a price difference.
             </li>
             <li>
-              <span className="font-semibold text-slate-100">Platform:</span> The
+              <span className="font-semibold text-heading">Platform:</span> The
               Arbix website, applications and related services provided to users.
             </li>
             <li>
-              <span className="font-semibold text-slate-100">User:</span> Any
+              <span className="font-semibold text-heading">User:</span> Any
               individual or entity that creates an account or uses the Arbix
               platform.
             </li>
             <li>
-              <span className="font-semibold text-slate-100">Wallet:</span> The
+              <span className="font-semibold text-heading">Wallet:</span> The
               internal balance or linked external wallet used to fund investments
               and receive payouts.
             </li>
             <li>
-              <span className="font-semibold text-slate-100">Referral Bonus:</span>{' '}
+              <span className="font-semibold text-heading">Referral Bonus:</span>{' '}
               Any incentive or commission earned through the Arbix referral program.
             </li>
             <li>
-              <span className="font-semibold text-slate-100">Investment Plan:</span>{' '}
+              <span className="font-semibold text-heading">Investment Plan:</span>{' '}
               A predefined package or plan offered by Arbix that specifies terms for
               deposits, profit sharing and withdrawals.
             </li>
@@ -56,10 +56,10 @@ export default function TermsPage() {
       </section>
 
       {/* 2. Acceptance of Terms */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">2. Acceptance of Terms</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">2. Acceptance of Terms</h2>
+          <p className="mt-3 text-muted">
             By accessing, registering on or using the Arbix platform in any way, you
             acknowledge that you have read, understood and agreed to these Terms &amp;
             Conditions. If you do not agree, you should not use the platform.
@@ -68,10 +68,10 @@ export default function TermsPage() {
       </section>
 
       {/* 3. Eligibility */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">3. Eligibility</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">3. Eligibility</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>• You must be at least 18 years old to use the platform.</li>
             <li>• You must be able to complete KYC verification as required.</li>
             <li>• You must not use false identities or forged documents.</li>
@@ -81,10 +81,10 @@ export default function TermsPage() {
       </section>
 
       {/* 4. Account Registration */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">4. Account Registration</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">4. Account Registration</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>
               • You must provide accurate and complete information during
               registration.
@@ -102,10 +102,10 @@ export default function TermsPage() {
       </section>
 
       {/* 5. Investment Plans */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">5. Investment Plans</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">5. Investment Plans</h2>
+          <p className="mt-3 text-muted">
             Users voluntarily select their preferred investment plans. Each plan may
             have different profit structures, durations and withdrawal rules. Arbix
             reserves the right to modify, add or discontinue plans at any time,
@@ -115,10 +115,10 @@ export default function TermsPage() {
       </section>
 
       {/* 6. Deposits */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">6. Deposits</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">6. Deposits</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>
               • Deposits must be made only from payment methods or wallets that you
               legally own or control.
@@ -133,10 +133,10 @@ export default function TermsPage() {
       </section>
 
       {/* 7. Profit Distribution */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">7. Profit Distribution</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">7. Profit Distribution</h2>
+          <p className="mt-3 text-muted">
             Profits, if any, are calculated based on the platform&apos;s arbitrage
             activity and the specific rules of your chosen plan. Profit percentages
             may vary from day to day and are not fixed. Arbix does not make
@@ -146,10 +146,10 @@ export default function TermsPage() {
       </section>
 
       {/* 8. Withdrawals */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">8. Withdrawals</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">8. Withdrawals</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>
               • Withdrawal requests are processed within the timeframes communicated
               by the platform, subject to network conditions and security checks.
@@ -171,10 +171,10 @@ export default function TermsPage() {
       </section>
 
       {/* 9. Referral Program */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">9. Referral Program</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">9. Referral Program</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>• Participation in the referral program is completely optional.</li>
             <li>
               • Referral income is not guaranteed and depends on actual team
@@ -189,14 +189,14 @@ export default function TermsPage() {
       </section>
 
       {/* 10. Prohibited Activities */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">10. Prohibited Activities</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">10. Prohibited Activities</h2>
+          <p className="mt-3 text-muted">
             You agree not to engage in any of the following activities while using
             the platform:
           </p>
-          <ul className="mt-2 space-y-1 text-slate-400">
+          <ul className="mt-2 space-y-1 text-muted">
             <li>• Money laundering or attempts to disguise the source of funds.</li>
             <li>• Chargeback fraud or abuse of payment systems.</li>
             <li>• Operating multiple accounts to gain unfair advantage.</li>
@@ -207,10 +207,10 @@ export default function TermsPage() {
       </section>
 
       {/* 11. Platform Rights */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">11. Platform Rights</h2>
-          <ul className="mt-3 space-y-1 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">11. Platform Rights</h2>
+          <ul className="mt-3 space-y-1 text-muted">
             <li>
               • Arbix may perform system upgrades, maintenance and improvements at
               any time.
@@ -228,10 +228,10 @@ export default function TermsPage() {
       </section>
 
       {/* 12. Liability Limitations */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">12. Liability Limitations</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">12. Liability Limitations</h2>
+          <p className="mt-3 text-muted">
             Arbix does not guarantee profits. All investments carry risk, and market
             conditions may result in lower profits or losses. While the platform
             takes reasonable measures to manage risk and maintain security, it
@@ -242,10 +242,10 @@ export default function TermsPage() {
       </section>
 
       {/* 13. Changes to Terms */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">13. Changes to Terms</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="border-b border-border bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">13. Changes to Terms</h2>
+          <p className="mt-3 text-muted">
             Arbix reserves the right to update or modify these Terms &amp; Conditions
             at any time. Where appropriate, users will be informed of significant
             changes via email or in-platform notifications. Continued use of the
@@ -256,14 +256,14 @@ export default function TermsPage() {
       </section>
 
       {/* 14. Contact Information */}
-      <section className="bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-base font-semibold text-slate-50 md:text-lg">14. Contact Information</h2>
-          <p className="mt-3 text-slate-400">
+      <section className="bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-8 md:py-10 text-xs text-muted md:text-sm">
+          <h2 className="text-base font-semibold text-heading md:text-lg">14. Contact Information</h2>
+          <p className="mt-3 text-muted">
             For any questions regarding these Terms &amp; Conditions, please contact
             us at:
           </p>
-          <ul className="mt-2 space-y-1 text-slate-400">
+          <ul className="mt-2 space-y-1 text-muted">
             <li>Support: support@arbix.com</li>
             <li>Compliance: compliance@arbix.com</li>
           </ul>

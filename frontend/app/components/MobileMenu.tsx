@@ -24,7 +24,7 @@ export default function MobileMenu() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         data-mobile-menu-toggle
-        className="fixed top-4 right-4 z-50 rounded-lg bg-primary p-3 text-white shadow-lg hover:bg-blue-500 md:hidden"
+        className="fixed top-4 right-4 z-50 rounded-lg bg-primary p-3 text-primary-fg shadow-theme-md hover:shadow-theme-lg md:hidden"
       >
         <svg
           className="h-6 w-6"
@@ -52,20 +52,20 @@ export default function MobileMenu() {
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-black">
+        <div className="fixed inset-0 z-40 bg-muted/70">
           {/* Menu Container */}
           <div className="flex h-full">
             {/* Close Area */}
             <div
-              className="flex-1 bg-black/50"
+              className="flex-1 bg-muted/50"
               onClick={() => setIsOpen(false)}
             />
 
             {/* Menu Panel */}
-            <div className="w-80 bg-slate-950 p-6">
+            <div className="w-80 bg-surface p-6 shadow-theme-lg">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white">Menu</h2>
-                <p className="text-sm text-slate-400">Navigate to any page</p>
+                <h2 className="text-2xl font-bold text-heading">Menu</h2>
+                <p className="text-sm text-muted">Navigate to any page</p>
               </div>
 
               {/* Menu Items */}
@@ -77,10 +77,10 @@ export default function MobileMenu() {
                     onClick={() => setIsOpen(false)}
                     className={`block rounded-lg px-4 py-3 text-lg font-medium transition-colors ${
                       item.name === "Join Now"
-                        ? "bg-primary text-white hover:bg-blue-500"
+                        ? "bg-primary text-primary-fg hover:shadow-theme-md"
                         : item.name === "Login"
-                        ? "border border-slate-700 text-slate-200 hover:border-slate-500"
-                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                        ? "border border-border text-muted hover:border-border2"
+                        : "text-muted hover:text-heading"
                     }`}
                   >
                     {item.name}
@@ -89,18 +89,18 @@ export default function MobileMenu() {
               </nav>
 
               {/* Trust Badges */}
-              <div className="mt-8 pt-8 border-t border-slate-800">
-                <div className="space-y-2 text-xs text-slate-400">
+              <div className="mt-8 pt-8 border-t border-border">
+                <div className="space-y-2 text-xs text-muted">
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    <span className="h-2 w-2 rounded-full bg-success" />
                     SSL Secured
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-sky-400" />
+                    <span className="h-2 w-2 rounded-full bg-info" />
                     KYC Compliant
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-amber-400" />
+                    <span className="h-2 w-2 rounded-full bg-warning" />
                     24/7 Support
                   </div>
                 </div>

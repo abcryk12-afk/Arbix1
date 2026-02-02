@@ -218,36 +218,37 @@ export default function ProfilePage() {
     : null;
 
   return (
-    <div className="bg-slate-950 text-slate-50 min-h-screen">
+    <div className="min-h-screen bg-page text-fg">
       {/* Profile Header */}
-      <section className="relative overflow-hidden border-b border-slate-800 bg-slate-950/95 network-grid-bg">
+      <section className="relative overflow-hidden border-b border-border bg-theme-hero network-grid-bg">
+        <div className="absolute inset-0 bg-theme-hero-overlay opacity-60" />
         <div className="mx-auto max-w-3xl px-4 py-6 md:py-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-semibold text-primary ring-1 ring-primary/20">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-semibold text-primary border border-primary/20">
             {userName.charAt(0).toUpperCase()}
           </div>
           <h1 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">
             {userName}{' '}
             {isLoading ? (
-              <span className="text-[11px] font-medium text-slate-500">(loading...)</span>
+              <span className="text-[11px] font-medium text-subtle">(loading...)</span>
             ) : null}
           </h1>
-          <p className="mt-1 text-xs text-slate-300 md:text-sm">{email}</p>
-          <p className="mt-1 text-[11px] text-slate-500">Member since: {memberSince}</p>
+          <p className="mt-1 text-xs text-muted md:text-sm">{email}</p>
+          <p className="mt-1 text-[11px] text-subtle">Member since: {memberSince}</p>
         </div>
       </section>
 
       {/* KYC Status Block */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30">
         <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs md:text-sm">
           <div
             className={
               [
-                'arbix-card arbix-3d arbix-shine rounded-2xl px-4 py-3',
+                'arbix-card arbix-3d arbix-shine rounded-2xl px-4 py-3 border shadow-theme-sm',
                 kycBlock.variant === 'emerald'
-                  ? 'arbix-card-emerald arbix-3d-emerald arbix-shine-emerald text-emerald-100'
+                  ? 'border-success/40 bg-success/10 text-success'
                   : kycBlock.variant === 'red'
-                  ? 'arbix-card-red arbix-3d-red arbix-shine-red text-red-100'
-                  : 'arbix-card-amber arbix-3d-amber arbix-shine-amber text-amber-100',
+                  ? 'border-danger/40 bg-danger/10 text-danger'
+                  : 'border-warning/40 bg-warning/10 text-warning',
                 kycBlock.variant === 'amber' ? 'arbix-shine-active' : '',
               ].join(' ')
             }
@@ -257,7 +258,7 @@ export default function ProfilePage() {
             {'buttonLabel' in kycBlock && kycBlock.buttonLabel && (
               <a
                 href="/aml-kyc"
-                className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-1.5 text-[11px] font-medium text-white shadow-sm transition hover:bg-blue-500 hover:shadow-lg"
+                className="mt-3 inline-flex items-center justify-center rounded-lg bg-theme-primary px-4 py-1.5 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
               >
                 {kycBlock.buttonLabel}
               </a>
@@ -267,18 +268,18 @@ export default function ProfilePage() {
       </section>
 
       {/* Personal Information */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+      <section className="border-b border-border bg-surface/30">
+        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
           <div className="arbix-card arbix-3d rounded-2xl p-4">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+              <h2 className="text-sm font-semibold text-heading md:text-base">
                 Personal Information
               </h2>
               {!isEditing ? (
                 <button
                   type="button"
                   onClick={handleStartEdit}
-                  className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 transition hover:border-slate-500"
+                  className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                 >
                   Edit Profile
                 </button>
@@ -287,7 +288,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 transition hover:border-slate-500 disabled:opacity-70"
+                    className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm disabled:opacity-70 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                     disabled={isSaving}
                   >
                     Cancel
@@ -295,7 +296,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="rounded-lg bg-primary px-3 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-blue-500 hover:shadow-lg disabled:opacity-70"
+                    className="rounded-lg bg-theme-primary px-3 py-1 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-70"
                     disabled={isSaving}
                   >
                     {isSaving ? 'Saving...' : 'Save'}
@@ -309,8 +310,8 @@ export default function ProfilePage() {
                 className={
                   'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
                   (saveMessageType === 'success'
-                    ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                    : 'border-red-500/60 bg-red-950/20 text-red-200')
+                    ? 'border-success/40 bg-success/10 text-success'
+                    : 'border-danger/40 bg-danger/10 text-danger')
                 }
               >
                 {saveMessage}
@@ -319,41 +320,41 @@ export default function ProfilePage() {
 
             <div className="mt-3 space-y-2 text-[11px] md:text-xs">
               <div>
-                <div className="text-slate-400">Full Name</div>
+                <div className="text-muted">Full Name</div>
                 {isEditing ? (
                   <input
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-100 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="mt-1 w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                     placeholder="Enter your name"
                   />
                 ) : (
-                  <div className="mt-1 font-semibold text-slate-100">{userName}</div>
+                  <div className="mt-1 font-semibold text-heading">{userName}</div>
                 )}
               </div>
               <div>
-                <div className="text-slate-400">Email Address</div>
+                <div className="text-muted">Email Address</div>
                 <input
                   value={email}
                   readOnly
-                  className="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2 text-xs text-slate-300"
+                  className="mt-1 w-full cursor-not-allowed rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-muted"
                 />
-                <div className="mt-1 text-[10px] text-slate-500">Email cannot be changed.</div>
+                <div className="mt-1 text-[10px] text-subtle">Email cannot be changed.</div>
               </div>
               <div>
-                <div className="text-slate-400">Phone Number</div>
+                <div className="text-muted">Phone Number</div>
                 {isEditing ? (
                   <input
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-100 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="mt-1 w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                     placeholder="Enter phone number"
                   />
                 ) : (
-                  <div className="mt-1 font-semibold text-slate-100">{phone}</div>
+                  <div className="mt-1 font-semibold text-heading">{phone}</div>
                 )}
               </div>
-              <p className="mt-1 text-[10px] text-slate-500">
+              <p className="mt-1 text-[10px] text-subtle">
                 Note: Only non-sensitive fields (name and phone) should be editable.
                 Email changes require support and additional verification.
               </p>
@@ -363,43 +364,43 @@ export default function ProfilePage() {
       </section>
 
       {/* Account Details */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+      <section className="border-b border-border bg-surface/30">
+        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
           <div className="arbix-card arbix-3d rounded-2xl p-4">
-            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+            <h2 className="text-sm font-semibold text-heading md:text-base">
               Account Details
             </h2>
             <div className="mt-3 space-y-2 text-[11px] md:text-xs">
               <p>
-                <span className="text-slate-400">User ID:</span>{' '}
-                <span className="font-semibold text-slate-100">{userId}</span>
+                <span className="text-muted">User ID:</span>{' '}
+                <span className="font-semibold text-heading">{userId}</span>
               </p>
               <p>
-                <span className="text-slate-400">Referral Code:</span>{' '}
-                <span className="font-semibold text-slate-100">{referralCode}</span>
+                <span className="text-muted">Referral Code:</span>{' '}
+                <span className="font-semibold text-heading">{referralCode}</span>
               </p>
               <div>
-                <span className="text-slate-400">Referral Link:</span>
+                <span className="text-muted">Referral Link:</span>
                 <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <div className="flex-1 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-[11px] text-slate-200">
+                  <div className="flex-1 rounded-lg border border-border bg-surface/60 px-3 py-2 text-[11px] text-muted">
                     <span className="break-all">{referralLink}</span>
                   </div>
                   <button
                     type="button"
                     onClick={handleCopyReferralLink}
-                    className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 transition hover:border-slate-500"
+                    className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                   >
                     {copied ? 'Copied!' : 'Copy Link'}
                   </button>
                 </div>
               </div>
               <p>
-                <span className="text-slate-400">Join Date:</span>{' '}
-                <span className="font-semibold text-slate-100">{joinDate}</span>
+                <span className="text-muted">Join Date:</span>{' '}
+                <span className="font-semibold text-heading">{joinDate}</span>
               </p>
               <p>
-                <span className="text-slate-400">Last Login:</span>{' '}
-                <span className="font-semibold text-slate-100">{lastLogin}</span>
+                <span className="text-muted">Last Login:</span>{' '}
+                <span className="font-semibold text-heading">{lastLogin}</span>
               </p>
             </div>
           </div>
@@ -407,23 +408,23 @@ export default function ProfilePage() {
       </section>
 
       {/* Security Settings */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+      <section className="border-b border-border bg-surface/30">
+        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
           <div className="arbix-card arbix-3d rounded-2xl p-4">
-            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+            <h2 className="text-sm font-semibold text-heading md:text-base">
               Security Settings
             </h2>
             <div className="mt-3 space-y-3 text-[11px] md:text-xs">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="font-semibold text-slate-100">Change Password</p>
-                  <p className="text-slate-400">
+                  <p className="font-semibold text-heading">Change Password</p>
+                  <p className="text-muted">
                     Use the password reset flow to update your login password.
                   </p>
                 </div>
                 <a
                   href="/auth/forgot-password"
-                  className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 transition hover:border-slate-500"
+                  className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm"
                 >
                   Reset Password
                 </a>
@@ -431,14 +432,14 @@ export default function ProfilePage() {
 
               <div className="flex items-center justify-between gap-2 opacity-70">
                 <div>
-                  <p className="font-semibold text-slate-100">
+                  <p className="font-semibold text-heading">
                     Two-Factor Authentication (2FA)
                   </p>
-                  <p className="text-slate-400">
+                  <p className="text-muted">
                     Optional security layer (coming soon). Keep this off for now.
                   </p>
                 </div>
-                <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] text-slate-400">
+                <span className="rounded-full border border-border px-3 py-1 text-[10px] text-subtle">
                   Status: Off
                 </span>
               </div>
@@ -448,32 +449,32 @@ export default function ProfilePage() {
       </section>
 
       {/* Withdrawal Address */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+      <section className="border-b border-border bg-surface/30">
+        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
           <div className="arbix-card arbix-3d rounded-2xl p-4">
-            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+            <h2 className="text-sm font-semibold text-heading md:text-base">
               Saved Withdrawal Address
             </h2>
             <div className="mt-3 flex flex-col gap-2 text-[11px] md:text-xs">
               {maskedAddress ? (
                 <>
                   <p>
-                    <span className="text-slate-400">USDT (BEP20) Address:</span>{' '}
-                    <span className="font-semibold text-slate-100">{maskedAddress}</span>
+                    <span className="text-muted">USDT (BEP20) Address:</span>{' '}
+                    <span className="font-semibold text-heading">{maskedAddress}</span>
                   </p>
-                  <button className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 transition hover:border-slate-500">
+                  <button className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm">
                     Update Address
                   </button>
                 </>
               ) : (
                 <>
-                  <p className="text-slate-400">No withdrawal address saved yet.</p>
-                  <button className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 transition hover:border-slate-500">
+                  <p className="text-muted">No withdrawal address saved yet.</p>
+                  <button className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm">
                     Add Withdrawal Address
                   </button>
                 </>
               )}
-              <p className="mt-1 text-[10px] text-slate-500">
+              <p className="mt-1 text-[10px] text-subtle">
                 For security reasons, withdrawal addresses may require additional
                 verification before being changed.
               </p>
@@ -483,32 +484,32 @@ export default function ProfilePage() {
       </section>
 
       {/* System Settings */}
-      <section className="border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+      <section className="border-b border-border bg-surface/30">
+        <div className="mx-auto max-w-3xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
           <div className="arbix-card arbix-3d rounded-2xl p-4">
-            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+            <h2 className="text-sm font-semibold text-heading md:text-base">
               System Settings
             </h2>
             <div className="mt-3 space-y-2 text-[11px] md:text-xs">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-slate-400">Notifications</p>
-                <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] text-slate-300">
+                <p className="text-muted">Notifications</p>
+                <span className="rounded-full border border-border px-3 py-1 text-[10px] text-muted">
                   Default
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2 opacity-70">
-                <p className="text-slate-400">Language</p>
-                <span className="rounded-full border border-slate-800 px-3 py-1 text-[10px] text-slate-500">
+                <p className="text-muted">Language</p>
+                <span className="rounded-full border border-border px-3 py-1 text-[10px] text-subtle">
                   English (default)
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2 opacity-70">
-                <p className="text-slate-400">Theme</p>
-                <span className="rounded-full border border-slate-800 px-3 py-1 text-[10px] text-slate-500">
+                <p className="text-muted">Theme</p>
+                <span className="rounded-full border border-border px-3 py-1 text-[10px] text-subtle">
                   Dark (default)
                 </span>
               </div>
-              <div className="mt-2 text-[10px] text-slate-500">
+              <div className="mt-2 text-[10px] text-subtle">
                 App Version: 1.0.0 (UI only – backend versioning can be shown here in
                 future).
               </div>
@@ -518,17 +519,17 @@ export default function ProfilePage() {
       </section>
 
       {/* Logout Section */}
-      <section className="bg-slate-950">
-        <div className="mx-auto max-w-3xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
+      <section className="bg-surface/30">
+        <div className="mx-auto max-w-3xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
           <div className="arbix-card arbix-3d rounded-2xl p-4">
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 hover:shadow-lg"
+              className="w-full rounded-lg bg-theme-danger px-4 py-2 text-sm font-semibold text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
             >
               Logout
             </button>
-            <p className="mt-2 text-center text-[10px] text-slate-500">
+            <p className="mt-2 text-center text-[10px] text-subtle">
               Logging out will clear your current session and redirect you to the
               Login page.
             </p>

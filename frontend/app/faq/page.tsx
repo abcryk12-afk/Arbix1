@@ -137,17 +137,17 @@ export default function FaqPage() {
   const filteredFaqs = faqs.filter((f) => f.category === activeCategory);
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-page text-fg">
       {/* Hero / Intro */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             FAQ
           </p>
           <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             Frequently Asked Questions
           </h1>
-          <p className="mt-3 text-sm text-slate-300 md:text-base">
+          <p className="mt-3 text-sm text-muted md:text-base">
             Clear answers to the most common questions about Arbix. Transparency and
             clarity are our first priorities. If your question is not listed here,
             our Support team is always available to help.
@@ -156,9 +156,9 @@ export default function FaqPage() {
       </section>
 
       {/* Category Tabs */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 pb-2 pt-4 md:pt-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 text-xs text-slate-300">
+          <div className="flex gap-2 overflow-x-auto pb-2 text-xs text-muted">
             {categories.map((cat) => {
               const isActive = cat === activeCategory;
               return (
@@ -172,8 +172,8 @@ export default function FaqPage() {
                   className={
                     'whitespace-nowrap rounded-full border px-3 py-1 transition ' +
                     (isActive
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-slate-700 bg-slate-900/60 hover:border-slate-500')
+                      ? 'border-border bg-surface/40 text-fg'
+                      : 'border-border bg-muted text-muted hover:opacity-95')
                   }
                 >
                   {cat}
@@ -185,7 +185,7 @@ export default function FaqPage() {
       </section>
 
       {/* FAQ Accordions */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-8 md:py-10">
           <div className="space-y-3">
             {filteredFaqs.map((item) => {
@@ -193,27 +193,27 @@ export default function FaqPage() {
               return (
                 <div
                   key={item.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/70"
+                  className="rounded-2xl border border-border bg-surface/40"
                 >
                   <button
                     type="button"
                     onClick={() => setOpenId(isOpen ? null : item.id)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-xs font-medium text-slate-100 md:text-sm"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-xs font-medium text-heading md:text-sm"
                   >
                     <span>{item.question}</span>
                     <span
                       className={
                         'flex h-6 w-6 items-center justify-center rounded-full border text-[11px] ' +
                         (isOpen
-                          ? 'border-primary text-primary'
-                          : 'border-slate-600 text-slate-300')
+                          ? 'border-border bg-surface/40 text-fg'
+                          : 'border-border text-muted')
                       }
                     >
                       {isOpen ? '-' : '+'}
                     </span>
                   </button>
                   {isOpen && (
-                    <div className="border-t border-slate-800 px-4 py-3 text-[11px] text-slate-300 md:text-xs">
+                    <div className="border-t border-border px-4 py-3 text-[11px] text-muted md:text-xs">
                       {item.answer}
                     </div>
                   )}
@@ -225,17 +225,17 @@ export default function FaqPage() {
       </section>
 
       {/* CTA Box */}
-      <section className="bg-slate-950">
+      <section className="bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 text-sm text-slate-200">
-            <h2 className="text-base font-semibold text-slate-50 md:text-lg">
+          <div className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-fg">
+            <h2 className="text-base font-semibold text-heading md:text-lg">
               Still Have Questions?
             </h2>
-            <p className="mt-2 text-xs text-slate-400 md:text-sm">
+            <p className="mt-2 text-xs text-muted md:text-sm">
               Our Support team is always here to help you with any additional
               questions or concerns.
             </p>
-            <button className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500">
+            <button className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition hover:opacity-95">
               Contact Support
             </button>
           </div>

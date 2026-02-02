@@ -25,30 +25,30 @@ function KpiCard({ href, label, value, subLabel, accentClassName, loading }: Kpi
     <a
       href={href}
       className={
-        'group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 ' +
-        'hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] ' +
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 motion-reduce:transform-none'
+        'group relative overflow-hidden rounded-2xl border border-border/80 bg-surface/50 p-4 shadow-theme-sm transition-all duration-200 ' +
+        'hover:-translate-y-1 hover:border-border2 hover:shadow-theme-md ' +
+        'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 motion-reduce:transform-none'
       }
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent" />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium tracking-wide text-slate-400">
+          <p className="text-[11px] font-medium tracking-wide text-muted">
             {label}
           </p>
           <p
             className={
-              'mt-1 text-xl font-semibold leading-none text-slate-100 ' +
+              'mt-1 text-xl font-semibold leading-none text-heading ' +
               (loading ? 'animate-pulse' : '')
             }
           >
             {value}
           </p>
-          <p className="mt-2 text-[11px] text-slate-500">{subLabel}</p>
+          <p className="mt-2 text-[11px] text-subtle">{subLabel}</p>
         </div>
         <div
           className={
-            'mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-slate-900/50 ' +
+            'mt-1 h-2.5 w-2.5 shrink-0 rounded-full border-4 border-surface/50 ' +
             accentClassName
           }
         />
@@ -65,18 +65,18 @@ type MiniStatCardProps = {
 
 function MiniStatCard({ label, value, accentClassName }: MiniStatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)] motion-reduce:transform-none">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
+    <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-surface/50 p-3 shadow-theme-sm transition-all duration-200 hover:-translate-y-1 hover:border-border2 hover:shadow-theme-md motion-reduce:transform-none">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent" />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium tracking-wide text-slate-400">{label}</p>
-          <p className="mt-1 text-lg font-semibold leading-none text-slate-100">
+          <p className="text-[11px] font-medium tracking-wide text-muted">{label}</p>
+          <p className="mt-1 text-lg font-semibold leading-none text-heading">
             {value.toLocaleString()}
           </p>
         </div>
         <div
           className={
-            'mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-4 ring-slate-900/50 ' +
+            'mt-1 h-2.5 w-2.5 shrink-0 rounded-full border-4 border-surface/50 ' +
             accentClassName
           }
         />
@@ -472,24 +472,24 @@ export default function DashboardPage() {
   ]);
 
   return (
-    <div className="bg-transparent text-slate-50">
+    <div className="text-fg">
       {/* Welcome Block */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-          <p className="text-sm font-semibold text-slate-50">
+          <p className="text-sm font-semibold text-heading">
             Welcome Back, <span className="arbix-name-glow">{userName || 'User'}</span> 👋{' '}
-            {isLoading ? <span className="text-[11px] text-slate-500">(loading...)</span> : null}
+            {isLoading ? <span className="text-[11px] text-subtle">(loading...)</span> : null}
           </p>
-          <p className="mt-1 text-xs text-slate-400 md:text-sm">
+          <p className="mt-1 text-xs text-muted md:text-sm">
             Here&apos;s your overview for today.
           </p>
         </div>
       </section>
 
       {/* Quick Actions */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-          <div className="grid grid-cols-3 gap-2 text-xs text-slate-300 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2 text-xs text-muted sm:gap-3">
             <a
               href="/dashboard/deposit"
               className={
@@ -497,53 +497,53 @@ export default function DashboardPage() {
                 'hover:-translate-y-0.5 motion-reduce:transform-none'
               }
             >
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200/55 to-transparent" />
-              <p className="text-[10px] font-semibold tracking-wide text-slate-400">TOTAL USER BALANCE</p>
-              <p className={"mt-1 text-sm font-semibold text-slate-100 " + (isLoading ? 'animate-pulse' : '')}>
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/55 to-transparent" />
+              <p className="text-[10px] font-semibold tracking-wide text-muted">TOTAL USER BALANCE</p>
+              <p className={"mt-1 text-sm font-semibold text-heading " + (isLoading ? 'animate-pulse' : '')}>
                 {isLoading ? '$--' : `$${Number(walletBalance || 0).toFixed(2)}`}
               </p>
-              <p className="mt-1 text-[10px] text-slate-500">Wallet balance</p>
+              <p className="mt-1 text-[10px] text-subtle">Wallet balance</p>
             </a>
 
             <a
               href="/dashboard/deposit"
               className={
                 'arbix-card arbix-3d arbix-3d-emerald arbix-shine group relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-200 ' +
-                'hover:-translate-y-0.5 hover:shadow-[0_0_45px_rgba(45,212,191,0.45)] motion-reduce:transform-none'
+                'hover:-translate-y-0.5 hover:shadow-theme-md motion-reduce:transform-none'
               }
             >
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
-              <p className="text-[10px] font-semibold tracking-wide text-slate-400">DEPOSIT</p>
-              <p className="mt-1 text-sm font-semibold text-emerald-400">Add Funds</p>
-              <p className="mt-1 text-[10px] text-slate-500">USDT (BEP20)</p>
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent" />
+              <p className="text-[10px] font-semibold tracking-wide text-muted">DEPOSIT</p>
+              <p className="mt-1 text-sm font-semibold text-secondary">Add Funds</p>
+              <p className="mt-1 text-[10px] text-subtle">USDT (BEP20)</p>
             </a>
 
             <a
               href="/dashboard/withdraw"
               className={
                 'arbix-card arbix-3d arbix-3d-red arbix-shine arbix-shine-red group relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-200 ' +
-                'hover:-translate-y-0.5 hover:shadow-[0_0_45px_rgba(248,113,113,0.40)] motion-reduce:transform-none'
+                'hover:-translate-y-0.5 hover:shadow-theme-md motion-reduce:transform-none'
               }
             >
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-400/70 to-transparent" />
-              <p className="text-[10px] font-semibold tracking-wide text-slate-400">WITHDRAW</p>
-              <p className="mt-1 text-sm font-semibold text-rose-300">Cash Out</p>
-              <p className="mt-1 text-[10px] text-slate-500">To wallet</p>
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-danger/70 to-transparent" />
+              <p className="text-[10px] font-semibold tracking-wide text-muted">WITHDRAW</p>
+              <p className="mt-1 text-sm font-semibold text-danger">Cash Out</p>
+              <p className="mt-1 text-[10px] text-subtle">To wallet</p>
             </a>
           </div>
         </div>
       </section>
 
       {/* Top Summary Cards */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-          <div className="grid grid-cols-2 gap-3 text-xs text-slate-300 sm:grid-cols-2 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 text-xs text-muted sm:grid-cols-2 md:grid-cols-4">
             <KpiCard
               href="/dashboard/invest"
               label="Today Earnings"
               value={isLoading ? '$--' : `$${kpiDisplay.todayEarnings.toFixed(2)}`}
               subLabel="Estimated from your active packages"
-              accentClassName="bg-emerald-400"
+              accentClassName="bg-secondary"
               loading={isLoading}
             />
             <KpiCard
@@ -551,7 +551,7 @@ export default function DashboardPage() {
               label="Total Active Capital"
               value={isLoading ? '$--' : `$${kpiDisplay.activeCapital.toFixed(2)}`}
               subLabel="Capital in active packages"
-              accentClassName="bg-emerald-300"
+              accentClassName="bg-secondary"
               loading={isLoading}
             />
             <KpiCard
@@ -559,7 +559,7 @@ export default function DashboardPage() {
               label="Network Earnings Today"
               value={isLoading ? '$--' : `$${kpiDisplay.networkToday.toFixed(2)}`}
               subLabel="From your team activity"
-              accentClassName="bg-violet-400"
+              accentClassName="bg-accent"
               loading={isLoading}
             />
             <KpiCard
@@ -567,7 +567,7 @@ export default function DashboardPage() {
               label="Total Earnings (All Time)"
               value={isLoading ? '$--' : `$${kpiDisplay.totalEarnings.toFixed(2)}`}
               subLabel="Trading + network combined"
-              accentClassName="bg-sky-400"
+              accentClassName="bg-primary"
               loading={isLoading}
             />
           </div>
@@ -575,17 +575,17 @@ export default function DashboardPage() {
       </section>
 
       {/* Fourth Section: Mini Action Buttons */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-3">
           <div className="grid grid-cols-2 gap-2">
             <a
               href="/dashboard/invest"
               className={
                 'arbix-card arbix-3d arbix-3d-emerald arbix-shine group relative flex min-w-0 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 py-2 text-center transition-all duration-200 ' +
-                'hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(45,212,191,0.35)] motion-reduce:transform-none'
+                'hover:-translate-y-0.5 hover:shadow-theme-md motion-reduce:transform-none'
               }
             >
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent" />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -596,24 +596,24 @@ export default function DashboardPage() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-4 w-4 shrink-0 text-emerald-300"
+                className="h-4 w-4 shrink-0 text-secondary"
               >
                 <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.1z" />
                 <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
                 <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
                 <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
               </svg>
-              <span className="min-w-0 truncate text-[11px] font-semibold text-emerald-100">Invest Now</span>
+              <span className="min-w-0 truncate text-[11px] font-semibold text-heading">Invest Now</span>
             </a>
 
             <a
               href="/dashboard/daily-rewards"
               className={
                 'arbix-card arbix-3d arbix-3d-amber arbix-shine group relative flex min-w-0 items-center justify-center gap-2 overflow-hidden rounded-xl px-3 py-2 text-center transition-all duration-200 ' +
-                'hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(251,191,36,0.30)] motion-reduce:transform-none'
+                'hover:-translate-y-0.5 hover:shadow-theme-md motion-reduce:transform-none'
               }
             >
-              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
+              <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-warning/70 to-transparent" />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -624,78 +624,78 @@ export default function DashboardPage() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-4 w-4 shrink-0 text-amber-300"
+                className="h-4 w-4 shrink-0 text-warning"
               >
                 <rect x="3" y="8" width="18" height="4" rx="1" />
                 <path d="M12 8v13" />
                 <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
                 <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 12 8a4.8 8 0 0 1 4.5 5" />
               </svg>
-              <span className="min-w-0 truncate text-[11px] font-semibold text-amber-100">Daily Check-in</span>
+              <span className="min-w-0 truncate text-[11px] font-semibold text-heading">Daily Check-in</span>
             </a>
           </div>
         </div>
       </section>
 
       {/* Earnings Breakdown */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-          <div className="grid gap-3 text-xs text-slate-300 md:grid-cols-2">
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-emerald-400/80 hover:bg-slate-900/90 hover:shadow-[0_0_45px_rgba(45,212,191,0.55)]">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-emerald-400/40 via-sky-500/80 to-cyan-400/40" />
-              <p className="text-[11px] font-semibold text-slate-100">
+          <div className="grid gap-3 text-xs text-muted md:grid-cols-2">
+            <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-surface/50 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-1 hover:border-border2 hover:shadow-theme-md">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent" />
+              <p className="text-[11px] font-semibold text-heading">
                 My Trading Earnings
               </p>
               <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
                 <div>
-                  <p className="text-slate-400">Today</p>
-                  <p className="font-semibold text-emerald-300">
+                  <p className="text-muted">Today</p>
+                  <p className="font-semibold text-secondary">
                     ${myTradingToday.toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-slate-400">This Month</p>
-                  <p className="font-semibold text-slate-100">
+                  <p className="text-muted">This Month</p>
+                  <p className="font-semibold text-heading">
                     ${myTradingMonth.toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-slate-400">All Time</p>
-                  <p className="font-semibold text-slate-100">
+                  <p className="text-muted">All Time</p>
+                  <p className="font-semibold text-heading">
                     ${myTradingAll.toFixed(2)}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
-              <p className="text-[11px] font-semibold text-slate-100">
+            <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-surface/50 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-1 hover:border-border2 hover:shadow-theme-md">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+              <p className="text-[11px] font-semibold text-heading">
                 My Network Earnings
               </p>
               <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
                 <div>
-                  <p className="text-slate-400">Today</p>
-                  <p className="font-semibold text-violet-300">
+                  <p className="text-muted">Today</p>
+                  <p className="font-semibold text-accent">
                     ${networkToday.toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-slate-400">This Month</p>
-                  <p className="font-semibold text-slate-100">
+                  <p className="text-muted">This Month</p>
+                  <p className="font-semibold text-heading">
                     ${networkMonth.toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-slate-400">All Time</p>
-                  <p className="font-semibold text-slate-100">
+                  <p className="text-muted">All Time</p>
+                  <p className="font-semibold text-heading">
                     ${networkAll.toFixed(2)}
                   </p>
                 </div>
               </div>
               <a
                 href="/dashboard/team"
-                className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-blue-400"
+                className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-primary-hover"
               >
                 My Team &amp; Earnings
               </a>
@@ -704,23 +704,22 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-3">
           <div
             className={
               'arbix-card arbix-3d arbix-shine group relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ' +
-              'hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(226,232,240,0.16),0_0_38px_rgba(56,189,248,0.14)] motion-reduce:transform-none'
+              'hover:-translate-y-0.5 hover:shadow-theme-md motion-reduce:transform-none'
             }
           >
-            <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-slate-200/20" />
-            <div className="pointer-events-none absolute inset-0 rounded-2xl border border-slate-500/40" />
-            <div className="pointer-events-none absolute -inset-0.5 rounded-[18px] opacity-70 blur-md transition-opacity duration-200 group-hover:opacity-100" style={{ background: 'linear-gradient(135deg, rgba(45,212,191,0.22), rgba(56,189,248,0.18), rgba(167,139,250,0.18))' }} />
+            <div className="pointer-events-none absolute inset-0 rounded-2xl border border-border/40" />
+            <div className="pointer-events-none absolute -inset-0.5 rounded-[18px] opacity-60 blur-md transition-opacity duration-200 group-hover:opacity-100 bg-theme-hero-overlay" />
             <div className="relative">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-[10px] font-semibold tracking-wide text-slate-400">REFERRAL LINK</div>
-                  <div className="mt-1 truncate text-[11px] font-medium text-slate-100">{referralLink}</div>
-                  <div className="mt-1 text-[10px] text-slate-500">Invite friends and earn referral rewards.</div>
+                  <div className="text-[10px] font-semibold tracking-wide text-muted">REFERRAL LINK</div>
+                  <div className="mt-1 truncate text-[11px] font-medium text-heading">{referralLink}</div>
+                  <div className="mt-1 text-[10px] text-subtle">Invite friends and earn referral rewards.</div>
                 </div>
 
                 <button
@@ -728,10 +727,10 @@ export default function DashboardPage() {
                   onClick={handleCopyReferralLink}
                   className={
                     'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-all ' +
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40 ' +
+                    'focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 ' +
                     (referralCopied
-                      ? 'border-emerald-400/55 bg-emerald-500/10 text-emerald-100'
-                      : 'border-slate-600/70 bg-slate-950/40 text-slate-100 hover:border-slate-400/80 hover:bg-slate-900/50')
+                      ? 'border-secondary/40 bg-secondary/10 text-secondary'
+                      : 'border-border/70 bg-surface/40 text-fg hover:border-border2 hover:shadow-theme-sm')
                   }
                   aria-label="Copy referral link"
                 >
@@ -761,13 +760,13 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-2 flex items-center justify-between gap-2">
-                <div className="text-[10px] font-medium text-slate-500">Share</div>
+                <div className="text-[10px] font-medium text-subtle">Share</div>
                 <div className="flex items-center gap-2">
                   <a
                     href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-900/50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface/40 text-muted transition-colors hover:border-border2 hover:shadow-theme-sm"
                     aria-label="Share on Facebook"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -779,7 +778,7 @@ export default function DashboardPage() {
                     href={`https://wa.me/?text=${encodeURIComponent(referralLink)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-900/50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface/40 text-muted transition-colors hover:border-border2 hover:shadow-theme-sm"
                     aria-label="Share on WhatsApp"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -792,7 +791,7 @@ export default function DashboardPage() {
                     href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 text-slate-200 transition-colors hover:border-slate-500 hover:bg-slate-900/50"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface/40 text-muted transition-colors hover:border-border2 hover:shadow-theme-sm"
                     aria-label="Share on Telegram"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -808,30 +807,30 @@ export default function DashboardPage() {
       </section>
 
       {/* Active Packages Overview */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Active Packages Overview
           </h2>
           <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Total Active Packages</p>
-              <p className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-sm">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent opacity-80" />
+              <p className="text-[11px] text-muted">Total Active Packages</p>
+              <p className="mt-1 text-base font-semibold text-heading sm:text-lg">
                 {activePackagesCount}
               </p>
             </div>
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Total Active Capital</p>
-              <p className="mt-1 text-base font-semibold text-slate-100 sm:text-lg">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-sm">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent opacity-80" />
+              <p className="text-[11px] text-muted">Total Active Capital</p>
+              <p className="mt-1 text-base font-semibold text-heading sm:text-lg">
                 ${activeCapital.toFixed(2)}
               </p>
             </div>
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Estimated Daily Profit</p>
-              <p className="mt-1 text-base font-semibold text-emerald-400 sm:text-lg">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-sm">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-warning/70 to-transparent opacity-80" />
+              <p className="text-[11px] text-muted">Estimated Daily Profit</p>
+              <p className="mt-1 text-base font-semibold text-secondary sm:text-lg">
                 ${estimatedDailyProfit.toFixed(2)}
               </p>
             </div>
@@ -839,7 +838,7 @@ export default function DashboardPage() {
 
           <a
             href="/dashboard/invest"
-            className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-blue-400"
+            className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-primary-hover"
           >
             View All Investments
           </a>
@@ -847,21 +846,21 @@ export default function DashboardPage() {
       </section>
 
       {/* Team Snapshot */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Team Snapshot
           </h2>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MiniStatCard label="Level 1" value={l1Count} accentClassName="bg-emerald-400" />
-            <MiniStatCard label="Level 2" value={l2Count} accentClassName="bg-sky-400" />
-            <MiniStatCard label="Level 3" value={l3Count} accentClassName="bg-violet-400" />
-            <MiniStatCard label="Total Team" value={teamTotal} accentClassName="bg-slate-300" />
+            <MiniStatCard label="Level 1" value={l1Count} accentClassName="bg-secondary" />
+            <MiniStatCard label="Level 2" value={l2Count} accentClassName="bg-primary" />
+            <MiniStatCard label="Level 3" value={l3Count} accentClassName="bg-accent" />
+            <MiniStatCard label="Total Team" value={teamTotal} accentClassName="bg-muted" />
           </div>
-          <div className="mt-3 text-[11px] text-slate-400">
+          <div className="mt-3 text-[11px] text-muted">
             <p>
               Today&apos;s Network Earnings:{' '}
-              <span className="font-semibold text-violet-300">
+              <span className="font-semibold text-accent">
                 ${teamTodayEarnings.toFixed(2)}
               </span>
             </p>
@@ -872,7 +871,7 @@ export default function DashboardPage() {
           </div>
           <a
             href="/dashboard/team"
-            className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-blue-400"
+            className="mt-3 inline-flex items-center text-[11px] text-primary hover:text-primary-hover"
           >
             My Team &amp; Earnings
           </a>
@@ -880,30 +879,30 @@ export default function DashboardPage() {
       </section>
 
       {/* Recent Activity Feed */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Recent Activity
           </h2>
           {activitySummary ? (
             <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
-                <div className="text-slate-400">Today L1</div>
-                <div className="mt-1 font-semibold text-emerald-300">${Number(activitySummary.todayByLevel.l1 || 0).toFixed(2)}</div>
+              <div className="rounded-2xl border border-border bg-surface/60 p-3 shadow-theme-sm">
+                <div className="text-muted">Today L1</div>
+                <div className="mt-1 font-semibold text-secondary">${Number(activitySummary.todayByLevel.l1 || 0).toFixed(2)}</div>
               </div>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
-                <div className="text-slate-400">Today L2</div>
-                <div className="mt-1 font-semibold text-sky-300">${Number(activitySummary.todayByLevel.l2 || 0).toFixed(2)}</div>
+              <div className="rounded-2xl border border-border bg-surface/60 p-3 shadow-theme-sm">
+                <div className="text-muted">Today L2</div>
+                <div className="mt-1 font-semibold text-primary">${Number(activitySummary.todayByLevel.l2 || 0).toFixed(2)}</div>
               </div>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
-                <div className="text-slate-400">Today L3</div>
-                <div className="mt-1 font-semibold text-violet-300">${Number(activitySummary.todayByLevel.l3 || 0).toFixed(2)}</div>
+              <div className="rounded-2xl border border-border bg-surface/60 p-3 shadow-theme-sm">
+                <div className="text-muted">Today L3</div>
+                <div className="mt-1 font-semibold text-accent">${Number(activitySummary.todayByLevel.l3 || 0).toFixed(2)}</div>
               </div>
             </div>
           ) : null}
           {activities.length > activityPageSize ? (
             <div className="mt-3 flex items-center justify-between gap-3 text-[11px]">
-              <div className="text-slate-500">
+              <div className="text-subtle">
                 Showing {Math.min(activityPage * activityPageSize + 1, activities.length)}-
                 {Math.min((activityPage + 1) * activityPageSize, activities.length)} of {activities.length}
               </div>
@@ -915,13 +914,13 @@ export default function DashboardPage() {
                   className={
                     'rounded-lg border px-3 py-1 text-[11px] ' +
                     (activityPage <= 0
-                      ? 'border-slate-800 text-slate-600'
-                      : 'border-slate-700 text-slate-200 hover:border-slate-500')
+                      ? 'border-border text-subtle opacity-60'
+                      : 'border-border text-fg hover:border-border2 hover:shadow-theme-sm')
                   }
                 >
                   Prev
                 </button>
-                <div className="text-slate-500">
+                <div className="text-subtle">
                   Page {activityPage + 1} / {activityPageCount}
                 </div>
                 <button
@@ -931,8 +930,8 @@ export default function DashboardPage() {
                   className={
                     'rounded-lg border px-3 py-1 text-[11px] ' +
                     (activityPage + 1 >= activityPageCount
-                      ? 'border-slate-800 text-slate-600'
-                      : 'border-slate-700 text-slate-200 hover:border-slate-500')
+                      ? 'border-border text-subtle opacity-60'
+                      : 'border-border text-fg hover:border-border2 hover:shadow-theme-sm')
                   }
                 >
                   Next
@@ -940,32 +939,32 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : null}
-          <div className="mt-3 text-[11px] text-slate-300">
+          <div className="mt-3 text-[11px] text-muted">
             {visibleActivities.length ? (
               <>
-                <div className="md:hidden overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
-                  <div className="grid grid-cols-[1fr_92px] gap-2 border-b border-slate-800 px-3 py-2 text-[10px] text-slate-400">
+                <div className="md:hidden overflow-hidden rounded-2xl border border-border/80 bg-surface/60 shadow-theme-sm">
+                  <div className="grid grid-cols-[1fr_92px] gap-2 border-b border-border px-3 py-2 text-[10px] text-muted">
                     <div>Activity</div>
                     <div className="text-right">Amount</div>
                   </div>
-                  <div className="divide-y divide-slate-800">
+                  <div className="divide-y divide-border">
                     {visibleActivities.map((a) => (
                       <div key={a.id} className="grid grid-cols-[1fr_92px] gap-2 px-3 py-2">
                         <div className="min-w-0">
-                          <div className="truncate font-medium text-slate-100">{a.label}</div>
+                          <div className="truncate font-medium text-heading">{a.label}</div>
                           {a.description ? (
-                            <div className="mt-0.5 truncate text-[10px] text-slate-400">{a.description}</div>
+                            <div className="mt-0.5 truncate text-[10px] text-muted">{a.description}</div>
                           ) : null}
-                          <div className="mt-0.5 truncate text-[10px] text-slate-500">{new Date(a.createdAt).toLocaleString()}</div>
+                          <div className="mt-0.5 truncate text-[10px] text-subtle">{new Date(a.createdAt).toLocaleString()}</div>
                         </div>
                         <div
                           className={
                             'text-right font-semibold ' +
                             (a.direction === 'in'
-                              ? 'text-emerald-300'
+                              ? 'text-secondary'
                               : a.direction === 'out'
-                                ? 'text-rose-300'
-                                : 'text-slate-200')
+                                ? 'text-danger'
+                                : 'text-fg')
                           }
                         >
                           {(a.direction === 'in' ? '+' : a.direction === 'out' ? '-' : '') +
@@ -980,36 +979,36 @@ export default function DashboardPage() {
                   {visibleActivities.map((a) => (
                     <div
                       key={a.id}
-                      className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-2.5 shadow-[0_0_0_1px_rgba(15,23,42,0.9)] transition-all duration-200 hover:-translate-y-1 hover:border-sky-500/80 hover:bg-slate-900/90 hover:shadow-[0_0_40px_rgba(56,189,248,0.55)]"
+                      className="group relative overflow-hidden rounded-2xl border border-border/80 bg-surface/60 p-2.5 shadow-theme-sm transition-all duration-200 hover:-translate-y-1 hover:border-border2 hover:shadow-theme-md"
                     >
-                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
+                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-medium text-slate-100">{a.label}</p>
-                          {a.description ? <p className="mt-1 text-slate-400">{a.description}</p> : null}
+                          <p className="font-medium text-heading">{a.label}</p>
+                          {a.description ? <p className="mt-1 text-muted">{a.description}</p> : null}
                         </div>
                         <div
                           className={
                             'shrink-0 text-right font-semibold ' +
                             (a.direction === 'in'
-                              ? 'text-emerald-300'
+                              ? 'text-secondary'
                               : a.direction === 'out'
-                                ? 'text-rose-300'
-                                : 'text-slate-200')
+                                ? 'text-danger'
+                                : 'text-fg')
                           }
                         >
                           {(a.direction === 'in' ? '+' : a.direction === 'out' ? '-' : '') +
                             `$${Number(a.amount || 0).toFixed(2)}`}
                         </div>
                       </div>
-                      <p className="mt-2 text-[10px] text-slate-500">{new Date(a.createdAt).toLocaleString()}</p>
+                      <p className="mt-2 text-[10px] text-subtle">{new Date(a.createdAt).toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              <div className="group relative overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900/70 p-3 text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/70 to-transparent" />
+              <div className="group relative overflow-hidden rounded-2xl border border-border/80 bg-surface/60 p-3 text-muted shadow-theme-sm">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
                 No recent activity yet.
               </div>
             )}
@@ -1018,20 +1017,20 @@ export default function DashboardPage() {
       </section>
 
       {/* Legal Strip */}
-      <section className="bg-slate-950">
-        <div className="mx-auto max-w-5xl px-4 py-4 text-[11px] text-slate-500 md:text-xs">
+      <section className="bg-surface">
+        <div className="mx-auto max-w-5xl px-4 py-4 text-[11px] text-subtle md:text-xs">
           Trading involves market risk. Read{' '}
-          <a href="/terms" className="text-slate-300 hover:text-slate-100">
+          <a href="/terms" className="text-muted hover:text-heading">
             Terms
           </a>{' '}
           |{' '}
-          <a href="/privacy" className="text-slate-300 hover:text-slate-100">
+          <a href="/privacy" className="text-muted hover:text-heading">
             Privacy
           </a>{' '}
           |{' '}
           <a
             href="/risk-disclosure"
-            className="text-slate-300 hover:text-slate-100"
+            className="text-muted hover:text-heading"
           >
             Risk Disclosure
           </a>

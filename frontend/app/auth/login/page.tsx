@@ -55,34 +55,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4 py-12 overflow-hidden network-grid-bg">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
-      <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
-      <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full filter blur-3xl"></div>
+    <div className="relative min-h-screen bg-page bg-theme-page flex items-center justify-center px-4 py-12 overflow-hidden network-grid-bg">
+      <div className="pointer-events-none absolute inset-0 bg-theme-hero-overlay opacity-60"></div>
+      <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl"></div>
+      <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-secondary/20 rounded-full filter blur-3xl"></div>
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Login to Your Account</h1>
-          <p className="text-slate-400">SSL Protected • Encrypted Login</p>
+          <h1 className="text-3xl font-bold text-heading mb-2">Login to Your Account</h1>
+          <p className="text-muted">SSL Protected • Encrypted Login</p>
         </div>
 
         <div className="arbix-card arbix-3d arbix-shine arbix-shine-active arbix-auth-card arbix-auth-float backdrop-blur-lg rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-muted mb-2">Email</label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-surface/50 border border-border rounded-lg text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all"
                 placeholder="Enter your email"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-muted mb-2">Password</label>
               <div className="relative">
                 <input
                   id="password"
@@ -90,13 +90,13 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-lg text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all pr-12"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-0 px-3 text-slate-300"
+                  className="absolute inset-y-0 right-0 px-3 text-muted hover:text-heading"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -104,11 +104,11 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-slate-400">
+              <label className="flex items-center gap-2 text-muted">
                 <input type="checkbox" className="h-4 w-4" />
                 Remember me
               </label>
-              <a href="/auth/forgot-password" className="text-blue-400 hover:text-blue-300 transition-colors">
+              <a href="/auth/forgot-password" className="text-primary hover:text-heading transition-colors">
                 Forgot password?
               </a>
             </div>
@@ -117,8 +117,8 @@ export default function LoginPage() {
               <div
                 className={`p-4 rounded-lg text-sm ${
                   messageType === 'success'
-                    ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                    ? 'bg-secondary/10 border border-secondary/30 text-secondary'
+                    : 'bg-danger/10 border border-danger/30 text-danger'
                 }`}
               >
                 {message}
@@ -128,16 +128,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-blue-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              className="w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
             >
               {isSubmitting ? 'Logging in...' : 'Login Securely'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-slate-400">
+            <p className="text-muted">
               New here?{' '}
-              <a href="/auth/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+              <a href="/auth/signup" className="text-primary hover:text-heading font-medium transition-colors">
                 Create an account
               </a>
             </p>
@@ -145,7 +145,7 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <a href="/" className="inline-flex items-center text-slate-400 hover:text-white transition-colors">
+          <a href="/" className="inline-flex items-center text-muted hover:text-heading transition-colors">
             <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>

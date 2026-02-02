@@ -4,16 +4,21 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type SiteTheme = 'light' | 'dark';
+type SiteTheme = 'light' | 'dark' | 'colorful';
+type SiteThemeSetting = SiteTheme | null;
 
-function normalizeTheme(theme: unknown): SiteTheme {
-  return theme === 'light' ? 'light' : 'dark';
+function normalizeTheme(theme: unknown): SiteThemeSetting {
+  if (theme === null || theme === undefined || theme === '' || theme === 'default' || theme === 'system') return null;
+  if (theme === 'light' || theme === 'dark' || theme === 'colorful') return theme;
+  return null;
 }
 
-function applyThemeToDocument(theme: SiteTheme) {
-  if (typeof document === 'undefined') return;
-  document.documentElement.setAttribute('data-theme', theme);
-  document.documentElement.style.colorScheme = theme;
+function requestThemeChange(theme: SiteThemeSetting) {
+  try {
+    window.dispatchEvent(new CustomEvent('arbix-theme-change', { detail: { theme, persist: 'clear', scope: 'site' } }));
+  } catch {
+    // ignore
+  }
 }
 
 export default function AdminHeader() {
@@ -21,8 +26,10 @@ export default function AdminHeader() {
   const router = useRouter();
   const [adminName, setAdminName] = useState<string>("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [siteTheme, setSiteTheme] = useState<SiteTheme>('dark');
+  const [siteTheme, setSiteTheme] = useState<SiteThemeSetting>(null);
   const [themeLoading, setThemeLoading] = useState(false);
+
+  const themeLabel = siteTheme === null ? 'Default' : siteTheme === 'colorful' ? 'Colorful' : siteTheme === 'dark' ? 'Dark' : 'Light';
 
   useEffect(() => {
     try {
@@ -59,7 +66,7 @@ export default function AdminHeader() {
         const theme = normalizeTheme(data?.theme);
         if (!cancelled) {
           setSiteTheme(theme);
-          applyThemeToDocument(theme);
+          requestThemeChange(theme);
         }
       } catch {
         // ignore
@@ -91,7 +98,8 @@ export default function AdminHeader() {
       const token = localStorage.getItem('adminToken');
       if (!token) return;
 
-      const nextTheme: SiteTheme = siteTheme === 'dark' ? 'light' : 'dark';
+      const themeOrder: SiteThemeSetting[] = [null, 'light', 'dark', 'colorful'];
+      const nextTheme = themeOrder[(themeOrder.indexOf(siteTheme) + 1) % themeOrder.length];
       setThemeLoading(true);
 
       const res = await fetch('/api/admin/site-theme', {
@@ -107,7 +115,7 @@ export default function AdminHeader() {
       if (data?.success) {
         const saved = normalizeTheme(data?.theme);
         setSiteTheme(saved);
-        applyThemeToDocument(saved);
+        requestThemeChange(saved);
       }
     } catch {
       // ignore
@@ -135,26 +143,26 @@ export default function AdminHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/90 backdrop-blur shadow-theme-sm">
       <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-3">
           <Link href="/admin" className="relative flex items-center gap-2 group">
-            <span className="absolute -inset-2 rounded-2xl bg-gradient-to-r from-blue-500/20 via-emerald-500/10 to-blue-500/0 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 text-sm font-bold text-white shadow-lg shadow-blue-500/30 animate-pulse [animation-duration:2.4s]">
+            <span className="absolute -inset-2 rounded-2xl bg-theme-hero-overlay opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-theme-primary text-sm font-bold text-primary-fg shadow-theme-md animate-pulse [animation-duration:2.4s]">
               AX
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight text-slate-50">
+              <div className="text-sm font-semibold tracking-tight text-heading">
                 Arbix Admin
               </div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-[11px] text-muted">
                 Control Center for your platform
               </div>
             </div>
           </Link>
         </div>
 
-        <nav className="hidden items-center gap-1 text-[11px] text-slate-200 md:flex">
+        <nav className="hidden items-center gap-1 text-[11px] text-muted md:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -162,28 +170,28 @@ export default function AdminHeader() {
               className={
                 "group relative overflow-hidden rounded-lg px-3 py-2 transition-colors duration-200 " +
                 (isActive(item.href)
-                  ? "bg-slate-900 text-slate-50"
-                  : "text-slate-300 hover:bg-slate-900/70 hover:text-white")
+                  ? "bg-card text-heading"
+                  : "text-muted hover:text-heading")
               }
             >
-              <span className="absolute inset-x-1 bottom-0 h-px translate-y-full bg-gradient-to-r from-transparent via-blue-500/70 to-transparent opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
+              <span className="absolute inset-x-1 bottom-0 h-px translate-y-full bg-gradient-to-r from-transparent via-primary/70 to-transparent opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100" />
               <span className="relative z-10">{item.label}</span>
             </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="hidden text-right text-[11px] text-slate-300 md:block">
-            <div className="font-medium text-slate-100">
+          <div className="hidden text-right text-[11px] text-muted md:block">
+            <div className="font-medium text-heading">
               {adminName || "Admin"}
             </div>
-            <div className="text-slate-500">Secure access</div>
+            <div className="text-subtle">Secure access</div>
           </div>
           <button
             type="button"
             onClick={handleToggleTheme}
             disabled={themeLoading}
-            className="hidden items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60 disabled:opacity-60 md:inline-flex"
+            className="hidden items-center gap-2 rounded-lg border border-border bg-surface/40 px-3 py-1.5 text-[11px] text-muted transition-colors duration-150 hover:border-border2 hover:shadow-theme-sm disabled:opacity-60 md:inline-flex"
             aria-label="Toggle site theme"
           >
             <span className="inline-flex h-4 w-4 items-center justify-center">
@@ -213,18 +221,18 @@ export default function AdminHeader() {
                 </svg>
               )}
             </span>
-            <span>{siteTheme === 'dark' ? 'Dark' : 'Light'}</span>
+            <span>{themeLabel}</span>
           </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden rounded-lg border border-rose-700/70 bg-rose-500/10 px-3 py-1.5 text-[11px] font-medium text-rose-100 transition-colors duration-150 hover:border-rose-500 hover:bg-rose-500/20 md:inline-flex"
+            className="hidden rounded-lg border border-danger/40 bg-danger/10 px-3 py-1.5 text-[11px] font-medium text-danger transition-colors duration-150 hover:border-danger/60 hover:shadow-theme-sm md:inline-flex"
           >
             Logout
           </button>
           <Link
             href="/"
-            className="hidden rounded-lg border border-slate-700 bg-slate-950/40 px-3 py-1.5 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60 md:inline-flex"
+            className="hidden rounded-lg border border-border bg-surface/40 px-3 py-1.5 text-[11px] text-muted transition-colors duration-150 hover:border-border2 hover:shadow-theme-sm md:inline-flex"
           >
             View Site
           </Link>
@@ -233,39 +241,39 @@ export default function AdminHeader() {
               type="button"
               onClick={handleToggleTheme}
               disabled={themeLoading}
-              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/40 px-2 text-[11px] text-slate-200 disabled:opacity-60"
+              className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface/40 px-2 text-[11px] text-muted disabled:opacity-60"
               aria-label="Toggle site theme"
             >
-              {siteTheme === 'dark' ? 'Dark' : 'Light'}
+              {themeLabel}
             </button>
             <Link
               href="/"
-              className="rounded-lg border border-slate-700 bg-slate-950/40 px-2 py-1 text-[11px] text-slate-200 transition-colors duration-150 hover:border-slate-500 hover:bg-slate-900/60"
+              className="rounded-lg border border-border bg-surface/40 px-2 py-1 text-[11px] text-muted transition-colors duration-150 hover:border-border2 hover:shadow-theme-sm"
             >
               Site
             </Link>
             <button
               type="button"
               onClick={() => setMobileOpen((prev) => !prev)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-900/80 text-slate-100"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface/80 text-fg"
               aria-label="Toggle admin menu"
             >
               <span className="flex flex-col gap-0.5">
                 <span
                   className={
-                    "h-0.5 w-4 rounded bg-slate-200 transition-transform duration-200 " +
+                    "h-0.5 w-4 rounded bg-fg/70 transition-transform duration-200 " +
                     (mobileOpen ? "translate-y-[3px] rotate-45" : "")
                   }
                 />
                 <span
                   className={
-                    "h-0.5 w-4 rounded bg-slate-200 transition-opacity duration-200 " +
+                    "h-0.5 w-4 rounded bg-fg/70 transition-opacity duration-200 " +
                     (mobileOpen ? "opacity-0" : "opacity-100")
                   }
                 />
                 <span
                   className={
-                    "h-0.5 w-4 rounded bg-slate-200 transition-transform duration-200 " +
+                    "h-0.5 w-4 rounded bg-fg/70 transition-transform duration-200 " +
                     (mobileOpen ? "-translate-y-[3px] -rotate-45" : "")
                   }
                 />
@@ -276,9 +284,9 @@ export default function AdminHeader() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-slate-900/80 bg-slate-950/98 md:hidden">
+        <div className="border-t border-border/80 bg-surface md:hidden">
           <div className="mx-auto max-w-7xl px-4 py-2">
-            <nav className="flex flex-col gap-1 text-[12px] text-slate-100">
+            <nav className="flex flex-col gap-1 text-[12px] text-fg">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -286,25 +294,25 @@ export default function AdminHeader() {
                   className={
                     "flex items-center justify-between rounded-md px-2 py-1.5 text-left " +
                     (isActive(item.href)
-                      ? "bg-slate-900 text-slate-50"
-                      : "text-slate-300 hover:bg-slate-900/70 hover:text-white")
+                      ? "bg-card text-heading"
+                      : "text-muted hover:text-heading")
                   }
                 >
                   <span>{item.label}</span>
                 </Link>
               ))}
             </nav>
-            <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-slate-300">
+            <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted">
               <div>
-                <div className="font-medium text-slate-100">
+                <div className="font-medium text-heading">
                   {adminName || "Admin"}
                 </div>
-                <div className="text-slate-500">Secure access</div>
+                <div className="text-subtle">Secure access</div>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="inline-flex rounded-lg border border-rose-700/70 bg-rose-500/10 px-3 py-1.5 text-[11px] font-medium text-rose-100 transition-colors duration-150 hover:border-rose-500 hover:bg-rose-500/20"
+                className="inline-flex rounded-lg border border-danger/40 bg-danger/10 px-3 py-1.5 text-[11px] font-medium text-danger transition-colors duration-150 hover:border-danger/60 hover:shadow-theme-sm"
               >
                 Logout
               </button>
@@ -313,19 +321,19 @@ export default function AdminHeader() {
         </div>
       )}
 
-      <div className="border-t border-slate-900/80 bg-slate-950/90">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-[10px] text-slate-400">
+      <div className="border-t border-border/80 bg-surface/80">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-[10px] text-muted">
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
               Live admin environment
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               Monitor users, wallets &amp; payouts in real-time
             </span>
           </div>
-          <span className="hidden text-[10px] text-slate-500 md:inline">
+          <span className="hidden text-[10px] text-subtle md:inline">
             Admin activity is logged for security &amp; compliance.
           </span>
         </div>

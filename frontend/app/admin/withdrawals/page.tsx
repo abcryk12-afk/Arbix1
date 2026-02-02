@@ -708,24 +708,24 @@ export default function AdminWithdrawalsPage() {
   };
 
   return (
-    <div className="min-h-screen text-slate-50">
-      <section className="border-b border-slate-800 bg-transparent">
+    <div className="min-h-screen bg-page text-fg">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <h1 className="text-lg font-semibold tracking-tight md:text-xl">Deposit Requests</h1>
-          <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
+          <p className="mt-1 text-[11px] text-muted md:text-xs">
             Review, approve or reject user deposit requests. Approvals will credit the user wallet
             and create a deposit transaction.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-            <span className="text-slate-300">Filter:</span>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+            <span className="text-muted">Filter:</span>
             <button
               type="button"
               onClick={() => setDepositFilterStatus('pending')}
               className={
                 'rounded-full px-3 py-1 text-[11px] border ' +
                 (depositFilterStatus === 'pending'
-                  ? 'bg-red-500/10 border-red-500 text-red-200'
-                  : 'border-slate-700 text-slate-300 hover:border-slate-500')
+                  ? 'bg-warning/10 border-border text-fg'
+                  : 'border-border text-muted hover:opacity-95')
               }
             >
               Pending only
@@ -736,8 +736,8 @@ export default function AdminWithdrawalsPage() {
               className={
                 'rounded-full px-3 py-1 text-[11px] border ' +
                 (depositFilterStatus === 'all'
-                  ? 'bg-slate-200 text-slate-900 border-slate-200'
-                  : 'border-slate-700 text-slate-300 hover:border-slate-500')
+                  ? 'bg-card text-heading border-border'
+                  : 'border-border text-muted hover:opacity-95')
               }
             >
               All statuses
@@ -745,7 +745,7 @@ export default function AdminWithdrawalsPage() {
             <button
               type="button"
               onClick={loadDepositRequests}
-              className="ml-auto rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+              className="ml-auto rounded-lg border border-border px-3 py-1 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
             >
               Refresh
             </button>
@@ -755,8 +755,8 @@ export default function AdminWithdrawalsPage() {
               className={
                 'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
                 (actionType === 'success'
-                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+                  ? 'border-border bg-success/10 text-fg'
+                  : 'border-border bg-danger/10 text-fg')
               }
             >
               {actionMessage}
@@ -765,11 +765,11 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="bg-transparent">
-        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
           <div className="arbix-card rounded-2xl overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">Request ID</th>
                   <th className="px-3 py-2 text-left">User</th>
@@ -783,16 +783,16 @@ export default function AdminWithdrawalsPage() {
                   <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {isLoadingDeposits ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={10} className="px-3 py-6 text-center text-muted">
                       Loading deposit requests...
                     </td>
                   </tr>
                 ) : filteredDepositRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={10} className="px-3 py-6 text-center text-muted">
                       No deposit requests found for this filter.
                     </td>
                   </tr>
@@ -800,28 +800,28 @@ export default function AdminWithdrawalsPage() {
                   filteredDepositRequests.map((r) => (
                     <tr key={r.id} className="align-top">
                       <td className="px-3 py-2">
-                        <div className="font-semibold text-slate-100">#{r.id}</div>
+                        <div className="font-semibold text-heading">#{r.id}</div>
                         {r.txHash && (
-                          <div className="mt-0.5 text-[10px] text-slate-500">Tx: {shortAddr(r.txHash)}</div>
+                          <div className="mt-0.5 text-[10px] text-muted">Tx: {shortAddr(r.txHash)}</div>
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <div className="font-semibold text-slate-100">{r.userName || '(No name)'}</div>
-                        <div className="text-[10px] text-slate-400">{r.email}</div>
+                        <div className="font-semibold text-heading">{r.userName || '(No name)'}</div>
+                        <div className="text-[10px] text-muted">{r.email}</div>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-300">{r.referralCode || '-'}</span>
+                        <span className="text-[10px] text-muted">{r.referralCode || '-'}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="font-semibold text-emerald-400">${r.amount.toFixed(2)}</span>
+                        <span className="font-semibold text-heading">${r.amount.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <div className="font-mono text-[10px] text-slate-200">{shortAddr(r.address)}</div>
+                          <div className="font-mono text-[10px] text-fg">{shortAddr(r.address)}</div>
                           <button
                             type="button"
                             onClick={() => r.address && handleCopy(r.address)}
-                            className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                            className="rounded border border-border px-2 py-0.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             disabled={!r.address}
                           >
                             Copy
@@ -832,14 +832,14 @@ export default function AdminWithdrawalsPage() {
                         <span
                           className={
                             r.status === 'pending' && r.txHash
-                              ? 'text-sky-400'
+                              ? 'text-heading'
                               : r.status === 'pending'
-                              ? 'text-amber-400'
+                              ? 'text-muted'
                               : r.status === 'approved'
-                              ? 'text-emerald-400'
+                              ? 'text-heading'
                               : r.status === 'rejected'
-                              ? 'text-red-400'
-                              : 'text-slate-300'
+                              ? 'text-fg'
+                              : 'text-muted'
                           }
                         >
                           {(() => {
@@ -858,20 +858,20 @@ export default function AdminWithdrawalsPage() {
                           const showCountdown = r.status === 'pending' && !r.txHash && Number.isFinite(msRemaining);
                           if (!showCountdown) return null;
                           return (
-                            <div className="mt-0.5 text-[10px] text-slate-500">
+                            <div className="mt-0.5 text-[10px] text-muted">
                               Time left: {formatCountdown(msRemaining)}
                             </div>
                           );
                         })()}
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-200">${r.userBalance.toFixed(2)}</span>
+                        <span className="text-[10px] text-fg">${r.userBalance.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-300">{fmtDate(r.requestTime) || '-'}</span>
+                        <span className="text-[10px] text-muted">{fmtDate(r.requestTime) || '-'}</span>
                       </td>
                       <td className="px-3 py-2 max-w-xs">
-                        <span className="text-[10px] text-slate-300">{r.userNote || '-'}</span>
+                        <span className="text-[10px] text-muted">{r.userNote || '-'}</span>
                       </td>
                       <td className="px-3 py-2 text-right">
                         {(() => {
@@ -888,11 +888,11 @@ export default function AdminWithdrawalsPage() {
                                     setSelectedRequest(r);
                                     await loadUserDetails(r.userId);
                                   }}
-                                  className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                                  className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[10px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                                 >
                                   View Details
                                 </button>
-                                <span className="text-[10px] text-slate-500">No actions</span>
+                                <span className="text-[10px] text-muted">No actions</span>
                               </div>
                             );
                           }
@@ -906,7 +906,7 @@ export default function AdminWithdrawalsPage() {
                                   setSelectedRequest(r);
                                   await loadUserDetails(r.userId);
                                 }}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                                className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[10px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                               >
                                 View Details
                               </button>
@@ -917,8 +917,8 @@ export default function AdminWithdrawalsPage() {
                                 className={
                                   'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
                                   (r.txHash
-                                    ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
-                                    : 'bg-emerald-600 text-white hover:bg-emerald-500')
+                                    ? 'bg-muted text-muted cursor-not-allowed'
+                                    : 'bg-success text-success-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95')
                                 }
                               >
                                 {r.txHash ? 'Auto Processing' : 'Approve'}
@@ -930,8 +930,8 @@ export default function AdminWithdrawalsPage() {
                                 className={
                                   'inline-flex items-center justify-center rounded-lg px-3 py-1 text-[10px] font-medium ' +
                                   (r.txHash
-                                    ? 'bg-slate-700 text-slate-300 cursor-not-allowed'
-                                    : 'bg-red-600 text-white hover:bg-red-500')
+                                    ? 'bg-muted text-muted cursor-not-allowed'
+                                    : 'bg-danger text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95')
                                 }
                               >
                                 {r.txHash ? 'Locked' : 'Reject'}
@@ -949,17 +949,17 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-transparent">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <h1 className="text-lg font-semibold tracking-tight md:text-xl">Withdrawal Requests</h1>
-          <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
+          <p className="mt-1 text-[11px] text-muted md:text-xs">
             Review, approve or reject user withdrawal requests. Approvals will deduct from the user wallet
             and create a withdraw transaction.
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 arbix-card rounded-2xl px-3 py-2 text-[11px]">
-            <span className="font-semibold text-slate-100">Auto Withdrawals:</span>
-            <span className={autoWithdrawEnabled ? 'text-emerald-300' : 'text-amber-300'}>
+          <div className="mt-3 flex flex-wrap items-center gap-2 arbix-card rounded-2xl px-3 py-2 text-[11px] text-muted">
+            <span className="font-semibold text-heading">Auto Withdrawals:</span>
+            <span className={autoWithdrawEnabled ? 'text-heading' : 'text-muted'}>
               {isLoadingAutoWithdraw ? 'Loading...' : autoWithdrawEnabled ? 'ON' : 'OFF'}
             </span>
             <button
@@ -967,28 +967,26 @@ export default function AdminWithdrawalsPage() {
               disabled={isLoadingAutoWithdraw || isUpdatingAutoWithdraw}
               onClick={() => toggleAutoWithdraw(!autoWithdrawEnabled)}
               className={
-                'ml-2 rounded-lg border px-3 py-1 font-medium ' +
-                (autoWithdrawEnabled
-                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200 hover:border-emerald-400'
-                  : 'border-amber-500/60 bg-amber-950/20 text-amber-200 hover:border-amber-400')
+                'ml-2 rounded-lg border border-border px-3 py-1 font-medium shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                (autoWithdrawEnabled ? 'bg-success/10 text-fg' : 'bg-warning/10 text-fg')
               }
             >
               {isUpdatingAutoWithdraw ? 'Updating...' : autoWithdrawEnabled ? 'Turn OFF' : 'Turn ON'}
             </button>
-            <span className="ml-auto text-slate-400">
+            <span className="ml-auto text-muted">
               Auto withdrawals are restricted to USDT on BSC.
             </span>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-            <span className="text-slate-300">Filter:</span>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+            <span className="text-muted">Filter:</span>
             <button
               type="button"
               onClick={() => setFilterStatus('pending')}
               className={
                 'rounded-full px-3 py-1 text-[11px] border ' +
                 (filterStatus === 'pending'
-                  ? 'bg-red-500/10 border-red-500 text-red-200'
-                  : 'border-slate-700 text-slate-300 hover:border-slate-500')
+                  ? 'bg-warning/10 border-border text-fg'
+                  : 'border-border text-muted hover:opacity-95')
               }
             >
               Pending only
@@ -999,8 +997,8 @@ export default function AdminWithdrawalsPage() {
               className={
                 'rounded-full px-3 py-1 text-[11px] border ' +
                 (filterStatus === 'all'
-                  ? 'bg-slate-200 text-slate-900 border-slate-200'
-                  : 'border-slate-700 text-slate-300 hover:border-slate-500')
+                  ? 'bg-card text-heading border-border'
+                  : 'border-border text-muted hover:opacity-95')
               }
             >
               All statuses
@@ -1008,7 +1006,7 @@ export default function AdminWithdrawalsPage() {
             <button
               type="button"
               onClick={loadRequests}
-              className="ml-auto rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+              className="ml-auto rounded-lg border border-border px-3 py-1 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
             >
               Refresh
             </button>
@@ -1018,8 +1016,8 @@ export default function AdminWithdrawalsPage() {
               className={
                 'mt-3 rounded-lg border px-3 py-2 text-[11px] ' +
                 (actionType === 'success'
-                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+                  ? 'border-border bg-success/10 text-fg'
+                  : 'border-border bg-danger/10 text-fg')
               }
             >
               {actionMessage}
@@ -1028,11 +1026,11 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950">
-        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">Request ID</th>
                   <th className="px-3 py-2 text-left">User</th>
@@ -1050,16 +1048,16 @@ export default function AdminWithdrawalsPage() {
                   <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={14} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={14} className="px-3 py-6 text-center text-muted">
                       Loading withdrawal requests...
                     </td>
                   </tr>
                 ) : filteredRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={14} className="px-3 py-6 text-center text-slate-500">
+                    <td colSpan={14} className="px-3 py-6 text-center text-muted">
                       No withdrawal requests found for this filter.
                     </td>
                   </tr>
@@ -1067,35 +1065,35 @@ export default function AdminWithdrawalsPage() {
                   filteredRequests.map((r) => (
                     <tr key={r.id} className="align-top">
                       <td className="px-3 py-2">
-                        <div className="font-semibold text-slate-100">#{r.id}</div>
+                        <div className="font-semibold text-heading">#{r.id}</div>
                         {r.txHash && (
-                          <div className="mt-0.5 text-[10px] text-slate-500">Tx: {shortAddr(r.txHash)}</div>
+                          <div className="mt-0.5 text-[10px] text-muted">Tx: {shortAddr(r.txHash)}</div>
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <div className="font-semibold text-slate-100">{r.userName || '(No name)'}</div>
-                        <div className="text-[10px] text-slate-400">{r.email}</div>
+                        <div className="font-semibold text-heading">{r.userName || '(No name)'}</div>
+                        <div className="text-[10px] text-muted">{r.email}</div>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-300">{r.referralCode || '-'}</span>
+                        <span className="text-[10px] text-muted">{r.referralCode || '-'}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="font-semibold text-emerald-400">${r.amount.toFixed(2)}</span>
+                        <span className="font-semibold text-heading">${r.amount.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <div className="font-mono text-[10px] text-slate-200">{shortAddr(r.address)}</div>
+                          <div className="font-mono text-[10px] text-fg">{shortAddr(r.address)}</div>
                           <button
                             type="button"
                             onClick={() => r.address && handleCopy(r.address)}
-                            className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                            className="rounded border border-border px-2 py-0.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             disabled={!r.address}
                           >
                             Copy
                           </button>
                         </div>
                         {r.walletAddress && (
-                          <div className="mt-0.5 text-[10px] text-slate-500">
+                          <div className="mt-0.5 text-[10px] text-muted">
                             User wallet: {shortAddr(r.walletAddress)}
                           </div>
                         )}
@@ -1104,14 +1102,14 @@ export default function AdminWithdrawalsPage() {
                         <span
                           className={
                             r.status === 'pending'
-                              ? 'text-amber-400'
+                              ? 'text-muted'
                               : r.status === 'processing'
-                              ? 'text-sky-300'
+                              ? 'text-muted'
                               : r.status === 'completed'
-                              ? 'text-emerald-400'
+                              ? 'text-heading'
                               : r.status === 'failed'
-                              ? 'text-red-400'
-                              : 'text-slate-300'
+                              ? 'text-fg'
+                              : 'text-muted'
                           }
                         >
                           {r.status}
@@ -1119,21 +1117,21 @@ export default function AdminWithdrawalsPage() {
                       </td>
                       <td className="px-3 py-2">
                         {r.autoWithdrawEnabledAtRequest === null || r.autoWithdrawEnabledAtRequest === undefined ? (
-                          <span className="text-[10px] text-slate-500">-</span>
+                          <span className="text-[10px] text-muted">-</span>
                         ) : r.autoWithdrawEnabledAtRequest ? (
-                          <span className="text-[10px] text-emerald-300">ON</span>
+                          <span className="text-[10px] text-heading">ON</span>
                         ) : (
-                          <span className="text-[10px] text-amber-300">OFF</span>
+                          <span className="text-[10px] text-muted">OFF</span>
                         )}
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-200">${r.userBalance.toFixed(2)}</span>
+                        <span className="text-[10px] text-fg">${r.userBalance.toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="text-[10px] text-slate-300">{r.requestTime || '-'}</span>
+                        <span className="text-[10px] text-muted">{r.requestTime || '-'}</span>
                       </td>
                       <td className="px-3 py-2 max-w-xs">
-                        <span className="text-[10px] text-slate-300">
+                        <span className="text-[10px] text-muted">
                           {r.userNote || '-' }
                         </span>
                       </td>
@@ -1143,12 +1141,12 @@ export default function AdminWithdrawalsPage() {
                             href={bscscanTxUrl(r.txHash) || '#'}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[10px] text-primary hover:text-blue-400"
+                            className="text-[10px] text-heading transition hover:opacity-90"
                           >
                             {shortAddr(r.txHash)}
                           </a>
                         ) : (
-                          <span className="text-[10px] text-slate-500">-</span>
+                          <span className="text-[10px] text-muted">-</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -1161,21 +1159,21 @@ export default function AdminWithdrawalsPage() {
                                 setSelectedRequest(r);
                                 await loadUserDetails(r.userId);
                               }}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                              className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[10px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             >
                               View Details
                             </button>
                             <button
                               type="button"
                               onClick={() => handleAction(r.id, 'approve')}
-                              className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-1 text-[10px] font-medium text-white hover:bg-emerald-500"
+                              className="inline-flex items-center justify-center rounded-lg bg-success px-3 py-1 text-[10px] font-medium text-success-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             >
                               Approve
                             </button>
                             <button
                               type="button"
                               onClick={() => handleAction(r.id, 'reject')}
-                              className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-1 text-[10px] font-medium text-white hover:bg-red-500"
+                              className="inline-flex items-center justify-center rounded-lg bg-danger px-3 py-1 text-[10px] font-medium text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             >
                               Reject
                             </button>
@@ -1189,11 +1187,11 @@ export default function AdminWithdrawalsPage() {
                                 setSelectedRequest(r);
                                 await loadUserDetails(r.userId);
                               }}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                              className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[10px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             >
                               View Details
                             </button>
-                            <span className="text-[10px] text-sky-300">Auto Processing</span>
+                            <span className="text-[10px] text-muted">Auto Processing</span>
                           </div>
                         ) : (
                           <div className="flex flex-col items-end gap-1">
@@ -1204,11 +1202,11 @@ export default function AdminWithdrawalsPage() {
                                 setSelectedRequest(r);
                                 await loadUserDetails(r.userId);
                               }}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-3 py-1 text-[10px] font-medium text-slate-100 hover:border-slate-500"
+                              className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-1 text-[10px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                             >
                               View Details
                             </button>
-                            <span className="text-[10px] text-slate-500">No actions</span>
+                            <span className="text-[10px] text-muted">No actions</span>
                           </div>
                         )}
                       </td>
@@ -1221,36 +1219,36 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950">
-        <div className="mx-auto max-w-7xl px-4 pb-8 text-xs text-slate-300 md:text-sm">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
-            <div className="border-b border-slate-800 px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-100">Request Details</h2>
-              <p className="mt-0.5 text-[11px] text-slate-500">View selected request + user details.</p>
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 pb-8 text-xs text-muted md:text-sm">
+          <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-sm font-semibold text-heading">Request Details</h2>
+              <p className="mt-0.5 text-[11px] text-muted">View selected request + user details.</p>
             </div>
 
             {!selectedRequest ? (
-              <div className="px-4 py-10 text-center text-[12px] text-slate-500">
+              <div className="px-4 py-10 text-center text-[12px] text-muted">
                 Select a request and click View Details
               </div>
             ) : isLoadingDetails ? (
-              <div className="px-4 py-10 text-center text-[12px] text-slate-500">Loading details...</div>
+              <div className="px-4 py-10 text-center text-[12px] text-muted">Loading details...</div>
             ) : detailsError ? (
-              <div className="px-4 py-8 text-center text-[12px] text-red-300">{detailsError}</div>
+              <div className="px-4 py-8 text-center text-[12px] text-fg">{detailsError}</div>
             ) : (
               <div className="p-4 space-y-4">
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                  <div className="text-[11px] font-semibold text-slate-200">Request</div>
-                  <div className="mt-2 grid gap-2 md:grid-cols-3 text-[11px] text-slate-300">
-                    <div><span className="text-slate-500">Request ID:</span> #{selectedRequest.id}</div>
-                    <div><span className="text-slate-500">Status:</span> {selectedRequest.status}</div>
-                    <div><span className="text-slate-500">Amount:</span> ${selectedRequest.amount.toFixed(2)}</div>
+                <div className="rounded-xl border border-border bg-surface/40 p-3">
+                  <div className="text-[11px] font-semibold text-heading">Request</div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-3 text-[11px] text-muted">
+                    <div><span className="text-muted">Request ID:</span> #{selectedRequest.id}</div>
+                    <div><span className="text-muted">Status:</span> {selectedRequest.status}</div>
+                    <div><span className="text-muted">Amount:</span> ${selectedRequest.amount.toFixed(2)}</div>
                     {selectedRequestType === 'withdrawal' ? (
                       <>
-                        <div><span className="text-slate-500">Token:</span> {String((selectedRequest as any)?.token || 'USDT')}</div>
-                        <div><span className="text-slate-500">Network:</span> {String((selectedRequest as any)?.network || 'BSC')}</div>
+                        <div><span className="text-muted">Token:</span> {String((selectedRequest as any)?.token || 'USDT')}</div>
+                        <div><span className="text-muted">Network:</span> {String((selectedRequest as any)?.network || 'BSC')}</div>
                         <div>
-                          <span className="text-slate-500">Auto at request:</span>{' '}
+                          <span className="text-muted">Auto at request:</span>{' '}
                           {((selectedRequest as any)?.autoWithdrawEnabledAtRequest === null || (selectedRequest as any)?.autoWithdrawEnabledAtRequest === undefined)
                             ? '-'
                             : (selectedRequest as any)?.autoWithdrawEnabledAtRequest
@@ -1260,70 +1258,70 @@ export default function AdminWithdrawalsPage() {
                       </>
                     ) : null}
                     <div className="md:col-span-3 break-all">
-                      <span className="text-slate-500">{selectedRequestType === 'deposit' ? 'Wallet Address:' : 'Withdrawal Address:'}</span> {selectedRequest.address}{' '}
+                      <span className="text-muted">{selectedRequestType === 'deposit' ? 'Wallet Address:' : 'Withdrawal Address:'}</span> {selectedRequest.address}{' '}
                       <button
                         type="button"
                         onClick={() => handleCopy(selectedRequest.address)}
-                        className="ml-2 rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                        className="ml-2 rounded border border-border px-2 py-0.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                       >
                         Copy
                       </button>
                     </div>
                     {selectedRequestType === 'withdrawal' && selectedRequest.txHash ? (
                       <div className="md:col-span-3 break-all">
-                        <span className="text-slate-500">Tx Hash:</span>{' '}
+                        <span className="text-muted">Tx Hash:</span>{' '}
                         <a
                           href={bscscanTxUrl(selectedRequest.txHash) || '#'}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-primary hover:text-blue-400"
+                          className="text-heading transition hover:opacity-90"
                         >
                           {selectedRequest.txHash}
                         </a>
                       </div>
                     ) : null}
-                    <div><span className="text-slate-500">Requested At:</span> {selectedRequest.requestTime || '-'}</div>
+                    <div><span className="text-muted">Requested At:</span> {selectedRequest.requestTime || '-'}</div>
                   </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">User</div>
-                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
-                      <div><span className="text-slate-500">Name:</span> {selectedUserDetails?.user?.name || '-'}</div>
-                      <div><span className="text-slate-500">Email:</span> {selectedUserDetails?.user?.email || '-'}</div>
-                      <div><span className="text-slate-500">Phone:</span> {selectedUserDetails?.user?.phone || '-'}</div>
-                      <div><span className="text-slate-500">Account:</span> {selectedUserDetails?.user?.accountStatus || '-'}</div>
-                      <div><span className="text-slate-500">KYC:</span> {selectedUserDetails?.user?.kycStatus || '-'}</div>
-                      <div><span className="text-slate-500">Joined:</span> {fmtDate(selectedUserDetails?.user?.createdAt || null)}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">User</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-muted">
+                      <div><span className="text-muted">Name:</span> {selectedUserDetails?.user?.name || '-'}</div>
+                      <div><span className="text-muted">Email:</span> {selectedUserDetails?.user?.email || '-'}</div>
+                      <div><span className="text-muted">Phone:</span> {selectedUserDetails?.user?.phone || '-'}</div>
+                      <div><span className="text-muted">Account:</span> {selectedUserDetails?.user?.accountStatus || '-'}</div>
+                      <div><span className="text-muted">KYC:</span> {selectedUserDetails?.user?.kycStatus || '-'}</div>
+                      <div><span className="text-muted">Joined:</span> {fmtDate(selectedUserDetails?.user?.createdAt || null)}</div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Wallet + Referrals</div>
-                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
-                      <div className="break-all"><span className="text-slate-500">Wallet Address:</span> {selectedUserDetails?.user?.walletPublicAddress || '-'}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Wallet + Referrals</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-muted">
+                      <div className="break-all"><span className="text-muted">Wallet Address:</span> {selectedUserDetails?.user?.walletPublicAddress || '-'}</div>
                       <div>
-                        <span className="text-slate-500">Balance:</span>{' '}
-                        <span className="text-emerald-400 font-semibold">
+                        <span className="text-muted">Balance:</span>{' '}
+                        <span className="text-heading font-semibold">
                           ${Number(selectedUserDetails?.wallet?.balance || 0).toFixed(2)}
                         </span>
-                        <span className="text-slate-500"> {selectedUserDetails?.wallet?.currency || 'USDT'}</span>
+                        <span className="text-muted"> {selectedUserDetails?.wallet?.currency || 'USDT'}</span>
                       </div>
-                      <div><span className="text-slate-500">Referral Code:</span> {selectedUserDetails?.user?.referralCode || '-'}</div>
-                      <div><span className="text-slate-500">Referrals:</span> L1 {selectedUserDetails?.referrals?.l1Count ?? 0} / L2 {selectedUserDetails?.referrals?.l2Count ?? 0} / L3 {selectedUserDetails?.referrals?.l3Count ?? 0}</div>
+                      <div><span className="text-muted">Referral Code:</span> {selectedUserDetails?.user?.referralCode || '-'}</div>
+                      <div><span className="text-muted">Referrals:</span> L1 {selectedUserDetails?.referrals?.l1Count ?? 0} / L2 {selectedUserDetails?.referrals?.l2Count ?? 0} / L3 {selectedUserDetails?.referrals?.l3Count ?? 0}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
-                  <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
-                    <div className="text-[11px] font-semibold text-slate-200">Packages</div>
-                    <div className="text-[10px] text-slate-500">Total: {Array.isArray(selectedUserDetails?.packages) ? selectedUserDetails!.packages!.length : 0}</div>
+                <div className="rounded-xl border border-border bg-surface/40">
+                  <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                    <div className="text-[11px] font-semibold text-heading">Packages</div>
+                    <div className="text-[10px] text-muted">Total: {Array.isArray(selectedUserDetails?.packages) ? selectedUserDetails!.packages!.length : 0}</div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                      <thead className="text-slate-400">
+                    <table className="min-w-full divide-y divide-border text-[11px]">
+                      <thead className="text-muted">
                         <tr>
                           <th className="px-3 py-2 text-left">Package</th>
                           <th className="px-3 py-2 text-left">Capital</th>
@@ -1332,23 +1330,23 @@ export default function AdminWithdrawalsPage() {
                           <th className="px-3 py-2 text-left">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                      <tbody className="divide-y divide-border text-muted">
                         {Array.isArray(selectedUserDetails?.packages) && selectedUserDetails!.packages!.length ? (
                           selectedUserDetails!.packages!.map((p) => (
                             <tr key={p.id}>
                               <td className="px-3 py-2">
-                                <div className="font-semibold text-slate-100">{p.packageName}</div>
-                                <div className="text-[10px] text-slate-500">{p.packageId} · #{p.id}</div>
+                                <div className="font-semibold text-heading">{p.packageName}</div>
+                                <div className="text-[10px] text-muted">{p.packageId} · #{p.id}</div>
                               </td>
                               <td className="px-3 py-2">${Number(p.capital || 0).toFixed(2)}</td>
                               <td className="px-3 py-2">{Number(p.dailyRoi || 0).toFixed(2)}%</td>
-                              <td className="px-3 py-2 text-emerald-400">${Number(p.dailyRevenue || 0).toFixed(4)}</td>
+                              <td className="px-3 py-2 text-heading">${Number(p.dailyRevenue || 0).toFixed(4)}</td>
                               <td className="px-3 py-2">{p.status}</td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={5} className="px-3 py-4 text-center text-slate-500">No packages found.</td>
+                            <td colSpan={5} className="px-3 py-4 text-center text-muted">No packages found.</td>
                           </tr>
                         )}
                       </tbody>
@@ -1356,19 +1354,19 @@ export default function AdminWithdrawalsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
-                  <div className="border-b border-slate-800 px-3 py-2">
-                    <div className="text-[11px] font-semibold text-slate-200">Earnings Breakdown</div>
+                <div className="rounded-xl border border-border bg-surface/40">
+                  <div className="border-b border-border px-3 py-2">
+                    <div className="text-[11px] font-semibold text-heading">Earnings Breakdown</div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                      <thead className="text-slate-400">
+                    <table className="min-w-full divide-y divide-border text-[11px]">
+                      <thead className="text-muted">
                         <tr>
                           <th className="px-3 py-2 text-left">Type</th>
                           <th className="px-3 py-2 text-left">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                      <tbody className="divide-y divide-border text-muted">
                         {earningsRows(selectedUserDetails?.earnings?.byType).length ? (
                           earningsRows(selectedUserDetails?.earnings?.byType).map((row) => (
                             <tr key={row.type}>
@@ -1378,7 +1376,7 @@ export default function AdminWithdrawalsPage() {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={2} className="px-3 py-4 text-center text-slate-500">No earnings data.</td>
+                            <td colSpan={2} className="px-3 py-4 text-center text-muted">No earnings data.</td>
                           </tr>
                         )}
                       </tbody>
@@ -1391,12 +1389,12 @@ export default function AdminWithdrawalsPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950">
-        <div className="mx-auto max-w-7xl px-4 pb-10 text-xs text-slate-300 md:text-sm">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
-            <div className="border-b border-slate-800 px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-100">Withdrawal Hold Control (Per User)</h2>
-              <p className="mt-0.5 text-[11px] text-slate-500">
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 pb-10 text-xs text-muted md:text-sm">
+          <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-sm font-semibold text-heading">Withdrawal Hold Control (Per User)</h2>
+              <p className="mt-0.5 text-[11px] text-muted">
                 Search a user and place withdrawals on hold with a note. The note is shown only when the user submits a withdrawal request.
               </p>
             </div>
@@ -1404,21 +1402,21 @@ export default function AdminWithdrawalsPage() {
             <div className="p-4 space-y-4">
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Search user (id / name / email / referral)</label>
+                  <label className="mb-1 block text-[11px] text-muted">Search user (id / name / email / referral)</label>
                   <input
                     value={holdUserQuery}
                     onChange={(e) => setHoldUserQuery(e.target.value)}
-                    className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     placeholder="Search..."
                   />
-                  <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/50">
-                    <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
-                      <div className="text-[11px] font-semibold text-slate-200">Results</div>
-                      <div className="text-[10px] text-slate-500">{isSearchingHoldUsers ? 'Searching...' : `${holdUserResults.length}`}</div>
+                  <div className="mt-2 rounded-xl border border-border bg-surface/40">
+                    <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                      <div className="text-[11px] font-semibold text-heading">Results</div>
+                      <div className="text-[10px] text-muted">{isSearchingHoldUsers ? 'Searching...' : `${holdUserResults.length}`}</div>
                     </div>
                     <div className="max-h-64 overflow-auto">
                       {holdUserResults.length === 0 ? (
-                        <div className="px-3 py-4 text-[11px] text-slate-500">Type to search users.</div>
+                        <div className="px-3 py-4 text-[11px] text-muted">Type to search users.</div>
                       ) : (
                         holdUserResults.map((u) => (
                           <button
@@ -1429,19 +1427,21 @@ export default function AdminWithdrawalsPage() {
                               await loadHoldUserDetails(u.id);
                             }}
                             className={
-                              'w-full px-3 py-2 text-left text-[11px] transition-colors hover:bg-slate-900/60 ' +
-                              (holdSelectedUserId === u.id ? 'bg-slate-900/70' : '')
+                              'w-full px-3 py-2 text-left text-[11px] transition hover:opacity-95 ' +
+                              (holdSelectedUserId === u.id ? 'bg-muted' : '')
                             }
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div>
-                                <div className="font-semibold text-slate-100">{u.email || u.name || `User #${u.id}`}</div>
-                                <div className="text-[10px] text-slate-500">#{u.id} · {u.referralCode || '-'}</div>
+                                <div className="font-semibold text-heading">{u.email || u.name || `User #${u.id}`}</div>
+                                <div className="text-[10px] text-muted">#{u.id} · {u.referralCode || '-'}</div>
                               </div>
-                              <div className={
-                                'rounded-full px-2 py-0.5 text-[10px] ' +
-                                (u.withdrawalHoldEnabled ? 'bg-amber-950/40 text-amber-200 border border-amber-500/50' : 'bg-emerald-950/20 text-emerald-300 border border-emerald-600/40')
-                              }>
+                              <div
+                                className={
+                                  'rounded-full px-2 py-0.5 text-[10px] border border-border ' +
+                                  (u.withdrawalHoldEnabled ? 'bg-warning/10 text-fg' : 'bg-success/10 text-fg')
+                                }
+                              >
                                 {u.withdrawalHoldEnabled ? 'HOLD' : 'OK'}
                               </div>
                             </div>
@@ -1454,31 +1454,31 @@ export default function AdminWithdrawalsPage() {
 
                 <div className="space-y-3">
                   {holdActionMessage && (
-                    <div className={
-                      'rounded-lg border px-3 py-2 text-[11px] ' +
-                      (holdActionType === 'success'
-                        ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                        : 'border-red-500/60 bg-red-950/20 text-red-200')
-                    }>
+                    <div
+                      className={
+                        'rounded-lg border border-border px-3 py-2 text-[11px] ' +
+                        (holdActionType === 'success' ? 'bg-success/10 text-fg' : 'bg-danger/10 text-fg')
+                      }
+                    >
                       {holdActionMessage}
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Selected User</div>
-                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
-                      <div><span className="text-slate-500">ID:</span> {holdSelectedUserDetails?.user?.id ?? (holdSelectedUserId || '-')}</div>
-                      <div><span className="text-slate-500">Name:</span> {holdSelectedUserDetails?.user?.name || '-'}</div>
-                      <div><span className="text-slate-500">Email:</span> {holdSelectedUserDetails?.user?.email || '-'}</div>
-                      <div><span className="text-slate-500">Phone:</span> {holdSelectedUserDetails?.user?.phone || '-'}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Selected User</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-muted">
+                      <div><span className="text-muted">ID:</span> {holdSelectedUserDetails?.user?.id ?? (holdSelectedUserId || '-')}</div>
+                      <div><span className="text-muted">Name:</span> {holdSelectedUserDetails?.user?.name || '-'}</div>
+                      <div><span className="text-muted">Email:</span> {holdSelectedUserDetails?.user?.email || '-'}</div>
+                      <div><span className="text-muted">Phone:</span> {holdSelectedUserDetails?.user?.phone || '-'}</div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <div className="text-[11px] font-semibold text-slate-200">Withdrawal Hold</div>
-                        <div className="mt-0.5 text-[10px] text-slate-500">
+                        <div className="text-[11px] font-semibold text-heading">Withdrawal Hold</div>
+                        <div className="mt-0.5 text-[10px] text-muted">
                           Current: {holdSelectedUserDetails?.user?.withdrawalHoldEnabled ? 'ON (Hold)' : 'OFF'}
                         </div>
                       </div>
@@ -1487,7 +1487,7 @@ export default function AdminWithdrawalsPage() {
                           type="button"
                           onClick={() => setWithdrawalHold(true)}
                           disabled={!holdSelectedUserId}
-                          className="rounded-lg bg-amber-600 px-3 py-2 text-[11px] font-medium text-white hover:bg-amber-500 disabled:opacity-60"
+                          className="rounded-lg bg-warning px-3 py-2 text-[11px] font-medium text-warning-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
                         >
                           Hold
                         </button>
@@ -1495,7 +1495,7 @@ export default function AdminWithdrawalsPage() {
                           type="button"
                           onClick={() => setWithdrawalHold(false)}
                           disabled={!holdSelectedUserId}
-                          className="rounded-lg bg-slate-700 px-3 py-2 text-[11px] font-medium text-white hover:bg-slate-600 disabled:opacity-60"
+                          className="rounded-lg border border-border bg-muted px-3 py-2 text-[11px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
                         >
                           Unhold
                         </button>
@@ -1503,9 +1503,9 @@ export default function AdminWithdrawalsPage() {
                     </div>
 
                     {holdSelectedUserDetails?.user?.withdrawalHoldEnabled && (
-                      <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-950/20 p-3 text-[11px] text-amber-200">
+                      <div className="mt-3 rounded-lg border border-border bg-warning/10 p-3 text-[11px] text-fg">
                         <div className="font-semibold">Hold Note (shown to user)</div>
-                        <div className="mt-1 whitespace-pre-wrap text-amber-200/90">{holdSelectedUserDetails?.user?.withdrawalHoldNote || '-'}</div>
+                        <div className="mt-1 whitespace-pre-wrap text-muted">{holdSelectedUserDetails?.user?.withdrawalHoldNote || '-'}</div>
                       </div>
                     )}
                   </div>

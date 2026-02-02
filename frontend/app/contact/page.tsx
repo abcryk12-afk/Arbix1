@@ -117,17 +117,17 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-page text-fg">
       {/* SECTION 1 — Hero / Intro */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             SUPPORT
           </p>
           <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
             We&apos;re Here to Help — Contact Arbix Support
           </h1>
-          <p className="mt-3 text-sm text-slate-300 md:text-base">
+          <p className="mt-3 text-sm text-muted md:text-base">
             If you have any questions about investing, trading, deposits, withdrawals, or
             your account, our Support team is available 24/7 to assist you.
           </p>
@@ -135,51 +135,51 @@ export default function ContactPage() {
       </section>
 
       {/* SECTION 2 — Quick Support Blocks */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
+          <h2 className="text-lg font-semibold text-heading md:text-xl">
             Quick Support Options
           </h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted">
             Choose one of the primary support channels below to get help as fast as
             possible.
           </p>
 
-          <div className="mt-6 grid gap-4 text-xs text-slate-300 sm:grid-cols-2">
+          <div className="mt-6 grid gap-4 text-xs text-muted sm:grid-cols-2">
             {/* Live Chat */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+            <div className="rounded-2xl border border-border bg-surface/40 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-heading">
                 Live Chat Support
               </p>
-              <p className="mt-1 text-sm font-semibold text-slate-100">
+              <p className="mt-1 text-sm font-semibold text-heading">
                 Chat with support in real time
               </p>
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-muted">
                 Typical reply time: 2–5 minutes. Best for quick questions and urgent help.
               </p>
               <button
                 type="button"
                 onClick={openChat}
-                className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+                className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition hover:opacity-95"
               >
                 Start Live Chat
               </button>
             </div>
 
             {/* Email */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-400">
+            <div className="rounded-2xl border border-border bg-surface/40 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-info">
                 Email Support
               </p>
-              <p className="mt-1 text-sm font-semibold text-slate-100">
+              <p className="mt-1 text-sm font-semibold text-heading">
                 Best for verification & detailed requests
               </p>
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-muted">
                 Ideal for KYC issues, formal documentation, and account-related investigations.
               </p>
               <a
                 href="mailto:support@arbix.com"
-                className="mt-3 inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-100 hover:border-slate-500"
+                className="mt-3 inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-xs font-medium text-fg transition hover:opacity-95"
               >
                 support@arbix.com
               </a>
@@ -189,56 +189,56 @@ export default function ContactPage() {
       </section>
 
       {/* SECTION 3 — Contact Form */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
+          <h2 className="text-lg font-semibold text-heading md:text-xl">
             Send Us a Message
           </h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted">
             Prefer to contact us via form? Fill in your details below and our team
             will get back to you as soon as possible.
           </p>
 
           <form
-            className="mt-6 space-y-4 text-xs text-slate-300"
+            className="mt-6 space-y-4 text-xs text-muted"
             onSubmit={handleSupportFormSubmit}
           >
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="name">
+              <label className="mb-1 block text-[11px] text-muted" htmlFor="name">
                 Full Name
               </label>
               <input
                 id="name"
                 name="name"
                 type="text"
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-xs text-fg shadow-theme-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 placeholder="Enter your full name"
                 required
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="email">
+              <label className="mb-1 block text-[11px] text-muted" htmlFor="email">
                 Email Address
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-xs text-fg shadow-theme-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 placeholder="you@example.com"
                 required
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="subject">
+              <label className="mb-1 block text-[11px] text-muted" htmlFor="subject">
                 Subject
               </label>
               <select
                 id="subject"
                 name="subject"
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-xs text-fg shadow-theme-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 defaultValue="account"
               >
                 <option value="account">Account Issue</option>
@@ -250,14 +250,14 @@ export default function ContactPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="message">
+              <label className="mb-1 block text-[11px] text-muted" htmlFor="message">
                 Message
               </label>
               <textarea
                 id="message"
                 name="message"
                 rows={4}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-xs text-fg shadow-theme-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 placeholder="Describe your question or issue in a few lines"
                 required
               />
@@ -265,16 +265,16 @@ export default function ContactPage() {
 
             <button
               type="submit"
-              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition hover:opacity-95"
             >
               Submit Request
             </button>
 
             {formNotice ? (
-              <p className="mt-2 text-[11px] text-slate-400">{formNotice}</p>
+              <p className="mt-2 text-[11px] text-muted">{formNotice}</p>
             ) : null}
 
-            <p className="mt-2 text-[10px] text-slate-500">
+            <p className="mt-2 text-[10px] text-muted">
               We never share your information with third parties. Your data is used
               only to support and improve your experience with Arbix.
             </p>
@@ -283,38 +283,38 @@ export default function ContactPage() {
       </section>
 
       {/* SECTION 4 — Support Categories */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
+          <h2 className="text-lg font-semibold text-heading md:text-xl">
             Support Categories
           </h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted">
             Quickly find the type of help you need, even before opening a support
             ticket.
           </p>
 
-          <div className="mt-6 grid gap-4 text-xs text-slate-300 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="font-semibold text-slate-100">Account Support</p>
-              <p className="mt-2 text-slate-400">
+          <div className="mt-6 grid gap-4 text-xs text-muted sm:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface/40 p-4">
+              <p className="font-semibold text-heading">Account Support</p>
+              <p className="mt-2 text-muted">
                 Login issues, password reset, account access and KYC guidance.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="font-semibold text-slate-100">Investment &amp; Trading</p>
-              <p className="mt-2 text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface/40 p-4">
+              <p className="font-semibold text-heading">Investment &amp; Trading</p>
+              <p className="mt-2 text-muted">
                 Plan selection, profit updates and trading snapshot information.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="font-semibold text-slate-100">Withdrawals</p>
-              <p className="mt-2 text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface/40 p-4">
+              <p className="font-semibold text-heading">Withdrawals</p>
+              <p className="mt-2 text-muted">
                 Withdrawal timing, fees, wallet verification and related queries.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-              <p className="font-semibold text-slate-100">Compliance</p>
-              <p className="mt-2 text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface/40 p-4">
+              <p className="font-semibold text-heading">Compliance</p>
+              <p className="mt-2 text-muted">
                 KYC/AML, identity verification and security concerns.
               </p>
             </div>
@@ -323,34 +323,34 @@ export default function ContactPage() {
       </section>
 
       {/* SECTION 5 — Corporate Information */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
+          <h2 className="text-lg font-semibold text-heading md:text-xl">
             Corporate Information
           </h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted">
             A brief overview of the company behind the Arbix platform.
           </p>
 
-          <div className="mt-4 space-y-1 text-xs text-slate-300">
+          <div className="mt-4 space-y-1 text-xs text-muted">
             <p>
-              <span className="font-semibold text-slate-100">Registered Business Name:</span>{' '}
+              <span className="font-semibold text-heading">Registered Business Name:</span>{' '}
               Arbix Technologies (placeholder)
             </p>
             <p>
-              <span className="font-semibold text-slate-100">Location:</span>{' '}
+              <span className="font-semibold text-heading">Location:</span>{' '}
               Dubai • London • Karachi (city-level only, for illustration)
             </p>
             <p>
-              <span className="font-semibold text-slate-100">Support Hours:</span> 24/7
+              <span className="font-semibold text-heading">Support Hours:</span> 24/7
             </p>
             <p>
-              <span className="font-semibold text-slate-100">Compliance Email:</span>{' '}
+              <span className="font-semibold text-heading">Compliance Email:</span>{' '}
               compliance@arbix.com
             </p>
           </div>
 
-          <p className="mt-3 text-[11px] text-slate-500">
+          <p className="mt-3 text-[11px] text-muted">
             Note: Detailed legal and registered address information is available in
             the Terms &amp; Conditions section, following industry best practice.
           </p>
@@ -358,17 +358,17 @@ export default function ContactPage() {
       </section>
 
       {/* SECTION 6 — Trust & Security Notes */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
-          <h2 className="text-lg font-semibold text-slate-50 md:text-xl">
+          <h2 className="text-lg font-semibold text-heading md:text-xl">
             Your Security is Our Priority
           </h2>
-          <div className="mt-4 space-y-2 text-xs text-slate-300">
+          <div className="mt-4 space-y-2 text-xs text-muted">
             <p>✔ SSL encrypted communication</p>
             <p>✔ KYC / AML compliant onboarding</p>
             <p>✔ Active anti-fraud monitoring</p>
           </div>
-          <p className="mt-3 text-[11px] text-slate-500">
+          <p className="mt-3 text-[11px] text-muted">
             The Arbix system uses enterprise-grade security protocols to help
             protect every investor&apos;s data and funds.
           </p>
@@ -376,19 +376,19 @@ export default function ContactPage() {
       </section>
 
       {/* SECTION 7 — Final CTA */}
-      <section className="bg-slate-950">
+      <section className="bg-page">
         <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
-          <h2 className="text-xl font-semibold text-slate-50 md:text-2xl">
+          <h2 className="text-xl font-semibold text-heading md:text-2xl">
             Need Immediate Help?
           </h2>
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-sm text-muted">
             Our team is ready to guide you through any question or issue you may
             have.
           </p>
           <button
             type="button"
             onClick={openChat}
-            className="mt-5 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-500"
+            className="mt-5 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-fg shadow-theme-sm transition hover:opacity-95"
           >
             Start Live Chat Now
           </button>
@@ -397,17 +397,17 @@ export default function ContactPage() {
 
       {isChatOpen ? (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/60" onClick={closeChat} />
-          <div className="absolute bottom-4 right-4 w-[calc(100%-2rem)] max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+          <div className="absolute inset-0 bg-surface/80 backdrop-blur-sm backdrop-brightness-50" onClick={closeChat} />
+          <div className="absolute bottom-4 right-4 w-[calc(100%-2rem)] max-w-sm overflow-hidden rounded-2xl border border-border bg-page shadow-theme-lg">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-slate-100">Arbix Live Chat</p>
-                <p className="text-[11px] text-slate-400">Support Assistant</p>
+                <p className="text-sm font-semibold text-heading">Arbix Live Chat</p>
+                <p className="text-[11px] text-muted">Support Assistant</p>
               </div>
               <button
                 type="button"
                 onClick={closeChat}
-                className="rounded-md border border-slate-800 px-2 py-1 text-[11px] text-slate-200 hover:border-slate-600"
+                className="rounded-md border border-border px-2 py-1 text-[11px] text-fg transition hover:opacity-95"
               >
                 Close
               </button>
@@ -422,8 +422,8 @@ export default function ContactPage() {
                   <div
                     className={
                       m.role === 'user'
-                        ? 'max-w-[85%] rounded-2xl bg-primary px-3 py-2 text-white'
-                        : 'max-w-[85%] rounded-2xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-slate-200'
+                        ? 'max-w-[85%] rounded-2xl bg-primary px-3 py-2 text-primary-fg'
+                        : 'max-w-[85%] rounded-2xl border border-border bg-surface/40 px-3 py-2 text-fg'
                     }
                   >
                     {m.text}
@@ -434,7 +434,7 @@ export default function ContactPage() {
             </div>
 
             <form
-              className="flex items-center gap-2 border-t border-slate-800 px-3 py-3"
+              className="flex items-center gap-2 border-t border-border px-3 py-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 sendChatMessage(chatInput);
@@ -445,12 +445,12 @@ export default function ContactPage() {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 type="text"
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-xs text-fg shadow-theme-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 placeholder="Type your message…"
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition hover:opacity-95"
               >
                 Send
               </button>

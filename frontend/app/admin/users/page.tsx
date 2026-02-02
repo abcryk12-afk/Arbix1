@@ -79,11 +79,11 @@ function shortAddr(addr?: string | null) {
 }
 
 function statusLabel(status?: string | null) {
-  if (!status) return { text: '-', cls: 'text-slate-400' };
+  if (!status) return { text: '-', cls: 'text-muted' };
   const s = String(status).toLowerCase();
-  if (s === 'active') return { text: 'Active', cls: 'text-emerald-400' };
-  if (s === 'hold') return { text: 'Inactive', cls: 'text-amber-400' };
-  return { text: status, cls: 'text-slate-300' };
+  if (s === 'active') return { text: 'Active', cls: 'text-heading' };
+  if (s === 'hold') return { text: 'Inactive', cls: 'text-muted' };
+  return { text: status, cls: 'text-muted' };
 }
 
 const escapeCsvCell = (value: any) => {
@@ -678,22 +678,22 @@ export default function AdminUsersPage() {
   }, [earningsByType]);
 
   return (
-    <div className="min-h-screen text-slate-50">
-      <section className="border-b border-slate-800 bg-transparent">
+    <div className="min-h-screen bg-page text-fg">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-lg font-semibold tracking-tight md:text-xl">Users Management</h1>
-              <p className="mt-1 text-[11px] text-slate-400 md:text-xs">
+              <p className="mt-1 text-[11px] text-muted md:text-xs">
                 Search users and view full details, packages, earnings breakdown and referral network.
               </p>
             </div>
             <div className="w-full md:w-96">
-              <label className="mb-1 block text-[11px] text-slate-400 md:text-xs">Search</label>
+              <label className="mb-1 block text-[11px] text-muted md:text-xs">Search</label>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 placeholder="Search by name, email or user id"
               />
             </div>
@@ -704,15 +704,15 @@ export default function AdminUsersPage() {
       <section className="mx-auto max-w-7xl px-4 py-4 md:py-6">
         <div className="grid gap-4 md:grid-cols-[380px_1fr]">
           <div className="arbix-card rounded-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
-                <h2 className="text-sm font-semibold text-slate-100">Users List</h2>
-                <p className="mt-0.5 text-[11px] text-slate-500">Click a user card to view full details.</p>
+                <h2 className="text-sm font-semibold text-heading">Users List</h2>
+                <p className="mt-0.5 text-[11px] text-muted">Click a user card to view full details.</p>
               </div>
               <button
                 type="button"
                 onClick={() => fetchUsers(query)}
-                className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+                className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
               >
                 Refresh
               </button>
@@ -720,9 +720,9 @@ export default function AdminUsersPage() {
 
             <div className="max-h-[460px] overflow-y-auto scroll-smooth p-3">
               {isLoadingUsers ? (
-                <div className="px-2 py-8 text-center text-[11px] text-slate-500">Loading users...</div>
+                <div className="px-2 py-8 text-center text-[11px] text-muted">Loading users...</div>
               ) : visibleUsers.length === 0 ? (
-                <div className="px-2 py-8 text-center text-[11px] text-slate-500">No users found.</div>
+                <div className="px-2 py-8 text-center text-[11px] text-muted">No users found.</div>
               ) : (
                 <div className="space-y-2">
                   {visibleUsers.slice(0, 200).map((u) => {
@@ -736,29 +736,29 @@ export default function AdminUsersPage() {
                         className={
                           'arbix-3d w-full text-left rounded-xl border px-3 py-3 transition ' +
                           (isSelected
-                            ? 'border-primary bg-primary/10'
-                            : 'border-slate-800 bg-slate-950/50 hover:border-slate-600')
+                            ? 'border-border bg-muted'
+                            : 'border-border bg-surface/40 hover:opacity-95')
                         }
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <div className="text-[12px] font-semibold text-slate-100">{u.name || '(No name)'}</div>
-                            <div className="mt-0.5 text-[10px] text-slate-400">{u.email}</div>
+                            <div className="text-[12px] font-semibold text-heading">{u.name || '(No name)'}</div>
+                            <div className="mt-0.5 text-[10px] text-muted">{u.email}</div>
                           </div>
                           <div className="text-right">
                             <div className={'text-[10px] font-semibold ' + st.cls}>{st.text}</div>
-                            <div className="mt-0.5 text-[10px] text-slate-500">ID: {u.id}</div>
+                            <div className="mt-0.5 text-[10px] text-muted">ID: {u.id}</div>
                           </div>
                         </div>
 
-                        <div className="mt-2 grid grid-cols-2 gap-2 text-[10px] text-slate-400">
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-[10px] text-muted">
                           <div>
-                            <span className="text-slate-500">Balance:</span>{' '}
-                            <span className="text-slate-200">${Number(u.balance || 0).toFixed(2)}</span>
+                            <span className="text-muted">Balance:</span>{' '}
+                            <span className="text-fg">${Number(u.balance || 0).toFixed(2)}</span>
                           </div>
                           <div className="text-right">
-                            <span className="text-slate-500">Joined:</span>{' '}
-                            <span className="text-slate-200">{u.createdAt}</span>
+                            <span className="text-muted">Joined:</span>{' '}
+                            <span className="text-fg">{u.createdAt}</span>
                           </div>
                         </div>
                       </button>
@@ -770,77 +770,77 @@ export default function AdminUsersPage() {
           </div>
 
           <div className="arbix-card rounded-2xl">
-            <div className="border-b border-slate-800 px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-100">User Details</h2>
-              <p className="mt-0.5 text-[11px] text-slate-500">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-sm font-semibold text-heading">User Details</h2>
+              <p className="mt-0.5 text-[11px] text-muted">
                 Full profile, wallet, packages, earnings breakdown, referrals.
               </p>
             </div>
 
             {!selectedUserId ? (
-              <div className="px-4 py-10 text-center text-[12px] text-slate-500">
+              <div className="px-4 py-10 text-center text-[12px] text-muted">
                 Please select a user to view details
               </div>
             ) : isLoadingDetails ? (
-              <div className="px-4 py-10 text-center text-[12px] text-slate-500">Loading user details...</div>
+              <div className="px-4 py-10 text-center text-[12px] text-muted">Loading user details...</div>
             ) : detailsError ? (
-              <div className="px-4 py-8 text-center text-[12px] text-red-300">{detailsError}</div>
+              <div className="px-4 py-8 text-center text-[12px] text-fg">{detailsError}</div>
             ) : (
               <div className="p-4 space-y-4">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Profile</div>
-                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
-                      <div><span className="text-slate-500">Full Name:</span> {userDetails?.name || '-'}</div>
-                      <div><span className="text-slate-500">Email:</span> {userDetails?.email || '-'}</div>
-                      <div><span className="text-slate-500">Phone Number:</span> {userDetails?.phone || '-'}</div>
-                      <div><span className="text-slate-500">User ID:</span> {userDetails?.id ?? '-'}</div>
-                      <div><span className="text-slate-500">Account Status:</span> {userDetails?.accountStatus || '-'}</div>
-                      <div><span className="text-slate-500">KYC Status:</span> {userDetails?.kycStatus || '-'}</div>
-                      <div><span className="text-slate-500">Created Date:</span> {fmtDate(userDetails?.createdAt || null)}</div>
-                      <div><span className="text-slate-500">Last Login:</span> {fmtDate(userDetails?.lastLogin || null)}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Profile</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-muted">
+                      <div><span className="text-muted">Full Name:</span> {userDetails?.name || '-'}</div>
+                      <div><span className="text-muted">Email:</span> {userDetails?.email || '-'}</div>
+                      <div><span className="text-muted">Phone Number:</span> {userDetails?.phone || '-'}</div>
+                      <div><span className="text-muted">User ID:</span> {userDetails?.id ?? '-'}</div>
+                      <div><span className="text-muted">Account Status:</span> {userDetails?.accountStatus || '-'}</div>
+                      <div><span className="text-muted">KYC Status:</span> {userDetails?.kycStatus || '-'}</div>
+                      <div><span className="text-muted">Created Date:</span> {fmtDate(userDetails?.createdAt || null)}</div>
+                      <div><span className="text-muted">Last Login:</span> {fmtDate(userDetails?.lastLogin || null)}</div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Wallet</div>
-                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Wallet</div>
+                    <div className="mt-2 space-y-1 text-[11px] text-muted">
                       <div className="break-all">
-                        <span className="text-slate-500">Wallet Public Address:</span> {shortAddr(userDetails?.walletPublicAddress)}
+                        <span className="text-muted">Wallet Public Address:</span> {shortAddr(userDetails?.walletPublicAddress)}
                       </div>
                       <div>
-                        <span className="text-slate-500">Account Balance:</span>{' '}
-                        <span className="text-emerald-400 font-semibold">${Number(walletDetails?.balance || 0).toFixed(2)}</span>
-                        <span className="text-slate-500"> {walletDetails?.currency || 'USDT'}</span>
+                        <span className="text-muted">Account Balance:</span>{' '}
+                        <span className="text-heading font-semibold">${Number(walletDetails?.balance || 0).toFixed(2)}</span>
+                        <span className="text-muted"> {walletDetails?.currency || 'USDT'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500">Referral Code:</span> {userDetails?.referralCode || '-'}
+                        <span className="text-muted">Referral Code:</span> {userDetails?.referralCode || '-'}
                       </div>
                       <div>
-                        <span className="text-slate-500">Referred By (User ID):</span> {userDetails?.referredById ?? '-'}
+                        <span className="text-muted">Referred By (User ID):</span> {userDetails?.referredById ?? '-'}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Send Notification</div>
-                    <p className="mt-1 text-[10px] text-slate-500">
-                      Selected user: <span className="text-slate-300">{userDetails?.email || `ID ${selectedUserId}`}</span>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Send Notification</div>
+                    <p className="mt-1 text-[10px] text-muted">
+                      Selected user: <span className="text-fg">{userDetails?.email || `ID ${selectedUserId}`}</span>
                     </p>
 
                     <div className="mt-3 space-y-2">
                       <input
                         value={notifyTitle}
                         onChange={(e) => setNotifyTitle(e.target.value)}
-                        className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                         placeholder="Title"
                       />
                       <textarea
                         value={notifyMessage}
                         onChange={(e) => setNotifyMessage(e.target.value)}
-                        className="min-h-[90px] w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        className="min-h-[90px] w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                         placeholder="Write your message..."
                       />
                       <div className="flex items-center justify-between gap-2">
@@ -849,18 +849,14 @@ export default function AdminUsersPage() {
                           disabled={!selectedUserId || isSendingNotify}
                           onClick={() => sendNotification({ toAll: false })}
                           className={
-                            'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                            (!selectedUserId || isSendingNotify
-                              ? 'border-slate-800 text-slate-600'
-                              : 'border-emerald-500/40 text-emerald-200 hover:border-emerald-400')
+                            'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                            (!selectedUserId || isSendingNotify ? 'bg-surface/40 text-muted' : 'bg-success/10 text-fg')
                           }
                         >
                           {isSendingNotify ? 'Sending...' : 'Send'}
                         </button>
                         {notifyStatusText ? (
-                          <div className={
-                            'text-[11px] ' + (notifyStatus === 'success' ? 'text-emerald-300' : 'text-rose-300')
-                          }>
+                          <div className={'text-[11px] text-fg'}>
                             {notifyStatusText}
                           </div>
                         ) : (
@@ -870,9 +866,9 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Export / Backup</div>
-                    <p className="mt-1 text-[10px] text-slate-500">Download user data as Excel-friendly CSV files.</p>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Export / Backup</div>
+                    <p className="mt-1 text-[10px] text-muted">Download user data as Excel-friendly CSV files.</p>
 
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <button
@@ -882,12 +878,12 @@ export default function AdminUsersPage() {
                           setExportKind('');
                           setExportText('');
                         }}
-                        className="rounded-lg border border-slate-700 px-3 py-2 text-[11px] font-semibold text-slate-100 hover:border-slate-500"
+                        className="rounded-lg border border-border px-3 py-2 text-[11px] font-semibold text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                       >
                         Open Export Center
                       </button>
                       {exportText ? (
-                        <div className={'text-[11px] ' + (exportKind === 'success' ? 'text-emerald-300' : 'text-rose-300')}>
+                        <div className={'text-[11px] text-fg'}>
                           {exportText}
                         </div>
                       ) : (
@@ -901,10 +897,8 @@ export default function AdminUsersPage() {
                         disabled={isExportingAll}
                         onClick={exportAllUsersCsv}
                         className={
-                          'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                          (isExportingAll
-                            ? 'border-slate-800 text-slate-600'
-                            : 'border-indigo-500/40 text-indigo-200 hover:border-indigo-400')
+                          'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                          (isExportingAll ? 'bg-surface/40 text-muted' : 'bg-info/10 text-fg')
                         }
                       >
                         {isExportingAll ? 'Exporting...' : 'Export All Users'}
@@ -914,10 +908,8 @@ export default function AdminUsersPage() {
                         disabled={!selectedUserId || isExportingSelected}
                         onClick={exportSelectedUserCsv}
                         className={
-                          'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                          (!selectedUserId || isExportingSelected
-                            ? 'border-slate-800 text-slate-600'
-                            : 'border-emerald-500/40 text-emerald-200 hover:border-emerald-400')
+                          'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                          (!selectedUserId || isExportingSelected ? 'bg-surface/40 text-muted' : 'bg-success/10 text-fg')
                         }
                       >
                         {isExportingSelected ? 'Exporting...' : 'Export Selected'}
@@ -925,9 +917,9 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Broadcast to All Users</div>
-                    <p className="mt-1 text-[10px] text-slate-500">
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Broadcast to All Users</div>
+                    <p className="mt-1 text-[10px] text-muted">
                       This will send the same notification to every user.
                     </p>
 
@@ -935,13 +927,13 @@ export default function AdminUsersPage() {
                       <input
                         value={broadcastTitle}
                         onChange={(e) => setBroadcastTitle(e.target.value)}
-                        className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                         placeholder="Title"
                       />
                       <textarea
                         value={broadcastMessage}
                         onChange={(e) => setBroadcastMessage(e.target.value)}
-                        className="min-h-[90px] w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                        className="min-h-[90px] w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                         placeholder="Write your broadcast message..."
                       />
                       <div className="flex items-center justify-between gap-2">
@@ -950,18 +942,14 @@ export default function AdminUsersPage() {
                           disabled={isSendingBroadcast}
                           onClick={() => sendNotification({ toAll: true })}
                           className={
-                            'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                            (isSendingBroadcast
-                              ? 'border-slate-800 text-slate-600'
-                              : 'border-sky-500/40 text-sky-200 hover:border-sky-400')
+                            'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                            (isSendingBroadcast ? 'bg-surface/40 text-muted' : 'bg-info/10 text-fg')
                           }
                         >
                           {isSendingBroadcast ? 'Sending...' : 'Send to All'}
                         </button>
                         {broadcastStatusText ? (
-                          <div className={
-                            'text-[11px] ' + (broadcastStatus === 'success' ? 'text-emerald-300' : 'text-rose-300')
-                          }>
+                          <div className={'text-[11px] text-fg'}>
                             {broadcastStatusText}
                           </div>
                         ) : (
@@ -973,30 +961,30 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Active Packages</div>
-                    <div className="mt-1 text-[12px] font-semibold text-slate-100">{activePackages.length}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Active Packages</div>
+                    <div className="mt-1 text-[12px] font-semibold text-fg">{activePackages.length}</div>
                   </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Daily Revenue (Active)</div>
-                    <div className="mt-1 text-[12px] font-semibold text-emerald-400">${totalDailyRevenue.toFixed(4)}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Daily Revenue (Active)</div>
+                    <div className="mt-1 text-[12px] font-semibold text-heading">${totalDailyRevenue.toFixed(4)}</div>
                   </div>
-                  <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
-                    <div className="text-[11px] font-semibold text-slate-200">Referrals</div>
-                    <div className="mt-1 text-[10px] text-slate-300">L1: {referrals?.l1Count ?? 0}</div>
-                    <div className="mt-0.5 text-[10px] text-slate-300">L2: {referrals?.l2Count ?? 0}</div>
-                    <div className="mt-0.5 text-[10px] text-slate-300">L3: {referrals?.l3Count ?? 0}</div>
+                  <div className="rounded-xl border border-border bg-surface/40 p-3">
+                    <div className="text-[11px] font-semibold text-heading">Referrals</div>
+                    <div className="mt-1 text-[10px] text-muted">L1: {referrals?.l1Count ?? 0}</div>
+                    <div className="mt-0.5 text-[10px] text-muted">L2: {referrals?.l2Count ?? 0}</div>
+                    <div className="mt-0.5 text-[10px] text-muted">L3: {referrals?.l3Count ?? 0}</div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
-                  <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
-                    <div className="text-[11px] font-semibold text-slate-200">Packages Details</div>
-                    <div className="text-[10px] text-slate-500">Total: {packages.length}</div>
+                <div className="rounded-xl border border-border bg-surface/40">
+                  <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                    <div className="text-[11px] font-semibold text-heading">Packages Details</div>
+                    <div className="text-[10px] text-muted">Total: {packages.length}</div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                      <thead className="text-slate-400">
+                    <table className="min-w-full divide-y divide-border text-[11px]">
+                      <thead className="text-muted">
                         <tr>
                           <th className="px-3 py-2 text-left">Package</th>
                           <th className="px-3 py-2 text-left">Capital</th>
@@ -1006,21 +994,21 @@ export default function AdminUsersPage() {
                           <th className="px-3 py-2 text-left">Total Earned</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                      <tbody className="divide-y divide-border text-muted">
                         {packages.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="px-3 py-4 text-center text-slate-500">No packages found.</td>
+                            <td colSpan={6} className="px-3 py-4 text-center text-muted">No packages found.</td>
                           </tr>
                         ) : (
                           packages.map((p) => (
                             <tr key={p.id}>
                               <td className="px-3 py-2">
-                                <div className="font-semibold text-slate-100">{p.packageName}</div>
-                                <div className="text-[10px] text-slate-500">{p.packageId}  ·  #{p.id}</div>
+                                <div className="font-semibold text-heading">{p.packageName}</div>
+                                <div className="text-[10px] text-muted">{p.packageId}  ·  #{p.id}</div>
                               </td>
                               <td className="px-3 py-2">${Number(p.capital || 0).toFixed(2)}</td>
                               <td className="px-3 py-2">{Number(p.dailyRoi || 0).toFixed(2)}%</td>
-                              <td className="px-3 py-2 text-emerald-400">${Number(p.dailyRevenue || 0).toFixed(4)}</td>
+                              <td className="px-3 py-2 text-heading">${Number(p.dailyRevenue || 0).toFixed(4)}</td>
                               <td className="px-3 py-2">{p.status}</td>
                               <td className="px-3 py-2">${Number(p.totalEarned || 0).toFixed(4)}</td>
                             </tr>
@@ -1031,22 +1019,22 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
-                  <div className="border-b border-slate-800 px-3 py-2">
-                    <div className="text-[11px] font-semibold text-slate-200">Earnings / Transactions Breakdown</div>
+                <div className="rounded-xl border border-border bg-surface/40">
+                  <div className="border-b border-border px-3 py-2">
+                    <div className="text-[11px] font-semibold text-heading">Earnings / Transactions Breakdown</div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                      <thead className="text-slate-400">
+                    <table className="min-w-full divide-y divide-border text-[11px]">
+                      <thead className="text-muted">
                         <tr>
                           <th className="px-3 py-2 text-left">Type</th>
                           <th className="px-3 py-2 text-left">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                      <tbody className="divide-y divide-border text-muted">
                         {earningsRows.length === 0 ? (
                           <tr>
-                            <td colSpan={2} className="px-3 py-4 text-center text-slate-500">No transactions found.</td>
+                            <td colSpan={2} className="px-3 py-4 text-center text-muted">No transactions found.</td>
                           </tr>
                         ) : (
                           earningsRows.map((r) => (
@@ -1061,14 +1049,14 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
-                  <div className="flex items-center justify-between border-b border-slate-800 px-3 py-2">
-                    <div className="text-[11px] font-semibold text-slate-200">Direct Referrals (L1)</div>
-                    <div className="text-[10px] text-slate-500">Count: {referrals?.l1Count ?? 0}</div>
+                <div className="rounded-xl border border-border bg-surface/40">
+                  <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                    <div className="text-[11px] font-semibold text-heading">Direct Referrals (L1)</div>
+                    <div className="text-[10px] text-muted">Count: {referrals?.l1Count ?? 0}</div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                      <thead className="text-slate-400">
+                    <table className="min-w-full divide-y divide-border text-[11px]">
+                      <thead className="text-muted">
                         <tr>
                           <th className="px-3 py-2 text-left">User</th>
                           <th className="px-3 py-2 text-left">Email</th>
@@ -1076,17 +1064,17 @@ export default function AdminUsersPage() {
                           <th className="px-3 py-2 text-left">Joined</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
+                      <tbody className="divide-y divide-border text-muted">
                         {!referrals?.l1 || referrals.l1.length === 0 ? (
                           <tr>
-                            <td colSpan={4} className="px-3 py-4 text-center text-slate-500">No direct referrals.</td>
+                            <td colSpan={4} className="px-3 py-4 text-center text-muted">No direct referrals.</td>
                           </tr>
                         ) : (
                           referrals.l1.map((r) => (
                             <tr key={r.id}>
                               <td className="px-3 py-2">
-                                <div className="font-semibold text-slate-100">{r.name || '(No name)'}</div>
-                                <div className="text-[10px] text-slate-500">ID: {r.id} · {r.referralCode || '-'}</div>
+                                <div className="font-semibold text-heading">{r.name || '(No name)'}</div>
+                                <div className="text-[10px] text-muted">ID: {r.id} · {r.referralCode || '-'}</div>
                               </td>
                               <td className="px-3 py-2">{r.email || '-'}</td>
                               <td className="px-3 py-2">{r.accountStatus || '-'}</td>
@@ -1099,17 +1087,17 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-950/50">
-                  <div className="border-b border-slate-800 px-3 py-2">
-                    <div className="text-[11px] font-semibold text-slate-200">User Actions</div>
-                    <div className="mt-0.5 text-[10px] text-slate-500">Hold / unhold, or permanently delete the selected user.</div>
+                <div className="rounded-xl border border-border bg-surface/40">
+                  <div className="border-b border-border px-3 py-2">
+                    <div className="text-[11px] font-semibold text-heading">User Actions</div>
+                    <div className="mt-0.5 text-[10px] text-muted">Hold / unhold, or permanently delete the selected user.</div>
                   </div>
 
                   <div className="p-3 space-y-3">
                     <div className="grid gap-2 md:grid-cols-2">
-                      <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-                        <div className="text-[11px] font-semibold text-slate-200">Account Status</div>
-                        <div className="mt-1 text-[11px] text-slate-300">Current: {userDetails?.accountStatus || '-'}</div>
+                      <div className="rounded-lg border border-border bg-surface/40 p-3">
+                        <div className="text-[11px] font-semibold text-heading">Account Status</div>
+                        <div className="mt-1 text-[11px] text-muted">Current: {userDetails?.accountStatus || '-'}</div>
                         <div className="mt-2 flex items-center gap-2">
                           <button
                             type="button"
@@ -1120,10 +1108,8 @@ export default function AdminUsersPage() {
                               )
                             }
                             className={
-                              'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                              (isUpdatingUserStatus
-                                ? 'border-slate-800 text-slate-600'
-                                : 'border-amber-500/40 text-amber-200 hover:border-amber-400')
+                              'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                              (isUpdatingUserStatus ? 'bg-surface/40 text-muted' : 'bg-warning/10 text-fg')
                             }
                           >
                             {isUpdatingUserStatus
@@ -1133,23 +1119,21 @@ export default function AdminUsersPage() {
                                 : 'Unhold User'}
                           </button>
                           {userStatusUpdateText ? (
-                            <div className={
-                              'text-[11px] ' + (userStatusUpdateKind === 'success' ? 'text-emerald-300' : 'text-rose-300')
-                            }>
+                            <div className={'text-[11px] text-fg'}>
                               {userStatusUpdateText}
                             </div>
                           ) : (
                             <div />
                           )}
                         </div>
-                        <div className="mt-2 text-[10px] text-slate-500">
+                        <div className="mt-2 text-[10px] text-muted">
                           Hold users are restricted (login may be blocked depending on backend auth settings).
                         </div>
                       </div>
 
-                      <div className="rounded-lg border border-rose-900/50 bg-rose-950/20 p-3">
-                        <div className="text-[11px] font-semibold text-rose-200">Danger Zone</div>
-                        <div className="mt-1 text-[10px] text-rose-300">
+                      <div className="rounded-lg border border-border bg-danger/10 p-3">
+                        <div className="text-[11px] font-semibold text-heading">Danger Zone</div>
+                        <div className="mt-1 text-[10px] text-muted">
                           This will delete the user and ALL linked data permanently.
                         </div>
                         <div className="mt-2 flex items-center gap-2">
@@ -1158,18 +1142,14 @@ export default function AdminUsersPage() {
                             disabled={isDeletingUser}
                             onClick={deleteSelectedUser}
                             className={
-                              'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                              (isDeletingUser
-                                ? 'border-slate-800 text-slate-600'
-                                : 'border-rose-500/40 text-rose-200 hover:border-rose-400')
+                              'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                              (isDeletingUser ? 'bg-surface/40 text-muted' : 'bg-danger text-danger-fg')
                             }
                           >
                             {isDeletingUser ? 'Deleting...' : 'Delete User Permanently'}
                           </button>
                           {deleteUserText ? (
-                            <div className={
-                              'text-[11px] ' + (deleteUserKind === 'success' ? 'text-emerald-300' : 'text-rose-300')
-                            }>
+                            <div className={'text-[11px] text-fg'}>
                               {deleteUserText}
                             </div>
                           ) : (
@@ -1182,38 +1162,36 @@ export default function AdminUsersPage() {
                 </div>
 
                 {isExportOpen ? (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-                    <div className="w-full max-w-3xl rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
-                      <div className="flex items-start justify-between gap-3 border-b border-slate-800 px-4 py-3">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/80 backdrop-blur-sm backdrop-brightness-50 p-4">
+                    <div className="w-full max-w-3xl rounded-2xl border border-border bg-surface shadow-theme-lg">
+                      <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
                         <div>
-                          <div className="text-sm font-semibold text-slate-100">Export Center</div>
-                          <div className="mt-0.5 text-[11px] text-slate-500">Backup users as CSV (opens in Excel).</div>
+                          <div className="text-sm font-semibold text-heading">Export Center</div>
+                          <div className="mt-0.5 text-[11px] text-muted">Backup users as CSV (opens in Excel).</div>
                         </div>
                         <button
                           type="button"
                           onClick={() => setIsExportOpen(false)}
-                          className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500"
+                          className="rounded-lg border border-border px-3 py-1 text-[11px] text-muted shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                         >
                           Close
                         </button>
                       </div>
 
                       <div className="p-4 space-y-3">
-                        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                        <div className="rounded-xl border border-border bg-surface/40 p-3">
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <div className="text-[11px] font-semibold text-slate-200">All Users</div>
-                              <div className="mt-0.5 text-[10px] text-slate-500">One CSV file with the full users list.</div>
+                              <div className="text-[11px] font-semibold text-heading">All Users</div>
+                              <div className="mt-0.5 text-[10px] text-muted">One CSV file with the full users list.</div>
                             </div>
                             <button
                               type="button"
                               disabled={isExportingAll}
                               onClick={exportAllUsersCsv}
                               className={
-                                'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                                (isExportingAll
-                                  ? 'border-slate-800 text-slate-600'
-                                  : 'border-indigo-500/40 text-indigo-200 hover:border-indigo-400')
+                                'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                                (isExportingAll ? 'bg-surface/40 text-muted' : 'bg-info/10 text-fg')
                               }
                             >
                               {isExportingAll ? 'Exporting...' : 'Download All Users CSV'}
@@ -1221,11 +1199,11 @@ export default function AdminUsersPage() {
                           </div>
                         </div>
 
-                        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                        <div className="rounded-xl border border-border bg-surface/40 p-3">
                           <div className="flex items-center justify-between gap-3">
                             <div>
-                              <div className="text-[11px] font-semibold text-slate-200">Selected User</div>
-                              <div className="mt-0.5 text-[10px] text-slate-500">
+                              <div className="text-[11px] font-semibold text-heading">Selected User</div>
+                              <div className="mt-0.5 text-[10px] text-muted">
                                 Downloads 4 CSV tables: Profile, Packages, Earnings, Referrals.
                               </div>
                             </div>
@@ -1234,10 +1212,8 @@ export default function AdminUsersPage() {
                               disabled={!selectedUserId || isExportingSelected}
                               onClick={exportSelectedUserCsv}
                               className={
-                                'rounded-lg border px-3 py-2 text-[11px] font-semibold ' +
-                                (!selectedUserId || isExportingSelected
-                                  ? 'border-slate-800 text-slate-600'
-                                  : 'border-emerald-500/40 text-emerald-200 hover:border-emerald-400')
+                                'rounded-lg border border-border px-3 py-2 text-[11px] font-semibold shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60 ' +
+                                (!selectedUserId || isExportingSelected ? 'bg-surface/40 text-muted' : 'bg-success/10 text-fg')
                               }
                             >
                               {isExportingSelected ? 'Exporting...' : 'Download Selected User CSV'}
@@ -1246,7 +1222,7 @@ export default function AdminUsersPage() {
                         </div>
 
                         {exportText ? (
-                          <div className={'text-[11px] ' + (exportKind === 'success' ? 'text-emerald-300' : 'text-rose-300')}>
+                          <div className={'text-[11px] text-fg'}>
                             {exportText}
                           </div>
                         ) : null}

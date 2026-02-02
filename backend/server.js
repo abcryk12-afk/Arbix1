@@ -54,7 +54,6 @@ app.use((req, res, next) => {
   res.status(404).json({ status: 'error', message: 'Route not found' });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ status: 'error', message: 'Something went wrong!' });
@@ -73,7 +72,7 @@ const ensureSchema = async () => {
     const colSet = new Set(cols.map((c) => String(c.Field || '').toLowerCase()).filter(Boolean));
 
     if (!colSet.has('theme_preference')) {
-      await sequelize.query("ALTER TABLE users ADD COLUMN theme_preference ENUM('light','dark') NULL");
+      await sequelize.query("ALTER TABLE users ADD COLUMN theme_preference ENUM('light','dark','colorful') NULL");
     } else {
       const [rows] = await sequelize.query("SHOW COLUMNS FROM users LIKE 'theme_preference'");
       const row = Array.isArray(rows) && rows.length ? rows[0] : null;
@@ -86,7 +85,7 @@ const ensureSchema = async () => {
             .map((s) => s.replace(/^'/, '').replace(/'$/, ''))
             .filter(Boolean)
         : [];
-      const desiredValues = ['light', 'dark'];
+      const desiredValues = ['light', 'dark', 'colorful'];
       const merged = Array.from(new Set([...existingValues, ...desiredValues]));
       if (merged.length && desiredValues.some((v) => !existingValues.includes(v))) {
         const enumSql = merged.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');

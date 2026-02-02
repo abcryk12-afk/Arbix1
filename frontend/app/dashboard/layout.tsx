@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <RequireAuth>
       <DashboardHeader />
-      <div className="relative min-h-[calc(100vh-64px)] overflow-hidden text-slate-50 network-grid-bg arbix-dashboard-bg">
+      <div className="relative min-h-[calc(100vh-64px)] overflow-hidden text-fg network-grid-bg arbix-dashboard-bg">
         <div className="relative arbix-page-enter">{children}</div>
         <DashboardFooter />
       </div>

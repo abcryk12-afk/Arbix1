@@ -1,12 +1,15 @@
 const { SiteSetting } = require('../models');
 
 const THEME_KEY = 'site_theme';
-const DEFAULT_THEME = 'dark';
+const DEFAULT_THEME = null;
 
 function normalizeTheme(input) {
   const raw = String(input || '').trim().toLowerCase();
+  if (!raw || raw === 'default' || raw === 'system') return null;
   if (raw === 'light') return 'light';
-  return 'dark';
+  if (raw === 'dark') return 'dark';
+  if (raw === 'colorful') return 'colorful';
+  return null;
 }
 
 async function getStoredTheme() {

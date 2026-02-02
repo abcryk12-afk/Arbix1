@@ -816,8 +816,8 @@ exports.setThemePreference = async (req, res) => {
       ? null
       : String(raw).toLowerCase();
 
-    if (normalized !== null && !['light', 'dark'].includes(normalized)) {
-      return res.status(400).json({ success: false, message: 'Invalid theme. Use light, dark, or default.' });
+    if (normalized !== null && !['light', 'dark', 'colorful'].includes(normalized)) {
+      return res.status(400).json({ success: false, message: 'Invalid theme. Use light, dark, colorful, or default.' });
     }
 
     const user = await User.findByPk(userId);

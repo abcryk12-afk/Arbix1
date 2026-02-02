@@ -70,14 +70,14 @@ export default function EducationLessonPage({ params }: Props) {
 
   if (!lesson) {
     return (
-      <main className="arbix-page-enter min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <main className="arbix-page-enter min-h-screen bg-page text-fg">
         <div className="mx-auto max-w-4xl px-4 py-10">
           <div className="arbix-card rounded-3xl p-6">
-            <div className="text-lg font-semibold text-slate-100">Lesson not found</div>
-            <div className="mt-2 text-sm text-slate-400">This lesson does not exist.</div>
+            <div className="text-lg font-semibold text-heading">Lesson not found</div>
+            <div className="mt-2 text-sm text-muted">This lesson does not exist.</div>
             <Link
               href="/education"
-              className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+              className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
             >
               Back to Education
             </Link>
@@ -88,21 +88,21 @@ export default function EducationLessonPage({ params }: Props) {
   }
 
   return (
-    <main className="arbix-page-enter min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <main className="arbix-page-enter min-h-screen bg-page text-fg">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <Link
             href="/education"
-            className="rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-xs text-slate-200 hover:border-slate-700"
+            className="rounded-xl border border-border bg-surface/40 px-4 py-2 text-xs text-fg transition hover:opacity-95"
           >
             Back
           </Link>
           {lesson.isPremium ? (
-            <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[11px] text-amber-200">
+            <span className="rounded-full border border-border bg-warning/10 px-3 py-1 text-[11px] text-warning-fg">
               Premium
             </span>
           ) : (
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-200">
+            <span className="rounded-full border border-border bg-success/10 px-3 py-1 text-[11px] text-success-fg">
               Free
             </span>
           )}
@@ -110,36 +110,36 @@ export default function EducationLessonPage({ params }: Props) {
 
         <div className="relative arbix-card rounded-3xl p-6 md:p-8">
           <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">{lesson.title}</h1>
-            <p className="text-sm text-slate-400">{lesson.description}</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-heading md:text-3xl">{lesson.title}</h1>
+            <p className="text-sm text-muted">{lesson.description}</p>
             {lesson.kind === 'video' && lesson.duration ? (
-              <div className="text-[11px] text-slate-500">Duration: {lesson.duration}</div>
+              <div className="text-[11px] text-muted">Duration: {lesson.duration}</div>
             ) : null}
           </div>
 
           {isLocked && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-3xl border border-slate-800 bg-slate-950/55 backdrop-blur-sm">
+            <div className="absolute inset-0 flex items-center justify-center rounded-3xl border border-border bg-surface/80 backdrop-blur-sm">
               <div className="max-w-sm text-center">
                 {!isLoggedIn ? (
                   <>
-                    <div className="text-sm font-semibold text-slate-100">Login required</div>
-                    <div className="mt-1 text-[11px] text-slate-400">Login to view premium lessons.</div>
+                    <div className="text-sm font-semibold text-heading">Login required</div>
+                    <div className="mt-1 text-[11px] text-muted">Login to view premium lessons.</div>
                     <Link
                       href="/auth/login"
-                      className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                      className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                     >
                       Login
                     </Link>
                   </>
                 ) : (
                   <>
-                    <div className="text-sm font-semibold text-slate-100">Active package required</div>
-                    <div className="mt-1 text-[11px] text-slate-400">
+                    <div className="text-sm font-semibold text-heading">Active package required</div>
+                    <div className="mt-1 text-[11px] text-muted">
                       {isCheckingEligibility ? 'Checking eligibility…' : 'Activate any package to unlock premium.'}
                     </div>
                     <Link
                       href="/dashboard/packages"
-                      className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500"
+                      className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                     >
                       Activate Package
                     </Link>
@@ -153,7 +153,7 @@ export default function EducationLessonPage({ params }: Props) {
             {lesson.kind === 'video' && (
               <div className="mt-6">
                 {lesson.youtubeEmbedUrl ? (
-                  <div className="overflow-hidden rounded-2xl border border-slate-800 bg-black">
+                  <div className="overflow-hidden rounded-2xl border border-border bg-surface">
                     <iframe
                       src={lesson.youtubeEmbedUrl}
                       title={lesson.title}
@@ -169,11 +169,11 @@ export default function EducationLessonPage({ params }: Props) {
                     rel="noreferrer"
                     className="arbix-card arbix-3d rounded-2xl p-5"
                   >
-                    <div className="text-sm font-semibold text-slate-100">Open video on YouTube</div>
-                    <div className="mt-1 text-sm text-slate-400">
+                    <div className="text-sm font-semibold text-heading">Open video on YouTube</div>
+                    <div className="mt-1 text-sm text-muted">
                       Temporary link (search). You can replace it with your official playlist later.
                     </div>
-                    <div className="mt-3 text-[11px] text-slate-300">Open</div>
+                    <div className="mt-3 text-[11px] text-muted">Open</div>
                   </a>
                 )}
               </div>
@@ -182,7 +182,7 @@ export default function EducationLessonPage({ params }: Props) {
             {lesson.kind === 'pdf' && (
               <div className="mt-6">
                 {lesson.pdfUrl ? (
-                  <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40">
+                  <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
                     <iframe
                       src={lesson.pdfUrl}
                       title={lesson.title}
@@ -190,7 +190,7 @@ export default function EducationLessonPage({ params }: Props) {
                     />
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 text-sm text-slate-400">
+                  <div className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted">
                     PDF not available.
                   </div>
                 )}
@@ -200,7 +200,7 @@ export default function EducationLessonPage({ params }: Props) {
                     href={lesson.pdfUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 inline-flex rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-xs text-slate-200 hover:border-slate-700"
+                    className="mt-3 inline-flex rounded-xl border border-border bg-surface/40 px-4 py-2 text-xs text-fg transition hover:opacity-95"
                   >
                     Download / Open PDF
                   </a>
@@ -211,17 +211,17 @@ export default function EducationLessonPage({ params }: Props) {
             {lesson.kind === 'blog' && (
               <div className="mt-6 space-y-4">
                 {(lesson.sections || []).map((s) => (
-                  <section key={s.heading} className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                    <div className="text-sm font-semibold text-slate-100">{s.heading}</div>
-                    <div className="mt-2 space-y-2 text-sm text-slate-300">
+                  <section key={s.heading} className="rounded-2xl border border-border bg-surface/40 p-5">
+                    <div className="text-sm font-semibold text-heading">{s.heading}</div>
+                    <div className="mt-2 space-y-2 text-sm text-muted">
                       {s.paragraphs.map((p, idx) => (
-                        <p key={idx} className="leading-relaxed text-slate-300">
+                        <p key={idx} className="leading-relaxed text-muted">
                           {p}
                         </p>
                       ))}
                     </div>
                     {Array.isArray(s.bullets) && s.bullets.length > 0 ? (
-                      <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-300">
+                      <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
                         {s.bullets.map((b) => (
                           <li key={b}>{b}</li>
                         ))}
@@ -231,7 +231,7 @@ export default function EducationLessonPage({ params }: Props) {
                 ))}
 
                 {(lesson.sections || []).length === 0 ? (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5 text-sm text-slate-400">
+                  <div className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted">
                     Lesson content will be added soon.
                   </div>
                 ) : null}

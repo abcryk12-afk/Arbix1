@@ -282,17 +282,18 @@ export default function WithdrawPage() {
   };
 
   return (
-    <div className="bg-transparent text-slate-50">
+    <div className="min-h-screen bg-page text-fg">
       {/* Header */}
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+      <section className="relative overflow-hidden border-b border-border bg-theme-hero backdrop-blur-sm">
+        <div className="absolute inset-0 bg-theme-hero-overlay opacity-60" />
+        <div className="relative mx-auto max-w-5xl px-4 py-6 md:py-8">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             WITHDRAWALS
           </p>
           <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
             Withdraw Funds
           </h1>
-          <p className="mt-2 text-sm text-slate-300 md:text-base">
+          <p className="mt-2 text-sm text-muted md:text-base">
             Withdraw your available USDT balance to a BNB Smart Chain (BEP20)
             address. Most withdrawals are processed instantly (within minutes). If
             additional review is required, it may take 1–2 hours (rarely up to 24
@@ -302,33 +303,33 @@ export default function WithdrawPage() {
       </section>
 
       {/* Balance overview */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Your Withdrawable Balance
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Withdrawable Balance</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent opacity-80" />
+              <p className="text-[11px] text-muted">Withdrawable Balance</p>
+              <p className="mt-1 text-lg font-semibold text-secondary">
                 ${withdrawable.toFixed(2)}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-subtle">
                 Includes daily rewards, referral and bonus earnings
               </p>
             </div>
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Pending Withdrawals</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-warning/70 to-transparent opacity-80" />
+              <p className="text-[11px] text-muted">Pending Withdrawals</p>
+              <p className="mt-1 text-lg font-semibold text-warning">
                 ${pendingTotal.toFixed(2)}
               </p>
             </div>
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-500/60 to-transparent opacity-80" />
-              <p className="text-[11px] text-slate-400">Total Withdrawn (All Time)</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent opacity-80" />
+              <p className="text-[11px] text-muted">Total Withdrawn (All Time)</p>
+              <p className="mt-1 text-lg font-semibold text-heading">
                 ${totalWithdrawn.toFixed(2)}
               </p>
             </div>
@@ -336,7 +337,7 @@ export default function WithdrawPage() {
           <button
             type="button"
             onClick={handleWithdrawAll}
-            className="mt-3 inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-1.5 text-[11px] font-medium text-slate-100 hover:border-slate-500"
+            className="mt-3 inline-flex items-center justify-center rounded-lg border border-border px-4 py-1.5 text-[11px] font-medium text-fg transition hover:border-border2 hover:shadow-theme-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
           >
             Withdraw All
           </button>
@@ -344,19 +345,19 @@ export default function WithdrawPage() {
       </section>
 
       {/* Processing time notice */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-700 bg-slate-950/80 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/80">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-500/60 to-transparent opacity-80" />
-            <p className="text-[11px] font-semibold text-slate-100">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
+          <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent opacity-80" />
+            <p className="text-[11px] font-semibold text-heading">
               ⏱ Withdrawal Processing Time
             </p>
-            <p className="mt-2 text-[11px] text-slate-400">
+            <p className="mt-2 text-[11px] text-muted">
               Most withdrawals are processed <span className="font-semibold">instantly (within minutes)</span>.
               If additional review is required, it may take <span className="font-semibold">1–2 hours</span>.
               In rare cases, processing can take up to <span className="font-semibold">24 hours</span>.
             </p>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-[11px] text-muted">
               Automated checks run instantly, and some withdrawals may require a brief manual review for security.
             </p>
           </div>
@@ -364,14 +365,14 @@ export default function WithdrawPage() {
       </section>
 
       {/* Network warning */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-slate-300 md:text-sm">
-          <div className="group relative overflow-hidden rounded-2xl border border-red-500/70 bg-red-950/30 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-400 hover:bg-red-950/50">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-400/70 to-transparent opacity-80" />
-            <p className="text-[11px] font-semibold text-red-100">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-6 text-xs text-muted md:text-sm">
+          <div className="group relative overflow-hidden rounded-2xl border border-danger/40 bg-danger/10 p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-theme-md">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-danger/70 to-transparent opacity-80" />
+            <p className="text-[11px] font-semibold text-danger">
               ⚠ IMPORTANT — Network Requirement
             </p>
-            <p className="mt-2 text-[11px] text-red-100/90">
+            <p className="mt-2 text-[11px] text-danger/90">
               Withdrawals are processed only on BNB Smart Chain (BEP20). Using an
               address from another network (ERC20, TRC20, etc.) may lead to
               permanent loss of funds.
@@ -381,22 +382,22 @@ export default function WithdrawPage() {
       </section>
 
       {/* Withdrawal form */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Submit Withdrawal Request
           </h2>
 
           {withdrawHoldNote && (
-            <div className="mt-4 rounded-2xl border border-amber-500/60 bg-amber-950/20 p-4 text-[11px] text-amber-200">
+            <div className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-[11px] text-warning">
               <div className="font-semibold">Withdrawals are currently on hold for your account.</div>
-              <div className="mt-1 whitespace-pre-wrap text-amber-200/90">{withdrawHoldNote}</div>
+              <div className="mt-1 whitespace-pre-wrap text-warning/90">{withdrawHoldNote}</div>
             </div>
           )}
 
           <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="address">
+              <label className="mb-1 block text-[11px] text-muted" htmlFor="address">
                 USDT (BEP20) Address
               </label>
               <input
@@ -409,7 +410,7 @@ export default function WithdrawPage() {
                   setAddressError('');
                 }}
                 list="saved-addresses"
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                 placeholder="0x4F3C...9A27"
                 required
               />
@@ -421,22 +422,22 @@ export default function WithdrawPage() {
                 </datalist>
               )}
               {addressError && (
-                <p className="mt-1 text-[10px] text-red-400">{addressError}</p>
+                <p className="mt-1 text-[10px] text-danger">{addressError}</p>
               )}
-              <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400">
+              <div className="mt-2 flex items-center gap-2 text-[11px] text-muted">
                 <input
                   id="save-address"
                   type="checkbox"
                   checked={saveAddress}
                   onChange={(e) => setSaveAddress(e.target.checked)}
-                  className="h-3 w-3 rounded border-slate-700 bg-slate-900"
+                  className="h-3 w-3 rounded border-border bg-surface"
                 />
                 <label htmlFor="save-address">Save this withdrawal address for next time</label>
               </div>
             </div>
 
             <div>
-              <label className="mb-1 block text-[11px] text-slate-400" htmlFor="amount">
+              <label className="mb-1 block text-[11px] text-muted" htmlFor="amount">
                 Withdrawal Amount (USDT)
               </label>
               <input
@@ -449,27 +450,27 @@ export default function WithdrawPage() {
                   setAmount(e.target.value);
                   setAmountError('');
                 }}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                 placeholder="Enter amount (min 10 USDT)"
                 required
               />
-              <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+              <div className="mt-1 flex items-center justify-between text-[10px] text-subtle">
                 <span>Withdrawable: ${withdrawable.toFixed(2)}</span>
                 <span>Minimum withdrawal: 10 USDT</span>
               </div>
               {amountError && (
-                <p className="mt-1 text-[10px] text-red-400">{amountError}</p>
+                <p className="mt-1 text-[10px] text-danger">{amountError}</p>
               )}
             </div>
 
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] text-muted">
               BNB Smart Chain network gas fee will apply. Arbix does not charge any
               extra service fee.
             </div>
 
             <button
               type="submit"
-              className="mt-2 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500"
+              className="mt-2 inline-flex items-center justify-center rounded-lg bg-theme-primary px-5 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
             >
               Submit Withdrawal Request
             </button>
@@ -478,35 +479,35 @@ export default function WithdrawPage() {
       </section>
 
       {/* Pending requests */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm" ref={pendingSectionRef}>
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm" ref={pendingSectionRef}>
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Pending Withdrawals
           </h2>
           {isLoadingRequests ? (
-            <p className="mt-2 text-slate-400">Loading...</p>
+            <p className="mt-2 text-muted">Loading...</p>
           ) : pending.length === 0 ? (
-            <p className="mt-2 text-slate-400">You have no pending withdrawal requests.</p>
+            <p className="mt-2 text-muted">You have no pending withdrawal requests.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {pending.map((w) => (
                 <div
                   key={w.id}
-                  className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-[11px] text-slate-300 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/60"
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-3 text-[11px] text-muted shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md"
                 >
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-600/70 to-transparent opacity-80" />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent opacity-80" />
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-semibold text-slate-100">{w.id}</p>
-                    <p className="text-slate-400">{w.createdAt}</p>
+                    <p className="font-semibold text-heading">{w.id}</p>
+                    <p className="text-muted">{w.createdAt}</p>
                   </div>
                   <p className="mt-1">
                     Amount:{' '}
-                    <span className="font-semibold text-emerald-400">
+                    <span className="font-semibold text-secondary">
                       ${w.amount.toFixed(2)}
                     </span>
                   </p>
-                  <p className="text-slate-400">Address: {shortHash(w.address)}</p>
-                  <p className="mt-1 text-slate-400">
+                  <p className="text-muted">Address: {shortHash(w.address)}</p>
+                  <p className="mt-1 text-muted">
                     Status:{' '}
                     <span className="font-semibold">
                       {w.status === 'Pending'
@@ -524,19 +525,19 @@ export default function WithdrawPage() {
       </section>
 
       {/* Withdrawal history */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Withdrawal History
           </h2>
           {isLoadingRequests ? (
-            <p className="mt-2 text-slate-400">Loading...</p>
+            <p className="mt-2 text-muted">Loading...</p>
           ) : history.length === 0 ? (
-            <p className="mt-2 text-slate-400">No withdrawal history yet.</p>
+            <p className="mt-2 text-muted">No withdrawal history yet.</p>
           ) : (
-            <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 shadow-[0_0_0_1px_rgba(15,23,42,0.7)] transition-shadow duration-200 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]">
-              <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                <thead className="bg-slate-950/80 text-slate-400">
+            <div className="mt-3 overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm transition-all duration-200 hover:border-border2 hover:shadow-theme-md">
+              <table className="min-w-full divide-y divide-border text-[11px]">
+                <thead className="bg-surface/60 text-muted">
                   <tr>
                     <th className="px-3 py-2 text-left">ID</th>
                     <th className="px-3 py-2 text-left">Amount</th>
@@ -546,7 +547,7 @@ export default function WithdrawPage() {
                     <th className="px-3 py-2 text-right">Tx Hash</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
+                <tbody className="divide-y divide-border text-muted">
                   {history.map((h) => (
                     <tr key={h.id}>
                       <td className="px-3 py-2">{h.id}</td>
@@ -555,13 +556,13 @@ export default function WithdrawPage() {
                       <td className="px-3 py-2">{shortHash(h.address)}</td>
                       <td className="px-3 py-2">
                         {h.status === 'Successful' && (
-                          <span className="text-emerald-400">Successful</span>
+                          <span className="text-success">Successful</span>
                         )}
                         {h.status === 'Rejected' && (
-                          <span className="text-red-400">Rejected</span>
+                          <span className="text-danger">Rejected</span>
                         )}
                         {h.status === 'Failed' && (
-                          <span className="text-amber-400">Failed</span>
+                          <span className="text-warning">Failed</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -570,12 +571,12 @@ export default function WithdrawPage() {
                             type="button"
                             onClick={() => handleCopyTx(h.txHash)}
                             title="Click to copy full Tx Hash"
-                            className="text-primary hover:text-blue-400"
+                            className="text-primary transition hover:text-primary-hover"
                           >
                             {shortHash(h.txHash)}
                           </button>
                         ) : (
-                          <span className="text-slate-500">-</span>
+                          <span className="text-subtle">-</span>
                         )}
                       </td>
                     </tr>
@@ -588,9 +589,9 @@ export default function WithdrawPage() {
       </section>
 
       {/* Security notes */}
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-[11px] text-slate-400 md:text-xs">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-[11px] text-muted md:text-xs">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Important Security Notes
           </h2>
           <ul className="mt-2 space-y-1">
@@ -607,18 +608,18 @@ export default function WithdrawPage() {
       </section>
 
       {/* Support */}
-      <section className="bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Need Help with Your Withdrawal?
           </h2>
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-muted">
             If your withdrawal is delayed or you are unsure about the address
             format, contact our Support team and share your request ID.
           </p>
           <a
             href="/contact"
-            className="mt-3 inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-[11px] font-medium text-slate-100 hover:border-slate-500"
+            className="mt-3 inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-[11px] font-medium text-fg transition hover:border-border2 hover:shadow-theme-sm"
           >
             Contact Support
           </a>

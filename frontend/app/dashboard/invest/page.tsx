@@ -368,67 +368,68 @@ export default function StartInvestmentPage() {
   }, []);
 
   return (
-    <div className="bg-transparent text-slate-50">
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+    <div className="min-h-screen bg-page text-fg">
+      <section className="relative overflow-hidden border-b border-border bg-theme-hero backdrop-blur-sm">
+        <div className="absolute inset-0 bg-theme-hero-overlay opacity-60" />
+        <div className="relative mx-auto max-w-5xl px-4 py-6 md:py-8">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             INVESTMENTS
           </p>
           <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
             Start Investment
           </h1>
-          <p className="mt-2 text-sm text-slate-300 md:text-base">
+          <p className="mt-2 text-sm text-muted md:text-base">
             Review your wallet balances, choose a package and activate your first
             Arbix investment.
           </p>
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Your Arbix Wallet
           </h2>
-          <div className="mt-4 grid gap-3 text-xs text-slate-300 sm:grid-cols-4">
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_24px_70px_rgba(16,185,129,0.15)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-              <p className="text-[11px] text-slate-400">Available Balance</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+          <div className="mt-4 grid gap-3 text-xs text-muted sm:grid-cols-4">
+            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-secondary/10 blur-2xl" />
+              <p className="text-[11px] text-muted">Available Balance</p>
+              <p className="mt-1 text-lg font-semibold text-secondary">
                 {isLoading ? '—' : `${availableBalance.toFixed(2)} USDT`}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-subtle">
                 Available to purchase new packages
               </p>
             </div>
 
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/35 hover:shadow-[0_0_0_1px_rgba(167,139,250,0.25),0_24px_70px_rgba(167,139,250,0.12)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-              <p className="text-[11px] text-slate-400">Reward Balance</p>
-              <p className="mt-1 text-lg font-semibold text-violet-200">
+            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-2xl" />
+              <p className="text-[11px] text-muted">Reward Balance</p>
+              <p className="mt-1 text-lg font-semibold text-accent">
                 {isLoading ? '—' : `${rewardBalance.toFixed(2)} USDT`}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-subtle">
                 Bonus wallet (used first when activating)
               </p>
             </div>
 
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_24px_70px_rgba(245,158,11,0.15)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-amber-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-              <p className="text-[11px] text-slate-400">Daily Earnings</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">
+            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-warning/10 blur-2xl" />
+              <p className="text-[11px] text-muted">Daily Earnings</p>
+              <p className="mt-1 text-lg font-semibold text-warning">
                 {isLoading ? '—' : `${dailyRewards.toFixed(2)} USDT`}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-subtle">
                 Earned from active packages (today)
               </p>
             </div>
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/40 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.35),0_24px_70px_rgba(56,189,248,0.15)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-              <p className="text-[11px] text-slate-400">Total Active Capital</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/10 blur-2xl" />
+              <p className="text-[11px] text-muted">Total Active Capital</p>
+              <p className="mt-1 text-lg font-semibold text-heading">
                 {isLoading ? '—' : `${totalActiveCapital.toFixed(2)} USDT`}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-subtle">
                 Sum of all active packages
               </p>
             </div>
@@ -436,17 +437,17 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Choose an Investment Package
           </h2>
-          <p className="mt-2 text-xs text-slate-400 md:text-sm">
+          <p className="mt-2 text-xs text-muted md:text-sm">
             Select a package that matches your budget and risk preference. You can
             always start small and grow over time.
           </p>
 
-          <div className="mt-4 grid gap-4 text-xs text-slate-300 sm:grid-cols-2">
+          <div className="mt-4 grid gap-4 text-xs text-muted sm:grid-cols-2">
             {packagesConfig.map((pkg) => {
               const minCap = Number(pkg.minCapital || 1000);
               const capLabel =
@@ -455,12 +456,12 @@ export default function StartInvestmentPage() {
                   : `$${pkg.capital.toLocaleString()}`;
               const tagColor =
                 pkg.id === 'starter'
-                  ? 'bg-blue-500/15 text-blue-300 border-blue-500/40'
+                  ? 'bg-info/10 text-info border-info/40'
                   : pkg.id === 'gold'
-                  ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40'
+                  ? 'bg-warning/10 text-warning border-warning/40'
                   : pkg.id === 'elite_plus'
-                  ? 'bg-slate-100/10 text-slate-100 border-slate-300/40'
-                  : 'bg-slate-500/10 text-slate-200 border-slate-500/40';
+                  ? 'bg-surface/60 text-heading border-border2/40'
+                  : 'bg-surface/40 text-muted border-border/40';
 
               const expectedDaily =
                 pkg.capital === 'flex'
@@ -471,26 +472,17 @@ export default function StartInvestmentPage() {
                 <div
                   key={pkg.id}
                   className={
-                    'group relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-gradient-to-b p-4 ' +
-                    'shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)] transition-all duration-300 ' +
-                    'hover:-translate-y-1 active:translate-y-0 ' +
-                    (pkg.id === 'starter'
-                      ? 'border-blue-500/25 from-blue-500/10 via-slate-950/70 to-slate-950 hover:border-blue-400/50 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.35),0_28px_90px_rgba(59,130,246,0.14)]'
-                      : pkg.id === 'gold'
-                        ? 'border-amber-500/25 from-amber-500/10 via-slate-950/70 to-slate-950 hover:border-amber-400/50 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.35),0_28px_90px_rgba(245,158,11,0.14)]'
-                        : pkg.id === 'elite_plus'
-                          ? 'border-slate-300/20 from-slate-100/10 via-slate-950/70 to-slate-950 hover:border-slate-200/35 hover:shadow-[0_0_0_1px_rgba(226,232,240,0.18),0_28px_90px_rgba(148,163,184,0.12)]'
-                          : 'border-slate-800/80 from-slate-900/70 via-slate-950/70 to-slate-950 hover:border-sky-500/30 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.25),0_28px_90px_rgba(56,189,248,0.10)]')
+                    'group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md active:translate-y-0'
                   }
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <div className="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl" />
-                    <div className="absolute -bottom-20 -right-16 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl" />
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent" />
+                    <div className="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+                    <div className="absolute -bottom-20 -right-16 h-48 w-48 rounded-full bg-accent/10 blur-3xl" />
+                    <div className="absolute inset-x-0 top-0 h-px bg-border/70" />
                   </div>
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-slate-100">
+                      <h3 className="text-sm font-semibold text-heading">
                         {pkg.name}
                       </h3>
                       <span
@@ -503,29 +495,29 @@ export default function StartInvestmentPage() {
                           : 'Premium plan'}
                       </span>
                     </div>
-                    <p className="mt-2 text-[11px] text-slate-400">
+                    <p className="mt-2 text-[11px] text-muted">
                       Capital Required:{' '}
-                      <span className="font-semibold text-slate-100">
+                      <span className="font-semibold text-heading">
                         {capLabel}
                       </span>
                     </p>
-                    <p className="mt-1 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[11px] text-muted">
                       Daily ROI:{' '}
-                      <span className="font-semibold text-emerald-400">
+                      <span className="font-semibold text-secondary">
                         {pkg.dailyRoi}%
                       </span>{' '}
                       · Duration:{' '}
-                      <span className="font-semibold text-slate-100">
+                      <span className="font-semibold text-heading">
                         {pkg.durationDays} days
                       </span>
                     </p>
-                    <p className="mt-1 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[11px] text-muted">
                       Estimated daily profit on base capital:{' '}
-                      <span className="font-semibold text-emerald-300">
+                      <span className="font-semibold text-secondary">
                         ${expectedDaily.toFixed(2)}
                       </span>
                     </p>
-                    <ul className="mt-2 space-y-1 text-[11px] text-slate-400">
+                    <ul className="mt-2 space-y-1 text-[11px] text-muted">
                       {pkg.bullets.map((b) => (
                         <li key={b}>• {b}</li>
                       ))}
@@ -534,7 +526,7 @@ export default function StartInvestmentPage() {
                   <button
                     type="button"
                     onClick={() => handleActivateClick(pkg.id)}
-                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-[0_10px_30px_rgba(37,99,235,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0"
+                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-theme-primary px-4 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-theme-md hover:opacity-95 active:translate-y-0"
                   >
                     Activate Package
                   </button>
@@ -543,7 +535,7 @@ export default function StartInvestmentPage() {
             })}
           </div>
 
-          <p className="mt-4 text-[11px] text-slate-500">
+          <p className="mt-4 text-[11px] text-subtle">
             Daily ROI is projected based on historical performance. Profit
             percentages are not guaranteed. Invest at your own choice.
           </p>
@@ -553,21 +545,21 @@ export default function StartInvestmentPage() {
       {selectedConfig && showActivation && (
         <section
           id="activation-panel"
-          className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm"
+          className="border-b border-border bg-surface/30 backdrop-blur-sm"
         >
-          <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/80 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)]">
-              <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full bg-sky-500/10 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-20 -right-16 h-56 w-56 rounded-full bg-violet-500/10 blur-3xl" />
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent" />
-              <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+          <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm">
+              <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-20 -right-16 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-border/70" />
+              <h2 className="text-sm font-semibold text-heading md:text-base">
                 Activate Package: {selectedConfig.name}
               </h2>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div className="space-y-1 text-[11px] md:text-xs">
                   <p>
-                    <span className="text-slate-400">Required Capital:</span>{' '}
-                    <span className="font-semibold text-slate-100">
+                    <span className="text-muted">Required Capital:</span>{' '}
+                    <span className="font-semibold text-heading">
                       {selectedConfig.capital === 'flex'
                         ? `$${Number(selectedConfig.minCapital || 1000).toLocaleString()}+`
                         : `$${selectedConfig.capital.toLocaleString()}`}
@@ -575,7 +567,7 @@ export default function StartInvestmentPage() {
                   </p>
                   {selectedConfig.capital === 'flex' && (
                     <div className="mt-2">
-                      <label className="block text-[11px] text-slate-400">
+                      <label className="block text-[11px] text-muted">
                         Enter Capital (min {Number(selectedConfig.minCapital || 1000)})
                       </label>
                       <input
@@ -583,57 +575,57 @@ export default function StartInvestmentPage() {
                         onChange={(e) => setEliteCapital(Number(e.target.value || 0))}
                         type="number"
                         min={Number(selectedConfig.minCapital || 1000)}
-                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-sky-500/60"
+                        className="mt-1 w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                       />
                     </div>
                   )}
                   <p>
-                    <span className="text-slate-400">Daily Profit %:</span>{' '}
-                    <span className="font-semibold text-emerald-400">
+                    <span className="text-muted">Daily Profit %:</span>{' '}
+                    <span className="font-semibold text-secondary">
                       {selectedConfig.dailyRoi}%
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">Duration:</span>{' '}
-                    <span className="font-semibold text-slate-100">
+                    <span className="text-muted">Duration:</span>{' '}
+                    <span className="font-semibold text-heading">
                       {selectedConfig.durationDays} days
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">Expected Daily Earnings:</span>{' '}
-                    <span className="font-semibold text-emerald-300">
+                    <span className="text-muted">Expected Daily Earnings:</span>{' '}
+                    <span className="font-semibold text-secondary">
                       ${expectedDailyEarnings.toFixed(2)}
                     </span>
                   </p>
                 </div>
                 <div className="space-y-1 text-[11px] md:text-xs">
                   <p>
-                    <span className="text-slate-400">Available Balance:</span>{' '}
-                    <span className="font-semibold text-emerald-400">
+                    <span className="text-muted">Available Balance:</span>{' '}
+                    <span className="font-semibold text-secondary">
                       {availableBalance.toFixed(2)} USDT
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">Reward Balance:</span>{' '}
-                    <span className="font-semibold text-violet-200">
+                    <span className="text-muted">Reward Balance:</span>{' '}
+                    <span className="font-semibold text-accent">
                       {rewardBalance.toFixed(2)} USDT
                     </span>
                   </p>
                   <p>
-                    <span className="text-slate-400">Amount to Deduct:</span>{' '}
-                    <span className="font-semibold text-slate-100">
+                    <span className="text-muted">Amount to Deduct:</span>{' '}
+                    <span className="font-semibold text-heading">
                       {requiredCapital.toFixed(2)} USDT
                     </span>
                   </p>
                   {activationError && (
-                    <p className="mt-1 text-red-400">✖ {activationError}</p>
+                    <p className="mt-1 text-danger">✖ {activationError}</p>
                   )}
                   {hasEnoughBalance ? (
-                    <p className="mt-1 text-emerald-400">
+                    <p className="mt-1 text-success">
                       ✔ You have enough balance to activate this package.
                     </p>
                   ) : (
-                    <p className="mt-1 text-red-400">
+                    <p className="mt-1 text-danger">
                       ✖ Insufficient balance. Please deposit first.
                     </p>
                   )}
@@ -645,14 +637,14 @@ export default function StartInvestmentPage() {
                   <button
                     type="button"
                     onClick={handleConfirmActivation}
-                    className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-[0_12px_40px_rgba(37,99,235,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0"
+                    className="rounded-lg bg-theme-primary px-5 py-2 font-medium text-primary-fg shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-theme-md hover:opacity-95 active:translate-y-0"
                   >
                     Confirm Activation
                   </button>
                 ) : (
                   <a
                     href="/dashboard/deposit"
-                    className="rounded-lg bg-primary px-5 py-2 font-medium text-white shadow-[0_12px_40px_rgba(37,99,235,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0"
+                    className="rounded-lg bg-theme-primary px-5 py-2 font-medium text-primary-fg shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-theme-md hover:opacity-95 active:translate-y-0"
                   >
                     Deposit Now
                   </a>
@@ -660,7 +652,7 @@ export default function StartInvestmentPage() {
                 <button
                   type="button"
                   onClick={() => setShowActivation(false)}
-                  className="rounded-lg border border-slate-700 px-5 py-2 text-slate-100 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 active:translate-y-0"
+                  className="rounded-lg border border-border px-5 py-2 text-fg transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-sm active:translate-y-0"
                 >
                   Cancel
                 </button>
@@ -672,14 +664,14 @@ export default function StartInvestmentPage() {
 
       <section
         id="active-packages"
-        className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm"
+        className="border-b border-border bg-surface/30 backdrop-blur-sm"
       >
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Your Active Packages
           </h2>
           {activePackages.length === 0 ? (
-            <p className="mt-3 text-slate-400">
+            <p className="mt-3 text-muted">
               You do not have any active packages yet. Choose a package above to
               get started.
             </p>
@@ -688,16 +680,16 @@ export default function StartInvestmentPage() {
               {activePackages.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/25 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.25),0_28px_90px_rgba(16,185,129,0.12)]"
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md"
                 >
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent opacity-70" />
-                  <div className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full bg-emerald-500/10 blur-3xl opacity-70" />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent opacity-70" />
+                  <div className="pointer-events-none absolute -right-14 -top-14 h-44 w-44 rounded-full bg-secondary/10 blur-3xl opacity-70" />
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-slate-100">
+                      <p className="text-sm font-semibold text-heading">
                         {pkg.name}
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-muted">
                         Start Date: {pkg.startDate}
                       </p>
                     </div>
@@ -705,8 +697,8 @@ export default function StartInvestmentPage() {
                       <span
                         className={
                           pkg.status === 'active'
-                            ? 'rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-400'
-                            : 'rounded-full bg-slate-500/10 px-2 py-0.5 text-slate-300'
+                            ? 'rounded-full bg-success/10 px-2 py-0.5 text-success'
+                            : 'rounded-full bg-surface/40 px-2 py-0.5 text-muted'
                         }
                       >
                         {pkg.status === 'active' ? '🟢 Active' : 'Completed'}
@@ -715,32 +707,32 @@ export default function StartInvestmentPage() {
                   </div>
                   <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2">
                     <p>
-                      <span className="text-slate-400">Capital:</span>{' '}
-                      <span className="font-semibold text-slate-100">
+                      <span className="text-muted">Capital:</span>{' '}
+                      <span className="font-semibold text-heading">
                         ${pkg.capital.toFixed(2)}
                       </span>
                     </p>
                     <p>
-                      <span className="text-slate-400">Daily ROI:</span>{' '}
-                      <span className="font-semibold text-emerald-400">
+                      <span className="text-muted">Daily ROI:</span>{' '}
+                      <span className="font-semibold text-secondary">
                         {pkg.dailyRoi}%
                       </span>
                     </p>
                     <p>
-                      <span className="text-slate-400">Days Left:</span>{' '}
-                      <span className="font-semibold text-slate-100">
+                      <span className="text-muted">Days Left:</span>{' '}
+                      <span className="font-semibold text-heading">
                         {pkg.daysLeft} / 365
                       </span>
                     </p>
                     <p>
-                      <span className="text-slate-400">Today&apos;s Earnings:</span>{' '}
-                      <span className="font-semibold text-emerald-300">
+                      <span className="text-muted">Today&apos;s Earnings:</span>{' '}
+                      <span className="font-semibold text-secondary">
                         ${pkg.todayEarnings.toFixed(2)}
                       </span>
                     </p>
                     <p>
-                      <span className="text-slate-400">Total Earned:</span>{' '}
-                      <span className="font-semibold text-slate-100">
+                      <span className="text-muted">Total Earned:</span>{' '}
+                      <span className="font-semibold text-heading">
                         ${pkg.totalEarned.toFixed(2)}
                       </span>
                     </p>
@@ -752,31 +744,31 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-slate-300 md:text-sm">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-xs text-muted md:text-sm">
+          <h2 className="text-sm font-semibold text-heading md:text-base">
             Daily Earnings Wallet
           </h2>
-          <div className="mt-4 grid gap-3 text-[11px] text-slate-300 sm:grid-cols-3">
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.22),0_24px_70px_rgba(16,185,129,0.10)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl" />
-              <p className="text-slate-400">Today&apos;s Earnings</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+          <div className="mt-4 grid gap-3 text-[11px] text-muted sm:grid-cols-3">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-secondary/10 blur-2xl" />
+              <p className="text-muted">Today&apos;s Earnings</p>
+              <p className="mt-1 text-lg font-semibold text-secondary">
                 {dailyRewards.toFixed(2)} USDT
               </p>
             </div>
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/30 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22),0_24px_70px_rgba(56,189,248,0.10)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl" />
-              <p className="text-slate-400">Daily Earnings Wallet Balance</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+            <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/10 blur-2xl" />
+              <p className="text-muted">Daily Earnings Wallet Balance</p>
+              <p className="mt-1 text-lg font-semibold text-heading">
                 {dailyRewards.toFixed(2)} USDT
               </p>
             </div>
             <div className="flex flex-col justify-center gap-2">
-              <button className="rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-[0_12px_40px_rgba(37,99,235,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500 active:translate-y-0">
+              <button className="rounded-lg bg-theme-primary px-4 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-theme-md hover:opacity-95 active:translate-y-0">
                 Withdraw
               </button>
-              <button className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-100 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500 active:translate-y-0">
+              <button className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-fg transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-sm active:translate-y-0">
                 Reinvest to Packages
               </button>
             </div>
@@ -784,8 +776,8 @@ export default function StartInvestmentPage() {
         </div>
       </section>
 
-      <section className="bg-slate-950/35 backdrop-blur-sm">
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-[11px] text-slate-500 md:text-xs">
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8 text-[11px] text-subtle md:text-xs">
           <p>
             Past performance does not guarantee future results. Your capital is at
             risk. Always invest responsibly.

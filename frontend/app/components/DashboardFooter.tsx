@@ -12,24 +12,24 @@ type StatCardProps = {
 
 function StatCard({ label, value, subLabel, accentClassName, loading }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/50 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-600 hover:bg-slate-900/50 motion-reduce:transform-none">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-700/70 to-transparent" />
+    <div className="group relative overflow-hidden rounded-2xl border border-border bg-surface/50 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-sm motion-reduce:transform-none">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent" />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-[11px] text-slate-400">{label}</div>
+          <div className="text-[11px] text-muted">{label}</div>
           <div
             className={
-              'mt-1 text-lg font-semibold text-slate-100 ' +
+              'mt-1 text-lg font-semibold text-heading ' +
               (loading ? 'animate-pulse' : '')
             }
           >
             {value}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500">{subLabel}</div>
+          <div className="mt-1 text-[11px] text-subtle">{subLabel}</div>
         </div>
         <div className={
-          'mt-1 h-2.5 w-2.5 rounded-full ring-4 ring-slate-900/50 ' +
-          (accentClassName || 'bg-slate-600')
+          'mt-1 h-2.5 w-2.5 rounded-full border-4 border-surface/50 ' +
+          (accentClassName || 'bg-accent')
         } />
       </div>
     </div>
@@ -187,17 +187,17 @@ export default function DashboardFooter() {
   return (
     <footer
       ref={footerRef}
-      className="mt-10 border-t border-slate-800 bg-gradient-to-b from-slate-900/60 via-slate-950/90 to-slate-950"
+      className="mt-10 border-t border-border bg-theme-hero"
     >
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <div className="text-sm font-semibold text-slate-100">Arbix Overview</div>
-            <div className="mt-1 text-[11px] text-slate-400">
+            <div className="text-sm font-semibold text-heading">Arbix Overview</div>
+            <div className="mt-1 text-[11px] text-muted">
               System performance snapshot
             </div>
           </div>
-          <div className="text-[11px] text-slate-500">{updatedLabel}</div>
+          <div className="text-[11px] text-subtle">{updatedLabel}</div>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 lg:grid-cols-4">
@@ -205,33 +205,33 @@ export default function DashboardFooter() {
             label="Daily Withdrawals (System)"
             value={formatMoney(display.systemDailyWithdrawals)}
             subLabel="All users today"
-            accentClassName="bg-emerald-400"
+            accentClassName="bg-secondary"
             loading={loading}
           />
           <StatCard
             label="Total Withdrawals (System)"
             value={formatMoney(display.systemTotalWithdrawals)}
             subLabel="All-time"
-            accentClassName="bg-slate-300"
+            accentClassName="bg-muted"
             loading={loading}
           />
           <StatCard
             label="Daily Joinings (System)"
             value={formatInt(display.systemDailyJoinings)}
             subLabel="All users today"
-            accentClassName="bg-violet-400"
+            accentClassName="bg-accent"
             loading={loading}
           />
           <StatCard
             label="Total Joinings (System)"
             value={formatInt(display.systemTotalJoinings)}
             subLabel="All users all-time"
-            accentClassName="bg-sky-400"
+            accentClassName="bg-primary"
             loading={loading}
           />
         </div>
 
-        <div className="mt-6 border-t border-slate-800/80 pt-4 text-[11px] text-slate-500">
+        <div className="mt-6 border-t border-border/80 pt-4 text-[11px] text-subtle">
           © 2026 Arbix. Dashboard area.
         </div>
       </div>

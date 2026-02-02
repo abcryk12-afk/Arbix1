@@ -1,35 +1,35 @@
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen bg-page bg-theme-page text-fg">
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-10 pb-16 md:pt-14 md:pb-24">
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-emerald-600/10"></div>
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full filter blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500/20 rounded-full filter blur-3xl"></div>
+        <div className="absolute inset-0 bg-theme-hero-overlay opacity-60"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-secondary/20 rounded-full filter blur-3xl"></div>
         
         <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-600/10 border border-blue-600/20 mb-6">
-              <span className="h-2 w-2 bg-blue-400 rounded-full animate-pulse mr-2"></span>
-              <span className="text-blue-400 text-sm font-medium">Automated Arbitrage Platform</span>
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+              <span className="h-2 w-2 bg-primary rounded-full animate-pulse mr-2"></span>
+              <span className="text-primary text-sm font-medium">Automated Arbitrage Platform</span>
             </div>
             
             {/* Main Heading */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
               <span className="block">Earn</span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+              <span className="block text-transparent bg-clip-text bg-theme-text-brand">
                 Passive Income
               </span>
-              <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 text-slate-300">
+              <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 text-muted">
                 Through Smart Trading
               </span>
             </h1>
             
             {/* Subheading */}
-            <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-muted mb-8 max-w-2xl mx-auto">
               Invest wisely with our automated arbitrage system. No trading experience needed - just watch your profits grow daily.
             </p>
             
@@ -37,7 +37,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <a 
                 href="/auth/login" 
-                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-8 py-4 bg-theme-primary text-primary-fg rounded-xl font-semibold transition-all shadow-theme-md hover:shadow-theme-lg transform hover:scale-105"
               >
                 Start Earning Today
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@ export default function HomePage() {
               </a>
               <a 
                 href="#how-it-works" 
-                className="inline-flex items-center justify-center px-8 py-4 bg-slate-800/50 text-white rounded-xl font-semibold border border-slate-600 hover:bg-slate-700/50 transition-all backdrop-blur"
+                className="inline-flex items-center justify-center px-8 py-4 bg-surface/40 text-fg rounded-xl font-semibold border border-border transition-all backdrop-blur hover:border-border2 hover:shadow-theme-sm"
               >
                 Learn More
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,17 +57,17 @@ export default function HomePage() {
 
             {/* Trust Indicators */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-              <div className="p-4 bg-slate-800/30 rounded-lg backdrop-blur">
-                <div className="text-2xl font-bold text-blue-400 mb-1">No Experience Needed</div>
-                <div className="text-sm text-slate-400">Fully automated system</div>
+              <div className="p-4 bg-surface/30 rounded-lg backdrop-blur border border-border/50 shadow-theme-sm">
+                <div className="text-2xl font-bold text-primary mb-1">No Experience Needed</div>
+                <div className="text-sm text-muted">Fully automated system</div>
               </div>
-              <div className="p-4 bg-slate-800/30 rounded-lg backdrop-blur">
-                <div className="text-2xl font-bold text-emerald-400 mb-1">Daily Profits</div>
-                <div className="text-sm text-slate-400">Transparent earnings</div>
+              <div className="p-4 bg-surface/30 rounded-lg backdrop-blur border border-border/50 shadow-theme-sm">
+                <div className="text-2xl font-bold text-secondary mb-1">Daily Profits</div>
+                <div className="text-sm text-muted">Transparent earnings</div>
               </div>
-              <div className="p-4 bg-slate-800/30 rounded-lg backdrop-blur">
-                <div className="text-2xl font-bold text-purple-400 mb-1">Referral Rewards</div>
-                <div className="text-sm text-slate-400">Earn from referrals</div>
+              <div className="p-4 bg-surface/30 rounded-lg backdrop-blur border border-border/50 shadow-theme-sm">
+                <div className="text-2xl font-bold text-accent mb-1">Referral Rewards</div>
+                <div className="text-sm text-muted">Earn from referrals</div>
               </div>
             </div>
           </div>
@@ -75,13 +75,13 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 md:py-24 border-t border-slate-800/50">
+      <section id="features" className="py-16 md:py-24 border-t border-border/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Arbix</span>?
+              Why Choose <span className="text-transparent bg-clip-text bg-theme-text-brand">Arbix</span>?
             </h2>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            <p className="text-lg text-muted max-w-2xl mx-auto">
               Professional arbitrage trading with proven results and cutting-edge technology
             </p>
           </div>
@@ -96,7 +96,7 @@ export default function HomePage() {
                 ),
                 title: "Lightning Fast Trading",
                 description: "Execute trades in milliseconds across multiple exchanges for maximum profit",
-                color: "from-blue-500 to-blue-600"
+                bg: "bg-theme-info"
               },
               {
                 icon: (
@@ -106,7 +106,7 @@ export default function HomePage() {
                 ),
                 title: "Proven Strategy",
                 description: "Back-tested algorithms with consistent profit generation and risk management",
-                color: "from-emerald-500 to-emerald-600"
+                bg: "bg-theme-success"
               },
               {
                 icon: (
@@ -116,7 +116,7 @@ export default function HomePage() {
                 ),
                 title: "Secure & Insured",
                 description: "Bank-level security measures to protect your investments and personal data",
-                color: "from-purple-500 to-purple-600"
+                bg: "bg-theme-secondary"
               },
               {
                 icon: (
@@ -126,7 +126,7 @@ export default function HomePage() {
                 ),
                 title: "Multiple Income Streams",
                 description: "Diversify your portfolio with various trading pairs and investment strategies",
-                color: "from-yellow-500 to-yellow-600"
+                bg: "bg-theme-warning"
               },
               {
                 icon: (
@@ -136,7 +136,7 @@ export default function HomePage() {
                 ),
                 title: "Real-time Analytics",
                 description: "Track your earnings and performance with comprehensive dashboard and reports",
-                color: "from-red-500 to-red-600"
+                bg: "bg-theme-danger"
               },
               {
                 icon: (
@@ -146,15 +146,15 @@ export default function HomePage() {
                 ),
                 title: "24/7 Support",
                 description: "Dedicated support team available round the clock to assist with any queries",
-                color: "from-indigo-500 to-indigo-600"
+                bg: "bg-theme-primary"
               }
             ].map((feature, index) => (
-              <div key={index} className="bg-slate-800/30 rounded-xl p-6 backdrop-blur border border-slate-700/50 hover:border-slate-600/50 transition-all hover:transform hover:scale-105">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} text-white mb-4`}>
+              <div key={index} className="bg-surface/30 rounded-xl p-6 backdrop-blur border border-border/50 transition-all hover:shadow-theme-md hover:transform hover:scale-105">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-xl ${feature.bg} text-primary-fg mb-4 shadow-theme-sm`}>
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-slate-400">{feature.description}</p>
+                <p className="text-muted">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -162,18 +162,18 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section id="stats" className="py-16 md:py-24 bg-gradient-to-b from-transparent to-slate-900/50">
+      <section id="stats" className="py-16 md:py-24 bg-theme-cta">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: "$2.5M+", label: "Total Trading Volume", color: "text-blue-400" },
-              { value: "15,000+", label: "Active Traders", color: "text-emerald-400" },
-              { value: "98.2%", label: "Success Rate", color: "text-purple-400" },
-              { value: "24/7", label: "Trading Support", color: "text-yellow-400" }
+              { value: "$2.5M+", label: "Total Trading Volume", color: "text-primary" },
+              { value: "15,000+", label: "Active Traders", color: "text-secondary" },
+              { value: "98.2%", label: "Success Rate", color: "text-accent" },
+              { value: "24/7", label: "Trading Support", color: "text-warning" }
             ].map((stat, index) => (
-              <div key={index} className="p-6 bg-slate-800/30 rounded-xl backdrop-blur border border-slate-700/50">
+              <div key={index} className="p-6 bg-surface/30 rounded-xl backdrop-blur border border-border/50 shadow-theme-sm">
                 <div className={`text-3xl md:text-4xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
-                <div className="text-sm text-slate-400">{stat.label}</div>
+                <div className="text-sm text-muted">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -181,13 +181,13 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 md:py-24 border-t border-slate-800/50">
+      <section id="how-it-works" className="py-16 md:py-24 border-t border-border/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Arbix</span> Works
+              How <span className="text-transparent bg-clip-text bg-theme-text-brand">Arbix</span> Works
             </h2>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            <p className="text-lg text-muted max-w-2xl mx-auto">
               Start earning passive income in just 3 simple steps
             </p>
           </div>
@@ -226,13 +226,13 @@ export default function HomePage() {
               }
             ].map((item, index) => (
               <div key={index} className="relative text-center">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-6xl font-bold text-slate-700/30">{item.step}</div>
-                <div className="bg-slate-800/30 rounded-xl p-8 backdrop-blur border border-slate-700/50 hover:border-slate-600/50 transition-all">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-xl text-white mb-4">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-6xl font-bold text-subtle/20">{item.step}</div>
+                <div className="bg-surface/30 rounded-xl p-8 backdrop-blur border border-border/50 transition-all hover:shadow-theme-md hover:border-border2">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-theme-primary rounded-xl text-primary-fg mb-4 shadow-theme-sm">
                     {item.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                  <p className="text-slate-400">{item.description}</p>
+                  <p className="text-muted">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -241,19 +241,19 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-transparent to-slate-900/50">
+      <section className="py-16 md:py-24 bg-theme-cta">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Start Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Journey</span>?
+              Ready to Start Your <span className="text-transparent bg-clip-text bg-theme-text-brand">Journey</span>?
             </h2>
-            <p className="text-lg text-slate-300 mb-8">
+            <p className="text-lg text-muted mb-8">
               Join thousands of successful traders earning passive income with Arbix
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <a 
                 href="/auth/login" 
-                className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-emerald-500 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center px-8 py-4 bg-theme-primary text-primary-fg rounded-xl font-semibold transition-all shadow-theme-md hover:shadow-theme-lg transform hover:scale-105"
               >
                 Start Earning Today
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +262,7 @@ export default function HomePage() {
               </a>
               <a 
                 href="/auth/login" 
-                className="inline-flex items-center justify-center px-8 py-4 bg-slate-800/50 text-white rounded-xl font-semibold border border-slate-600 hover:bg-slate-700/50 transition-all backdrop-blur"
+                className="inline-flex items-center justify-center px-8 py-4 bg-surface/40 text-fg rounded-xl font-semibold border border-border transition-all backdrop-blur hover:border-border2 hover:shadow-theme-sm"
               >
                 Login to Account
                 <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

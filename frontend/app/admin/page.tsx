@@ -922,8 +922,8 @@ export default function AdminDashboardPage() {
   const userEndIndex = Math.min(adminUsers.length, userPage * ADMIN_USERS_PAGE_SIZE);
 
   return (
-    <div className="min-h-screen text-slate-50">
-      <section className="border-b border-slate-800 bg-transparent">
+    <div className="min-h-screen bg-page text-fg">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
             <div>
@@ -934,17 +934,17 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={refreshDashboard}
-              className="rounded-lg border border-slate-700 px-3 py-1 text-[11px] text-slate-100 hover:border-slate-500"
+              className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg transition hover:border-border2 hover:shadow-theme-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               Refresh
             </button>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+          <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-100">Manual Job Runner</p>
-                <p className="mt-1 text-[11px] text-slate-400">
+                <p className="text-xs font-semibold text-heading">Manual Job Runner</p>
+                <p className="mt-1 text-[11px] text-muted">
                   Trigger daily profit credit now (testing).
                 </p>
               </div>
@@ -952,7 +952,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 disabled={isRunningDailyProfit}
                 onClick={handleRunDailyProfit}
-                className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-medium text-white hover:bg-violet-500 disabled:opacity-60"
+                className="rounded-lg bg-info px-3 py-2 text-xs font-medium text-info-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
               >
                 {isRunningDailyProfit ? 'Running...' : 'Run Daily Profit'}
               </button>
@@ -962,8 +962,8 @@ export default function AdminDashboardPage() {
               <div
                 className={`mb-4 rounded-lg border p-3 text-[11px] ${
                   runDailyProfitMessageType === 'success'
-                    ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
-                    : 'border-red-600/60 bg-red-950/20 text-red-300'
+                    ? 'border-success/40 bg-success/10 text-success'
+                    : 'border-danger/40 bg-danger/10 text-danger'
                 }`}
               >
                 {runDailyProfitMessage}
@@ -972,11 +972,11 @@ export default function AdminDashboardPage() {
 
             <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Select User</label>
+                <label className="mb-1 block text-[11px] text-muted">Select User</label>
                 <select
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   {adminUsers.map((u) => (
                     <option key={u.id} value={u.id}>
@@ -984,32 +984,32 @@ export default function AdminDashboardPage() {
                     </option>
                   ))}
                 </select>
-                <div className="mt-2 text-[11px] text-slate-400">
+                <div className="mt-2 text-[11px] text-muted">
                   Current balance:{' '}
-                  <span className="font-semibold text-emerald-400">
+                  <span className="font-semibold text-secondary">
                     {selectedAdminUser ? selectedAdminUser.balance.toFixed(2) : '0.00'}
                   </span>
                 </div>
               </div>
               <div className="grid gap-3">
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Amount</label>
+                  <label className="mb-1 block text-[11px] text-muted">Amount</label>
                   <input
                     value={adjustAmount}
                     onChange={(e) => setAdjustAmount(e.target.value)}
                     type="number"
                     min={0}
                     step="0.01"
-                    className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     placeholder="Enter amount"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] text-slate-400">Note (optional)</label>
+                  <label className="mb-1 block text-[11px] text-muted">Note (optional)</label>
                   <input
                     value={adjustNote}
                     onChange={(e) => setAdjustNote(e.target.value)}
-                    className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                    className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     placeholder="Admin adjustment note"
                   />
                 </div>
@@ -1018,7 +1018,7 @@ export default function AdminDashboardPage() {
                     type="button"
                     disabled={isAdjusting}
                     onClick={() => handleAdjustBalance('deposit')}
-                    className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
+                    className="rounded-lg bg-success px-3 py-2 text-xs font-medium text-success-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
                   >
                     {isAdjusting ? 'Working...' : 'Deposit'}
                   </button>
@@ -1026,7 +1026,7 @@ export default function AdminDashboardPage() {
                     type="button"
                     disabled={isAdjusting}
                     onClick={() => handleAdjustBalance('withdraw')}
-                    className="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-60"
+                    className="rounded-lg bg-danger px-3 py-2 text-xs font-medium text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
                   >
                     {isAdjusting ? 'Working...' : 'Withdraw'}
                   </button>
@@ -1038,111 +1038,25 @@ export default function AdminDashboardPage() {
               <div
                 className={`mt-3 rounded-lg border p-3 text-[11px] ${
                   adjustMessageType === 'success'
-                    ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
-                    : 'border-red-600/60 bg-red-950/20 text-red-300'
+                    ? 'border-success/40 bg-success/10 text-success'
+                    : 'border-danger/40 bg-danger/10 text-danger'
                 }`}
               >
                 {adjustMessage}
               </div>
             )}
-
-            <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/60">
-              <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                <thead className="bg-slate-950/90 text-slate-400">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Created</th>
-                    <th className="px-3 py-2 text-left">Name</th>
-                    <th className="px-3 py-2 text-left">Email</th>
-                    <th className="px-3 py-2 text-left">Referral</th>
-                    <th className="px-3 py-2 text-right">Balance</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 text-slate-300">
-                  {adminUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
-                        No users found
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedAdminUsers.map((u) => (
-                      <tr key={u.id}>
-                        <td className="px-3 py-2">{u.createdAt ? String(u.createdAt).slice(0, 19).replace('T', ' ') : '-'}</td>
-                        <td className="px-3 py-2">{u.name}</td>
-                        <td className="px-3 py-2">{u.email}</td>
-                        <td className="px-3 py-2">{u.referralCode || '-'}</td>
-                        <td className="px-3 py-2 text-right text-emerald-400">{Number(u.balance || 0).toFixed(2)}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-2 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                {adminUsers.length === 0 ? (
-                  'No users to display'
-                ) : (
-                  <>
-                    Showing <span className="font-semibold text-slate-100">{userStartIndex}</span>–
-                    <span className="font-semibold text-slate-100">{userEndIndex}</span> of
-                    <span className="font-semibold text-slate-100"> {adminUsers.length}</span> users
-                  </>
-                )}
-              </div>
-              {adminUsers.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setUserPage((p) => Math.max(1, p - 1))}
-                    disabled={userPage === 1}
-                    className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:hover:border-slate-800"
-                  >
-                    Prev
-                  </button>
-                  {Array.from({ length: totalUserPages }).map((_, idx) => {
-                    const pageNum = idx + 1;
-                    const isActive = pageNum === userPage;
-                    return (
-                      <button
-                        key={pageNum}
-                        type="button"
-                        onClick={() => setUserPage(pageNum)}
-                        className={
-                          'min-w-[2rem] rounded-lg px-2 py-1 text-[10px] transition-colors ' +
-                          (isActive
-                            ? 'bg-slate-200 text-slate-900'
-                            : 'border border-slate-800 text-slate-300 hover:border-slate-600')
-                        }
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={() => setUserPage((p) => Math.min(totalUserPages, p + 1))}
-                    disabled={userPage === totalUserPages}
-                    className="rounded-lg border border-slate-800 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:hover:border-slate-800"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-transparent">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
             <div>
-              <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+              <h2 className="text-sm font-semibold text-heading md:text-base">
                 Footer Stats Control
               </h2>
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[11px] text-muted">
                 Add or subtract offsets for the user dashboard footer. Offsets are applied on top of real totals.
               </p>
             </div>
@@ -1152,7 +1066,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={saveFooterStatsOverrides}
                 disabled={isSavingFooterStatsOverrides || isLoadingFooterStatsOverrides}
-                className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-500 disabled:opacity-60"
+                className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
               >
                 {isSavingFooterStatsOverrides ? 'Saving...' : 'Save'}
               </button>
@@ -1164,8 +1078,8 @@ export default function AdminDashboardPage() {
               className={
                 'mb-3 rounded-lg border px-3 py-2 text-[11px] ' +
                 (footerStatsOverridesMessageType === 'success'
-                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+                  ? 'border-success/40 bg-success/10 text-success'
+                  : 'border-danger/40 bg-danger/10 text-danger')
               }
             >
               {footerStatsOverridesMessage}
@@ -1175,7 +1089,7 @@ export default function AdminDashboardPage() {
           <div className="arbix-card rounded-2xl p-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div>
-                <div className="text-[11px] text-slate-400">Daily Withdrawals Offset (System)</div>
+                <label className="mb-1 block text-[11px] text-muted">Daily Withdrawals Offset</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1187,13 +1101,11 @@ export default function AdminDashboardPage() {
                       system: { ...prev.system, dailyWithdrawals: Number.isFinite(n) ? n : 0 },
                     }));
                   }}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
-                  placeholder="0"
+                  className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 />
               </div>
-
               <div>
-                <div className="text-[11px] text-slate-400">Total Withdrawals Offset (System)</div>
+                <label className="mb-1 block text-[11px] text-muted">Total Withdrawals Offset</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1205,13 +1117,11 @@ export default function AdminDashboardPage() {
                       system: { ...prev.system, totalWithdrawals: Number.isFinite(n) ? n : 0 },
                     }));
                   }}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
-                  placeholder="0"
+                  className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 />
               </div>
-
               <div>
-                <div className="text-[11px] text-slate-400">Daily Joinings Offset (System)</div>
+                <label className="mb-1 block text-[11px] text-muted">Daily Joinings Offset</label>
                 <input
                   type="number"
                   step="1"
@@ -1223,13 +1133,11 @@ export default function AdminDashboardPage() {
                       system: { ...prev.system, dailyJoinings: Number.isFinite(n) ? n : 0 },
                     }));
                   }}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
-                  placeholder="0"
+                  className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 />
               </div>
-
               <div>
-                <div className="text-[11px] text-slate-400">Total Joinings Offset (System)</div>
+                <label className="mb-1 block text-[11px] text-muted">Total Joinings Offset</label>
                 <input
                   type="number"
                   step="1"
@@ -1241,38 +1149,36 @@ export default function AdminDashboardPage() {
                       system: { ...prev.system, totalJoinings: Number.isFinite(n) ? n : 0 },
                     }));
                   }}
-                  className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-2 text-[11px] text-slate-100 outline-none focus:border-primary"
-                  placeholder="0"
+                  className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 />
               </div>
             </div>
-
-            <div className="mt-3 text-[11px] text-slate-400">
+            <div className="mt-3 text-[11px] text-muted">
               Tip: Use negative numbers to subtract. Final values shown to users will never go below 0.
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-slate-800 bg-transparent">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
             <div>
-              <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+              <h2 className="text-sm font-semibold text-heading md:text-base">
                 Investment Packages ROI Control
               </h2>
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-[11px] text-muted">
                 Update per-package ROI and labels for new activations. You can optionally apply changes to currently active packages.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <label className="inline-flex items-center gap-2 text-[11px] text-slate-300">
+              <label className="inline-flex items-center gap-2 text-[11px] text-muted">
                 <input
                   type="checkbox"
                   checked={applyInvestmentPackagesToActive}
                   onChange={(e) => setApplyInvestmentPackagesToActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+                  className="h-4 w-4 rounded border-border bg-surface"
                 />
                 Apply to active packages
               </label>
@@ -1280,7 +1186,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={saveInvestmentPackages}
                 disabled={isSavingInvestmentPackages || isLoadingInvestmentPackages}
-                className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-white hover:bg-blue-500 disabled:opacity-60"
+                className="rounded-lg bg-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
               >
                 {isSavingInvestmentPackages ? 'Saving...' : 'Save'}
               </button>
@@ -1292,8 +1198,8 @@ export default function AdminDashboardPage() {
               className={
                 'mb-3 rounded-lg border px-3 py-2 text-[11px] ' +
                 (investmentPackagesMessageType === 'success'
-                  ? 'border-emerald-500/60 bg-emerald-950/20 text-emerald-200'
-                  : 'border-red-500/60 bg-red-950/20 text-red-200')
+                  ? 'border-success/40 bg-success/10 text-success'
+                  : 'border-danger/40 bg-danger/10 text-danger')
               }
             >
               {investmentPackagesMessage}
@@ -1303,8 +1209,8 @@ export default function AdminDashboardPage() {
           <div className="arbix-card rounded-2xl p-4">
             <div className="overflow-x-auto">
               <table className="min-w-[860px] w-full text-left text-[11px]">
-                <thead className="text-slate-400">
-                  <tr className="border-b border-slate-800">
+                <thead className="text-muted">
+                  <tr className="border-b border-border">
                     <th className="p-2">Package ID</th>
                     <th className="p-2">Name</th>
                     <th className="p-2">Capital</th>
@@ -1313,49 +1219,71 @@ export default function AdminDashboardPage() {
                     <th className="p-2">Duration (days)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-900/80">
+                <tbody className="divide-y divide-border">
                   {isLoadingInvestmentPackages ? (
                     <tr>
-                      <td colSpan={6} className="p-4 text-slate-500">
+                      <td colSpan={6} className="p-4 text-subtle">
                         Loading...
                       </td>
                     </tr>
                   ) : (
                     INVESTMENT_PACKAGE_IDS.map((id) => {
-                      const pkg = investmentPackages[String(id)];
+                      const key = String(id);
+                      const pkg = investmentPackages[key];
+                      const isFlex = pkg?.capital === 'flex';
+
                       return (
-                        <tr key={String(id)}>
-                          <td className="p-2 font-mono text-slate-300">{String(id)}</td>
+                        <tr key={key}>
+                          <td className="p-2 font-mono text-muted">{key}</td>
                           <td className="p-2">
                             <input
-                              value={pkg?.name || ''}
+                              value={pkg?.name ?? ''}
                               onChange={(e) =>
                                 setInvestmentPackages((prev) => ({
                                   ...prev,
-                                  [String(id)]: {
-                                    ...(prev[String(id)] || ({} as any)),
+                                  [key]: {
+                                    ...(prev[key] as any),
                                     name: e.target.value,
+                                    capital: prev[key]?.capital ?? 0,
+                                    dailyRoi: prev[key]?.dailyRoi ?? 0,
+                                    durationDays: prev[key]?.durationDays ?? 0,
                                   },
                                 }))
                               }
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              className="w-full rounded-lg border border-border bg-surface/60 px-2 py-1 text-[11px] text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                             />
                           </td>
                           <td className="p-2">
                             <input
-                              value={pkg?.capital === 'flex' ? 'flex' : String(pkg?.capital ?? '')}
+                              value={
+                                pkg?.capital === 'flex'
+                                  ? 'flex'
+                                  : pkg?.capital != null
+                                  ? String(pkg.capital)
+                                  : ''
+                              }
                               onChange={(e) => {
-                                const nextRaw = e.target.value;
-                                const nextCapital = nextRaw.trim().toLowerCase() === 'flex' ? 'flex' : Number(nextRaw);
+                                const raw = e.target.value;
+                                const normalized = raw.trim().toLowerCase();
+                                const nextCapital = normalized === 'flex' ? 'flex' : Number(raw);
                                 setInvestmentPackages((prev) => ({
                                   ...prev,
-                                  [String(id)]: {
-                                    ...(prev[String(id)] || ({} as any)),
-                                    capital: nextCapital === 'flex' ? 'flex' : Number.isFinite(nextCapital) ? nextCapital : 0,
+                                  [key]: {
+                                    ...(prev[key] as any),
+                                    name: prev[key]?.name ?? '',
+                                    capital:
+                                      nextCapital === 'flex'
+                                        ? 'flex'
+                                        : Number.isFinite(nextCapital)
+                                        ? nextCapital
+                                        : 0,
+                                    minCapital: prev[key]?.minCapital,
+                                    dailyRoi: prev[key]?.dailyRoi ?? 0,
+                                    durationDays: prev[key]?.durationDays ?? 0,
                                   },
                                 }));
                               }}
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              className="w-full rounded-lg border border-border bg-surface/60 px-2 py-1 text-[11px] text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                               placeholder="10 / flex"
                             />
                           </td>
@@ -1366,32 +1294,39 @@ export default function AdminDashboardPage() {
                                 const n = Number(e.target.value);
                                 setInvestmentPackages((prev) => ({
                                   ...prev,
-                                  [String(id)]: {
-                                    ...(prev[String(id)] || ({} as any)),
+                                  [key]: {
+                                    ...(prev[key] as any),
+                                    name: prev[key]?.name ?? '',
+                                    capital: prev[key]?.capital ?? 0,
                                     minCapital: Number.isFinite(n) ? n : 0,
+                                    dailyRoi: prev[key]?.dailyRoi ?? 0,
+                                    durationDays: prev[key]?.durationDays ?? 0,
                                   },
                                 }));
                               }}
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
-                              placeholder={pkg?.capital === 'flex' ? '1000' : '—'}
-                              disabled={pkg?.capital !== 'flex'}
+                              disabled={!isFlex}
+                              className="w-full rounded-lg border border-border bg-surface/60 px-2 py-1 text-[11px] text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+                              placeholder={isFlex ? '1000' : '—'}
                             />
                           </td>
                           <td className="p-2">
                             <input
                               value={pkg?.dailyRoi != null ? String(pkg.dailyRoi) : ''}
                               onChange={(e) => {
-                                const nextRaw = e.target.value;
                                 setInvestmentPackages((prev) => ({
                                   ...prev,
-                                  [String(id)]: {
-                                    ...(prev[String(id)] || ({} as any)),
-                                    dailyRoi: nextRaw,
+                                  [key]: {
+                                    ...(prev[key] as any),
+                                    name: prev[key]?.name ?? '',
+                                    capital: prev[key]?.capital ?? 0,
+                                    minCapital: prev[key]?.minCapital,
+                                    dailyRoi: e.target.value,
+                                    durationDays: prev[key]?.durationDays ?? 0,
                                   },
                                 }));
                               }}
                               inputMode="decimal"
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              className="w-full rounded-lg border border-border bg-surface/60 px-2 py-1 text-[11px] text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                               placeholder="1.5"
                             />
                           </td>
@@ -1402,13 +1337,17 @@ export default function AdminDashboardPage() {
                                 const n = Number(e.target.value);
                                 setInvestmentPackages((prev) => ({
                                   ...prev,
-                                  [String(id)]: {
-                                    ...(prev[String(id)] || ({} as any)),
+                                  [key]: {
+                                    ...(prev[key] as any),
+                                    name: prev[key]?.name ?? '',
+                                    capital: prev[key]?.capital ?? 0,
+                                    minCapital: prev[key]?.minCapital,
+                                    dailyRoi: prev[key]?.dailyRoi ?? 0,
                                     durationDays: Number.isFinite(n) ? Math.floor(n) : 0,
                                   },
                                 }));
                               }}
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100 outline-none focus:border-primary"
+                              className="w-full rounded-lg border border-border bg-surface/60 px-2 py-1 text-[11px] text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                               placeholder="365"
                             />
                           </td>
@@ -1419,53 +1358,49 @@ export default function AdminDashboardPage() {
                 </tbody>
               </table>
             </div>
-            <div className="mt-3 text-[11px] text-slate-400">
-              Note: daily profits are calculated using the stored ROI per user package. If you enable &quot;Apply to active packages&quot;, future daily credits will use the updated ROI.
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Global Summary Cards */}
-      <section className="border-b border-slate-800 bg-transparent">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Platform Overview
           </h2>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 text-xs">
             <div className="arbix-card arbix-3d rounded-2xl p-3">
-              <p className="text-[11px] text-slate-400">Total Users</p>
-              <p className="mt-1 text-lg font-semibold text-slate-100">
+              <p className="text-[11px] text-muted">Total Users</p>
+              <p className="mt-1 text-lg font-semibold text-heading">
                 {adminStats ? adminStats.totalUsers.toLocaleString() : '–'}
               </p>
             </div>
-            <div className="arbix-card arbix-card-emerald arbix-3d arbix-3d-emerald rounded-2xl p-3">
-              <p className="text-[11px] text-slate-400">Active Investors</p>
-              <p className="mt-1 text-lg font-semibold text-emerald-400">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
+              <p className="text-[11px] text-muted">Active Investors</p>
+              <p className="mt-1 text-lg font-semibold text-secondary">
                 {adminStats ? adminStats.activeInvestors.toLocaleString() : '–'}
               </p>
             </div>
             <div className="arbix-card arbix-3d rounded-2xl p-3">
-              <p className="text-[11px] text-slate-400">Total Deposited</p>
-              <p className="mt-1 text-lg font-semibold text-blue-400">
+              <p className="text-[11px] text-muted">Total Deposited</p>
+              <p className="mt-1 text-lg font-semibold text-primary">
                 {adminStats ? `$${adminStats.totalDeposited.toFixed(2)}` : '$0.00'}
               </p>
             </div>
-            <div className="arbix-card arbix-card-amber arbix-3d arbix-3d-amber rounded-2xl p-3">
-              <p className="text-[11px] text-slate-400">Total Withdrawn</p>
-              <p className="mt-1 text-lg font-semibold text-orange-400">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
+              <p className="text-[11px] text-muted">Total Withdrawn</p>
+              <p className="mt-1 text-lg font-semibold text-warning">
                 {adminStats ? `$${adminStats.totalWithdrawn.toFixed(2)}` : '$0.00'}
               </p>
             </div>
-            <div className="arbix-card arbix-card-amber arbix-3d arbix-3d-amber rounded-2xl p-3">
-              <p className="text-[11px] text-slate-400">Pending KYC</p>
-              <p className="mt-1 text-lg font-semibold text-amber-400">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
+              <p className="text-[11px] text-muted">Pending KYC</p>
+              <p className="mt-1 text-lg font-semibold text-warning">
                 {adminStats ? adminStats.pendingKyc.toLocaleString() : '0'}
               </p>
             </div>
-            <div className="arbix-card arbix-card-red arbix-3d arbix-3d-red rounded-2xl p-3">
-              <p className="text-[11px] text-slate-400">Pending Withdrawals</p>
-              <p className="mt-1 text-lg font-semibold text-red-400">
+            <div className="arbix-card arbix-3d rounded-2xl p-3">
+              <p className="text-[11px] text-muted">Pending Withdrawals</p>
+              <p className="mt-1 text-lg font-semibold text-danger">
                 {adminStats ? adminStats.pendingWithdrawals.toLocaleString() : '0'}
               </p>
             </div>
@@ -1474,37 +1409,37 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Quick Admin Actions */}
-      <section className="border-b border-slate-800 bg-transparent">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Quick Actions
           </h2>
           <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            <a href="/admin/users" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/users" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Users Management
             </a>
-            <a href="/admin/user-wallets" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/user-wallets" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               User Wallets
             </a>
-            <a href="/admin/kyc" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/kyc" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               KYC Review
             </a>
-            <a href="/admin/withdrawals" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/withdrawals" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Withdraw Requests
             </a>
-            <a href="/admin/packages" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/packages" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Packages Config
             </a>
-            <a href="/admin/trades" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/trades" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Trade Logs
             </a>
-            <a href="/admin/notifications" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/notifications" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Notifications
             </a>
-            <a href="/admin/logs" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/logs" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Admin Logs
             </a>
-            <a href="/admin/records" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-slate-100 hover:text-white">
+            <a href="/admin/records" className="arbix-card arbix-3d rounded-xl p-3 text-center text-[11px] text-fg transition hover:opacity-90">
               Records
             </a>
           </div>
@@ -1512,60 +1447,60 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Create New User */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Create New User (Manual)
           </h2>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+          <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
             <form className="grid gap-3 md:grid-cols-2" onSubmit={handleCreateUser}>
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Full Name</label>
+                <label className="mb-1 block text-[11px] text-muted">Full Name</label>
                 <input
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   placeholder="User name"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Email</label>
+                <label className="mb-1 block text-[11px] text-muted">Email</label>
                 <input
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                   required
                   type="email"
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   placeholder="user@example.com"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Password</label>
+                <label className="mb-1 block text-[11px] text-muted">Password</label>
                 <input
                   value={newUserPassword}
                   onChange={(e) => setNewUserPassword(e.target.value)}
                   required
                   type="password"
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   placeholder="Set password"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Phone (optional)</label>
+                <label className="mb-1 block text-[11px] text-muted">Phone (optional)</label>
                 <input
                   value={newUserPhone}
                   onChange={(e) => setNewUserPhone(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   placeholder="+92..."
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] text-slate-400">Referred By (optional)</label>
+                <label className="mb-1 block text-[11px] text-muted">Referred By (optional)</label>
                 <input
                   value={newUserReferredBy}
                   onChange={(e) => setNewUserReferredBy(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   placeholder="Referral code"
                 />
               </div>
@@ -1573,7 +1508,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={isCreatingUser}
-                  className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-blue-500 disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
                 >
                   {isCreatingUser ? 'Creating...' : 'Create User'}
                 </button>
@@ -1584,8 +1519,8 @@ export default function AdminDashboardPage() {
               <div
                 className={`mt-3 rounded-lg border p-3 text-[11px] ${
                   createUserMessageType === 'success'
-                    ? 'border-emerald-600/60 bg-emerald-950/20 text-emerald-300'
-                    : 'border-red-600/60 bg-red-950/20 text-red-300'
+                    ? 'border-success/40 bg-success/10 text-success'
+                    : 'border-danger/40 bg-danger/10 text-danger'
                 }`}
               >
                 {createUserMessage}
@@ -1595,27 +1530,26 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* Withdrawal Requests Section */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
           <div className="flex items-center justify-between gap-2 mb-3">
-            <h2 className="text-sm font-semibold text-slate-50 md:text-base">
+            <h2 className="text-sm font-semibold text-heading md:text-base">
               Pending Withdrawal Requests
             </h2>
             <div className="flex items-center gap-2">
               <select
                 value={withdrawFilter}
                 onChange={(e) => setWithdrawFilter(e.target.value as 'pending' | 'all')}
-                className="rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-[11px] text-slate-100"
+                className="rounded-lg border border-border bg-surface px-2 py-1 text-[11px] text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 <option value="pending">Pending</option>
                 <option value="all">All</option>
               </select>
             </div>
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">Request ID</th>
                   <th className="px-3 py-2 text-left">User Name</th>
@@ -1628,13 +1562,13 @@ export default function AdminDashboardPage() {
                   <th className="px-3 py-2 text-left">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {filteredWithdrawals.map((req) => (
                   <tr key={req.id}>
                     <td className="px-3 py-2">{req.id}</td>
                     <td className="px-3 py-2">{req.userName}</td>
                     <td className="px-3 py-2">{req.email}</td>
-                    <td className="px-3 py-2 font-semibold text-emerald-400">${req.amount.toFixed(2)}</td>
+                    <td className="px-3 py-2 font-semibold text-success">${req.amount.toFixed(2)}</td>
                     <td className="px-3 py-2">
                       <span className="font-mono text-[10px]">{req.walletAddress ? shortAddr(req.walletAddress) : '-'}</span>
                     </td>
@@ -1644,8 +1578,8 @@ export default function AdminDashboardPage() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] ${
                           req.status === 'pending'
-                            ? 'bg-amber-600/20 text-amber-300'
-                            : 'bg-emerald-600/20 text-emerald-300'
+                            ? 'bg-warning/10 text-warning'
+                            : 'bg-success/10 text-success'
                         }`}
                       >
                         {req.status}
@@ -1655,13 +1589,13 @@ export default function AdminDashboardPage() {
                       <div className="flex gap-1">
                         <button
                           onClick={() => handleApprove(req.id)}
-                          className="rounded bg-emerald-600 px-2 py-0.5 text-[10px] text-white hover:bg-emerald-500"
+                          className="rounded bg-success px-2 py-0.5 text-[10px] text-success-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                         >
                           Approve
                         </button>
                         <button
                           onClick={() => handleReject(req.id)}
-                          className="rounded bg-red-600 px-2 py-0.5 text-[10px] text-white hover:bg-red-500"
+                          className="rounded bg-danger px-2 py-0.5 text-[10px] text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                         >
                           Reject
                         </button>
@@ -1675,15 +1609,14 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* KYC Pending Section */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             KYC Pending Approvals
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">User Name</th>
                   <th className="px-3 py-2 text-left">Email</th>
@@ -1692,19 +1625,22 @@ export default function AdminDashboardPage() {
                   <th className="px-3 py-2 text-left">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {KYC_PENDING.map((user) => (
                   <tr key={user.id}>
                     <td className="px-3 py-2">{user.userName}</td>
                     <td className="px-3 py-2">{user.email}</td>
                     <td className="px-3 py-2">{user.signupDate}</td>
                     <td className="px-3 py-2">
-                      <span className="rounded-full bg-amber-600/20 px-2 py-0.5 text-[10px] text-amber-300">
+                      <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[10px] text-warning">
                         Pending
                       </span>
                     </td>
                     <td className="px-3 py-2">
-                      <a href={`/admin/kyc/${user.id}`} className="rounded bg-blue-600 px-2 py-0.5 text-[10px] text-white hover:bg-blue-500">
+                      <a
+                        href={`/admin/kyc/${user.id}`}
+                        className="rounded bg-primary px-2 py-0.5 text-[10px] text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
+                      >
                         Review KYC
                       </a>
                     </td>
@@ -1716,15 +1652,14 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* Latest Users & Wallets */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Latest Registered Users
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">User Name</th>
                   <th className="px-3 py-2 text-left">Email</th>
@@ -1733,12 +1668,13 @@ export default function AdminDashboardPage() {
                   <th className="px-3 py-2 text-left">Signup Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {latestRegisteredUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-3 py-2">{user.name}</td>
                     <td className="px-3 py-2">{user.email}</td>
                     <td className="px-3 py-2">{user.referralCode}</td>
+
                     <td className="px-3 py-2">
                       <span className="font-mono text-[10px]">{shortAddr(user.publicAddress)}</span>
                     </td>
@@ -1752,9 +1688,9 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* User Detail Inspector */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Find & Manage User
           </h2>
           <div className="mb-4">
@@ -1762,13 +1698,13 @@ export default function AdminDashboardPage() {
               type="text"
               value={userSearchQuery}
               onChange={(e) => setUserSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-100 outline-none focus:border-primary"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               placeholder="Search by name, email, user ID, or referral code"
             />
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 mb-4">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm mb-4">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">User Name</th>
                   <th className="px-3 py-2 text-left">Email</th>
@@ -1776,16 +1712,16 @@ export default function AdminDashboardPage() {
                   <th className="px-3 py-2 text-left">KYC Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {isLoadingManageUsers ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-slate-500">
+                    <td colSpan={4} className="px-3 py-4 text-center text-subtle">
                       Loading...
                     </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-slate-500">
+                    <td colSpan={4} className="px-3 py-4 text-center text-subtle">
                       No users found.
                     </td>
                   </tr>
@@ -1793,8 +1729,8 @@ export default function AdminDashboardPage() {
                   filteredUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className={`cursor-pointer hover:bg-slate-800/50 ${
-                        selectedUser?.id === user.id ? 'bg-slate-800/70' : ''
+                      className={`cursor-pointer transition hover:opacity-95 ${
+                        selectedUser?.id === user.id ? 'bg-muted' : ''
                       }`}
                       onClick={() => loadSelectedUserDetails(user.id)}
                     >
@@ -1805,10 +1741,10 @@ export default function AdminDashboardPage() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-[10px] ${
                             user.kycStatus === 'approved'
-                              ? 'bg-emerald-600/20 text-emerald-300'
+                              ? 'bg-success/10 text-success'
                               : user.kycStatus === 'rejected'
-                              ? 'bg-red-600/20 text-red-300'
-                              : 'bg-amber-600/20 text-amber-300'
+                              ? 'bg-danger/10 text-danger'
+                              : 'bg-warning/10 text-warning'
                           }`}
                         >
                           {user.kycStatus}
@@ -1823,23 +1759,23 @@ export default function AdminDashboardPage() {
 
           {selectedUser && (
             <div className="space-y-4">
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-100">{selectedUser.name}</h3>
-                    <p className="text-[11px] text-slate-400">ID: {selectedUser.userId}</p>
-                    <p className="text-[11px] text-slate-400">Email: {selectedUser.email}</p>
-                    <p className="text-[11px] text-slate-400">Joined: {selectedUser.joinDate}</p>
+                    <h3 className="text-sm font-semibold text-heading">{selectedUser.name}</h3>
+                    <p className="text-[11px] text-muted">ID: {selectedUser.userId}</p>
+                    <p className="text-[11px] text-muted">Email: {selectedUser.email}</p>
+                    <p className="text-[11px] text-muted">Joined: {selectedUser.joinDate}</p>
                   </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] ${
                           selectedUser.kycStatus === 'approved'
-                            ? 'bg-emerald-600/20 text-emerald-300'
+                            ? 'bg-success/10 text-success'
                             : selectedUser.kycStatus === 'rejected'
-                            ? 'bg-red-600/20 text-red-300'
-                            : 'bg-amber-600/20 text-amber-300'
+                            ? 'bg-danger/10 text-danger'
+                            : 'bg-warning/10 text-warning'
                         }`}
                       >
                         KYC: {selectedUser.kycStatus}
@@ -1847,18 +1783,18 @@ export default function AdminDashboardPage() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] ${
                           selectedUser.accountStatus === 'active'
-                            ? 'bg-emerald-600/20 text-emerald-300'
-                            : 'bg-red-600/20 text-red-300'
+                            ? 'bg-success/10 text-success'
+                            : 'bg-danger/10 text-danger'
                         }`}
                       >
                         Account: {selectedUser.accountStatus}
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      <button className="rounded bg-orange-600 px-2 py-1 text-[10px] text-white hover:bg-orange-500">
+                      <button className="rounded bg-warning px-2 py-1 text-[10px] text-warning-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95">
                         {selectedUser.accountStatus === 'active' ? 'Hold Account' : 'Unhold Account'}
                       </button>
-                      <button className="rounded bg-red-600 px-2 py-1 text-[10px] text-white hover:bg-red-500">
+                      <button className="rounded bg-danger px-2 py-1 text-[10px] text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95">
                         Force Logout
                       </button>
                     </div>
@@ -1866,49 +1802,49 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Password Reset / Account Recovery</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">Password Reset / Account Recovery</h4>
                 <div className="space-y-2">
-                  <button className="rounded bg-blue-600 px-3 py-1.5 text-[10px] text-white hover:bg-blue-500">
+                  <button className="rounded bg-primary px-3 py-1.5 text-[10px] text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95">
                     Send Password Reset Link
                   </button>
-                  <button className="rounded bg-purple-600 px-3 py-1.5 text-[10px] text-white hover:bg-purple-500">
+                  <button className="rounded bg-accent px-3 py-1.5 text-[10px] text-accent-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95">
                     Set Temporary Password
                   </button>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-[10px] text-subtle">
                     Last reset action: None - No password reset has been performed yet.
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Wallet Information</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">Wallet Information</h4>
                 <div className="space-y-2 text-[11px]">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Network:</span>
+                    <span className="text-muted">Network:</span>
                     <span>BNB Smart Chain (BEP20)</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Public Address:</span>
+                    <span className="text-muted">Public Address:</span>
                     <div className="flex items-center gap-2">
                       <span className="font-mono">{shortAddr(selectedUser.publicAddress)}</span>
                       <button
                         onClick={() => navigator.clipboard.writeText(selectedUser.publicAddress)}
-                        className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                        className="rounded border border-border px-2 py-0.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                       >
                         Copy
                       </button>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-400">Private Key:</span>
+                    <span className="text-muted">Private Key:</span>
                     <div className="flex items-center gap-2">
                       <span className="font-mono">
                         {showPrivateKey ? selectedUser.privateKey : '************'}
                       </span>
                       <button
                         onClick={() => setShowPrivateKey(!showPrivateKey)}
-                        className="rounded border border-slate-700 px-2 py-0.5 text-[10px] text-slate-100 hover:border-slate-500"
+                        className="rounded border border-border px-2 py-0.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
                       >
                         {showPrivateKey ? 'Hide' : 'View'}
                       </button>
@@ -1916,78 +1852,78 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <button className="rounded bg-slate-700 px-3 py-1.5 text-[10px] text-slate-100 hover:bg-slate-600">
+                  <button className="rounded border border-border bg-muted px-3 py-1.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95">
                     Resend Wallet Info
                   </button>
-                  <button className="rounded bg-slate-700 px-3 py-1.5 text-[10px] text-slate-100 hover:bg-slate-600">
+                  <button className="rounded border border-border bg-muted px-3 py-1.5 text-[10px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95">
                     Recalculate Balance
                   </button>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Balance & Earnings</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">Balance & Earnings</h4>
                 <div className="grid gap-2 text-[11px] sm:grid-cols-2">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Available Balance:</span>
-                    <span className="font-semibold text-emerald-400">${selectedUser.availableBalance.toFixed(2)}</span>
+                    <span className="text-muted">Available Balance:</span>
+                    <span className="font-semibold text-success">${selectedUser.availableBalance.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Total Deposited:</span>
-                    <span className="font-semibold text-blue-400">${selectedUser.totalDeposited.toFixed(2)}</span>
+                    <span className="text-muted">Total Deposited:</span>
+                    <span className="font-semibold text-primary">${selectedUser.totalDeposited.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Total Withdrawn:</span>
-                    <span className="font-semibold text-orange-400">${selectedUser.totalWithdrawn.toFixed(2)}</span>
+                    <span className="text-muted">Total Withdrawn:</span>
+                    <span className="font-semibold text-warning">${selectedUser.totalWithdrawn.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Trading Profits:</span>
-                    <span className="font-semibold text-slate-100">${selectedUser.tradingProfits.toFixed(2)}</span>
+                    <span className="text-muted">Trading Profits:</span>
+                    <span className="font-semibold text-heading">${selectedUser.tradingProfits.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Referral Earnings:</span>
-                    <span className="font-semibold text-violet-400">${selectedUser.referralEarnings.toFixed(2)}</span>
+                    <span className="text-muted">Referral Earnings:</span>
+                    <span className="font-semibold text-accent">${selectedUser.referralEarnings.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Network Overview</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">Network Overview</h4>
                 <div className="space-y-2 text-[11px]">
                   <div className="grid gap-2 sm:grid-cols-4">
                     <div className="text-center">
-                      <p className="text-slate-400">L1</p>
-                      <p className="font-semibold text-emerald-400">{selectedUser.l1Count}</p>
+                      <p className="text-muted">L1</p>
+                      <p className="font-semibold text-success">{selectedUser.l1Count}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-slate-400">L2</p>
-                      <p className="font-semibold text-sky-400">{selectedUser.l2Count}</p>
+                      <p className="text-muted">L2</p>
+                      <p className="font-semibold text-info">{selectedUser.l2Count}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-slate-400">L3</p>
-                      <p className="font-semibold text-violet-400">{selectedUser.l3Count}</p>
+                      <p className="text-muted">L3</p>
+                      <p className="font-semibold text-accent">{selectedUser.l3Count}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-slate-400">Total</p>
-                      <p className="font-semibold text-slate-100">{selectedUser.l1Count + selectedUser.l2Count + selectedUser.l3Count}</p>
+                      <p className="text-muted">Total</p>
+                      <p className="font-semibold text-heading">{selectedUser.l1Count + selectedUser.l2Count + selectedUser.l3Count}</p>
                     </div>
                   </div>
-                  <div className="flex justify-between pt-2 border-t border-slate-800">
-                    <span className="text-slate-400">Today&apos;s Network Earnings:</span>
-                    <span className="font-semibold text-violet-400">${selectedUser.networkToday.toFixed(2)}</span>
+                  <div className="flex justify-between pt-2 border-t border-border">
+                    <span className="text-muted">Today&apos;s Network Earnings:</span>
+                    <span className="font-semibold text-accent">${selectedUser.networkToday.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Total Network Earnings:</span>
-                    <span className="font-semibold text-violet-400">${selectedUser.networkTotal.toFixed(2)}</span>
+                    <span className="text-muted">Total Network Earnings:</span>
+                    <span className="font-semibold text-accent">${selectedUser.networkTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">User Investments</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">User Investments</h4>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                    <thead className="bg-slate-950/90 text-slate-400">
+                  <table className="min-w-full divide-y divide-border text-[11px]">
+                    <thead className="bg-surface/60 text-muted">
                       <tr>
                         <th className="px-2 py-1 text-left">Package</th>
                         <th className="px-2 py-1 text-left">Capital</th>
@@ -1996,10 +1932,10 @@ export default function AdminDashboardPage() {
                         <th className="px-2 py-1 text-left">Days Left</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-border text-muted">
                       {selectedUserInvestments.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-2 py-3 text-center text-slate-500">
+                          <td colSpan={5} className="px-2 py-3 text-center text-subtle">
                             No packages found.
                           </td>
                         </tr>
@@ -2013,8 +1949,8 @@ export default function AdminDashboardPage() {
                               <span
                                 className={`rounded-full px-1 py-0.5 text-[10px] ${
                                   inv.status === 'active'
-                                    ? 'bg-emerald-600/20 text-emerald-300'
-                                    : 'bg-slate-600/20 text-slate-300'
+                                    ? 'bg-success/10 text-success'
+                                    : 'bg-muted text-muted'
                                 }`}
                               >
                                 {inv.status}
@@ -2029,20 +1965,20 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Recent Transactions</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">Recent Transactions</h4>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                    <thead className="bg-slate-950/90 text-slate-400">
+                  <table className="min-w-full divide-y divide-border text-[11px]">
+                    <thead className="bg-surface/60 text-muted">
                       <tr>
                         <th className="px-2 py-1 text-left">Type</th>
                         <th className="px-2 py-1 text-left">Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-border text-muted">
                       {selectedUserEarnings.length === 0 ? (
                         <tr>
-                          <td colSpan={2} className="px-2 py-3 text-center text-slate-500">
+                          <td colSpan={2} className="px-2 py-3 text-center text-subtle">
                             No transaction totals.
                           </td>
                         </tr>
@@ -2059,34 +1995,34 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">KYC & Profile Info</h4>
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">KYC & Profile Info</h4>
                 <div className="space-y-2 text-[11px]">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Full Name:</span>
+                    <span className="text-muted">Full Name:</span>
                     <span>{selectedUser.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Email:</span>
+                    <span className="text-muted">Email:</span>
                     <span>{selectedUser.email}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Phone:</span>
+                    <span className="text-muted">Phone:</span>
                     <span>{selectedUser.phone}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">CNIC/Passport:</span>
+                    <span className="text-muted">CNIC/Passport:</span>
                     <span>{selectedUser.cnic}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">KYC Status:</span>
+                    <span className="text-muted">KYC Status:</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] ${
                         selectedUser.kycStatus === 'approved'
-                          ? 'bg-emerald-600/20 text-emerald-300'
+                          ? 'bg-success/10 text-success'
                           : selectedUser.kycStatus === 'rejected'
-                          ? 'bg-red-600/20 text-red-300'
-                          : 'bg-amber-600/20 text-amber-300'
+                          ? 'bg-danger/10 text-danger'
+                          : 'bg-warning/10 text-warning'
                       }`}
                     >
                       {selectedUser.kycStatus}
@@ -2094,16 +2030,19 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <a href={`/admin/kyc/${selectedUser.id}`} className="rounded bg-blue-600 px-3 py-1.5 text-[10px] text-white hover:bg-blue-500">
+                  <a
+                    href={`/admin/kyc/${selectedUser.id}`}
+                    className="rounded bg-primary px-3 py-1.5 text-[10px] text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
+                  >
                     Open KYC Page
                   </a>
                 </div>
               </div>
 
               {/* Admin Logs for This User */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-                <h4 className="text-[11px] font-semibold text-slate-100 mb-3">Admin Actions on This Account</h4>
-                <div className="text-[10px] text-slate-500">
+              <div className="rounded-2xl border border-border bg-surface/60 p-4 shadow-theme-sm">
+                <h4 className="text-[11px] font-semibold text-heading mb-3">Admin Actions on This Account</h4>
+                <div className="text-[10px] text-subtle">
                   No admin actions recorded for this user yet.
                 </div>
               </div>
@@ -2113,17 +2052,17 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Recent Deposits & Withdrawals */}
-      <section className="border-b border-slate-800 bg-slate-950">
+      <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Recent Transactions
           </h2>
           <div className="grid gap-3 lg:grid-cols-2">
             <div>
-              <h3 className="text-[11px] font-semibold text-slate-100 mb-2">Recent Deposits</h3>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
-                <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                  <thead className="bg-slate-950/90 text-slate-400">
+              <h3 className="text-[11px] font-semibold text-heading mb-2">Recent Deposits</h3>
+              <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+                <table className="min-w-full divide-y divide-border text-[11px]">
+                  <thead className="bg-surface/60 text-muted">
                     <tr>
                       <th className="px-3 py-2 text-left">User</th>
                       <th className="px-3 py-2 text-left">Amount</th>
@@ -2132,16 +2071,16 @@ export default function AdminDashboardPage() {
                       <th className="px-3 py-2 text-left">Time</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className="divide-y divide-border text-muted">
                     {recentDeposits.map((dep) => (
                       <tr key={dep.id}>
                         <td className="px-3 py-2">{dep.userName}</td>
-                        <td className="px-3 py-2 font-semibold text-emerald-400">${dep.amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 font-semibold text-success">${dep.amount.toFixed(2)}</td>
                         <td className="px-3 py-2">
                           <span className="font-mono text-[10px]">{shortAddr(dep.txHash)}</span>
                         </td>
                         <td className="px-3 py-2">
-                          <span className="rounded-full bg-emerald-600/20 px-2 py-0.5 text-[10px] text-emerald-300">
+                          <span className="rounded-full bg-success/10 px-2 py-0.5 text-[10px] text-success">
                             {dep.status}
                           </span>
                         </td>
@@ -2153,10 +2092,10 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div>
-              <h3 className="text-[11px] font-semibold text-slate-100 mb-2">Recent Withdrawals</h3>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/70">
-                <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-                  <thead className="bg-slate-950/90 text-slate-400">
+              <h3 className="text-[11px] font-semibold text-heading mb-2">Recent Withdrawals</h3>
+              <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+                <table className="min-w-full divide-y divide-border text-[11px]">
+                  <thead className="bg-surface/60 text-muted">
                     <tr>
                       <th className="px-3 py-2 text-left">User</th>
                       <th className="px-3 py-2 text-left">Amount</th>
@@ -2164,16 +2103,16 @@ export default function AdminDashboardPage() {
                       <th className="px-3 py-2 text-left">Time</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className="divide-y divide-border text-muted">
                     {recentWithdrawals.map((wd) => (
                       <tr key={wd.id}>
                         <td className="px-3 py-2">{wd.userName}</td>
-                        <td className="px-3 py-2 font-semibold text-orange-400">${wd.amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 font-semibold text-warning">${wd.amount.toFixed(2)}</td>
                         <td className="px-3 py-2">
                           <span className={`rounded-full px-2 py-0.5 text-[10px] ${
                             wd.status === 'pending' 
-                              ? 'bg-amber-600/20 text-amber-300' 
-                              : 'bg-emerald-600/20 text-emerald-300'
+                              ? 'bg-warning/10 text-warning' 
+                              : 'bg-success/10 text-success'
                           }`}>
                             {wd.status}
                           </span>
@@ -2190,14 +2129,14 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Admin Logs Snapshot */}
-      <section className="bg-slate-950">
+      <section className="bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <h2 className="text-sm font-semibold text-slate-50 md:text-base mb-3">
+          <h2 className="text-sm font-semibold text-heading md:text-base mb-3">
             Recent Admin Actions
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
-            <table className="min-w-full divide-y divide-slate-800 text-[11px]">
-              <thead className="bg-slate-950/90 text-slate-400">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <table className="min-w-full divide-y divide-border text-[11px]">
+              <thead className="bg-surface/60 text-muted">
                 <tr>
                   <th className="px-3 py-2 text-left">Time</th>
                   <th className="px-3 py-2 text-left">Admin Name</th>
@@ -2205,13 +2144,13 @@ export default function AdminDashboardPage() {
                   <th className="px-3 py-2 text-left">Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-muted">
                 {ADMIN_LOGS.map((log) => (
                   <tr key={log.id}>
                     <td className="px-3 py-2">{log.time}</td>
                     <td className="px-3 py-2">{log.adminName}</td>
                     <td className="px-3 py-2">
-                      <span className="rounded-full bg-blue-600/20 px-2 py-0.5 text-[10px] text-blue-300">
+                      <span className="rounded-full bg-info/10 px-2 py-0.5 text-[10px] text-info">
                         {log.action}
                       </span>
                     </td>
@@ -2223,6 +2162,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }
