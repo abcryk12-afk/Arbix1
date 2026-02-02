@@ -86,71 +86,71 @@ export default function PackagesPage() {
   const formatMoney = (n: number) => `$${Number(n || 0).toFixed(2)}`;
 
   return (
-    <div className="bg-transparent text-slate-50">
-      <section className="border-b border-slate-800 bg-gradient-to-b from-slate-950/60 via-slate-950/50 to-slate-900/60 backdrop-blur-sm">
+    <div className="bg-transparent text-fg">
+      <section className="border-b border-border bg-theme-hero backdrop-blur-sm">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 md:py-8">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             PACKAGES
           </p>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
+          <h1 className="mt-2 text-xl font-semibold tracking-tight text-heading sm:text-2xl md:text-3xl">
             Your Packages
           </h1>
-          <p className="mt-2 text-sm text-slate-300 md:text-base">
+          <p className="mt-2 text-sm text-muted md:text-base">
             Track active capital, earnings, and package status.
           </p>
         </div>
       </section>
 
       <main className="mx-auto w-full max-w-6xl px-4 py-6">
-        <section className="grid gap-3 text-xs text-slate-300 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/35 hover:shadow-[0_0_0_1px_rgba(16,185,129,0.22),0_24px_70px_rgba(16,185,129,0.10)]">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-2xl" />
-            <div className="text-[11px] text-slate-400">Active Packages</div>
-            <div className={'mt-1 text-lg font-semibold text-slate-100 ' + (loading ? 'animate-pulse' : '')}>
+        <section className="grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-4">
+          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-success/10 blur-2xl" />
+            <div className="text-[11px] text-muted">Active Packages</div>
+            <div className={'mt-1 text-lg font-semibold text-heading ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : activePackages.length}
             </div>
-            <div className="mt-1 text-[11px] text-slate-500">Only status = active</div>
+            <div className="mt-1 text-[11px] text-subtle">Only status = active</div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/35 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.22),0_24px_70px_rgba(56,189,248,0.10)]">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl" />
-            <div className="text-[11px] text-slate-400">Total Capital</div>
-            <div className={'mt-1 text-lg font-semibold text-slate-100 ' + (loading ? 'animate-pulse' : '')}>
+          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-info/10 blur-2xl" />
+            <div className="text-[11px] text-muted">Total Capital</div>
+            <div className={'mt-1 text-lg font-semibold text-heading ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : formatMoney(totals.totalCapital)}
             </div>
-            <div className="mt-1 text-[11px] text-slate-500">All packages combined</div>
+            <div className="mt-1 text-[11px] text-subtle">All packages combined</div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/35 hover:shadow-[0_0_0_1px_rgba(139,92,246,0.22),0_24px_70px_rgba(139,92,246,0.10)]">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/10 blur-2xl" />
-            <div className="text-[11px] text-slate-400">Active Capital</div>
-            <div className={'mt-1 text-lg font-semibold text-slate-100 ' + (loading ? 'animate-pulse' : '')}>
+          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-2xl" />
+            <div className="text-[11px] text-muted">Active Capital</div>
+            <div className={'mt-1 text-lg font-semibold text-heading ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : formatMoney(totals.activeCapital)}
             </div>
-            <div className="mt-1 text-[11px] text-slate-500">In active packages</div>
+            <div className="mt-1 text-[11px] text-subtle">In active packages</div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/35 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.22),0_24px_70px_rgba(245,158,11,0.10)]">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-amber-500/10 blur-2xl" />
-            <div className="text-[11px] text-slate-400">Earnings (Today)</div>
-            <div className={'mt-1 text-lg font-semibold text-amber-400 ' + (loading ? 'animate-pulse' : '')}>
+          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
+            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-warning/10 blur-2xl" />
+            <div className="text-[11px] text-muted">Earnings (Today)</div>
+            <div className={'mt-1 text-lg font-semibold text-warning ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : formatMoney(totals.todayEarned)}
             </div>
-            <div className="mt-1 text-[11px] text-slate-500">From all packages</div>
+            <div className="mt-1 text-[11px] text-subtle">From all packages</div>
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-800/80 bg-slate-950/50 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9)]">
+        <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm">
           <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="text-sm font-semibold text-slate-100">My Packages</div>
-              <div className="text-xs text-slate-500">Fetched from /api/user/packages</div>
+              <div className="text-sm font-semibold text-heading">My Packages</div>
+              <div className="text-xs text-muted">Fetched from /api/user/packages</div>
             </div>
-            <div className="text-[11px] text-slate-500">Total earned: {loading ? '—' : formatMoney(totals.totalEarned)}</div>
+            <div className="text-[11px] text-muted">Total earned: {loading ? '—' : formatMoney(totals.totalEarned)}</div>
           </div>
 
           {!loading && packages.length === 0 ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs text-slate-400">
+            <div className="rounded-2xl border border-border bg-surface/30 p-4 text-xs text-muted">
               No packages found.
             </div>
           ) : (
@@ -159,52 +159,52 @@ export default function PackagesPage() {
                 {packages.map((p) => (
                   <div
                     key={p.id}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/70 via-slate-950/70 to-slate-950 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.9),0_18px_55px_rgba(0,0,0,0.38)] transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/30 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.18),0_28px_90px_rgba(56,189,248,0.10)]"
+                    className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md"
                   >
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/60 to-transparent" />
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-primary/40" />
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-slate-100">{p.name}</div>
-                        <div className="mt-0.5 text-[11px] text-slate-500">#{p.id}</div>
+                        <div className="truncate text-sm font-semibold text-heading">{p.name}</div>
+                        <div className="mt-0.5 text-[11px] text-muted">#{p.id}</div>
                       </div>
                       <span
                         className={
                           'shrink-0 rounded-full border px-2 py-1 text-[11px] ' +
                           (String(p.status).toLowerCase() === 'active'
-                            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                            : 'border-slate-700 bg-slate-700/30 text-slate-200')
+                            ? 'border-success/40 bg-success/10 text-success'
+                            : 'border-border bg-muted text-fg')
                         }
                       >
                         {p.status}
                       </span>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted">
                       <div>
-                        <div className="text-slate-400">Capital</div>
-                        <div className="font-semibold text-slate-100">{formatMoney(p.capital)}</div>
+                        <div className="text-subtle">Capital</div>
+                        <div className="font-semibold text-heading">{formatMoney(p.capital)}</div>
                       </div>
                       <div>
-                        <div className="text-slate-400">Daily ROI</div>
-                        <div className="font-semibold text-emerald-300">{Number(p.dailyRoi || 0)}%</div>
+                        <div className="text-subtle">Daily ROI</div>
+                        <div className="font-semibold text-success">{Number(p.dailyRoi || 0)}%</div>
                       </div>
                       <div>
-                        <div className="text-slate-400">Today</div>
-                        <div className="font-semibold text-amber-300">{formatMoney(p.todayEarnings)}</div>
+                        <div className="text-subtle">Today</div>
+                        <div className="font-semibold text-warning">{formatMoney(p.todayEarnings)}</div>
                       </div>
                       <div>
-                        <div className="text-slate-400">Days Left</div>
-                        <div className="font-semibold text-slate-100">{Number(p.daysLeft || 0)}</div>
+                        <div className="text-subtle">Days Left</div>
+                        <div className="font-semibold text-heading">{Number(p.daysLeft || 0)}</div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden overflow-x-auto md:block">
                 <table className="min-w-[860px] w-full border-collapse text-left text-xs">
                   <thead>
-                    <tr className="text-slate-400">
+                    <tr className="text-muted">
                       <th className="py-2">Package</th>
                       <th className="py-2">Capital</th>
                       <th className="py-2">Daily ROI</th>
@@ -216,14 +216,14 @@ export default function PackagesPage() {
                   </thead>
                   <tbody>
                     {packages.map((p) => (
-                      <tr key={p.id} className="border-t border-slate-800/80 text-slate-200">
+                      <tr key={p.id} className="border-t border-border/60 text-fg">
                         <td className="py-2">
-                          <div className="font-medium text-slate-100">{p.name}</div>
-                          <div className="text-[11px] text-slate-500">#{p.id}</div>
+                          <div className="font-medium text-heading">{p.name}</div>
+                          <div className="text-[11px] text-muted">#{p.id}</div>
                         </td>
                         <td className="py-2">{formatMoney(p.capital)}</td>
-                        <td className="py-2">{Number(p.dailyRoi || 0)}%</td>
-                        <td className="py-2">{formatMoney(p.todayEarnings)}</td>
+                        <td className="py-2 text-success">{Number(p.dailyRoi || 0)}%</td>
+                        <td className="py-2 text-warning">{formatMoney(p.todayEarnings)}</td>
                         <td className="py-2">{formatMoney(p.totalEarned)}</td>
                         <td className="py-2">{Number(p.daysLeft || 0)}</td>
                         <td className="py-2">
@@ -231,8 +231,8 @@ export default function PackagesPage() {
                             className={
                               'rounded-full border px-2 py-1 text-[11px] ' +
                               (String(p.status).toLowerCase() === 'active'
-                                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
-                                : 'border-slate-700 bg-slate-700/30 text-slate-200')
+                                ? 'border-success/40 bg-success/10 text-success'
+                                : 'border-border bg-muted text-fg')
                             }
                           >
                             {p.status}
