@@ -391,8 +391,7 @@ export default function StartInvestmentPage() {
             Your Arbix Wallet
           </h2>
           <div className="mt-4 grid gap-3 text-xs text-muted sm:grid-cols-4">
-            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-secondary/10 blur-2xl" />
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-muted">Available Balance</p>
               <p className="mt-1 text-lg font-semibold text-secondary">
                 {isLoading ? '—' : `${availableBalance.toFixed(2)} USDT`}
@@ -402,8 +401,7 @@ export default function StartInvestmentPage() {
               </p>
             </div>
 
-            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-2xl" />
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-muted">Reward Balance</p>
               <p className="mt-1 text-lg font-semibold text-accent">
                 {isLoading ? '—' : `${rewardBalance.toFixed(2)} USDT`}
@@ -413,8 +411,7 @@ export default function StartInvestmentPage() {
               </p>
             </div>
 
-            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-warning/10 blur-2xl" />
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-muted">Daily Earnings</p>
               <p className="mt-1 text-lg font-semibold text-warning">
                 {isLoading ? '—' : `${dailyRewards.toFixed(2)} USDT`}
@@ -423,8 +420,8 @@ export default function StartInvestmentPage() {
                 Earned from active packages (today)
               </p>
             </div>
-            <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/60 bg-theme-card p-4 shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/10 blur-2xl" />
+
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
               <p className="text-[11px] text-muted">Total Active Capital</p>
               <p className="mt-1 text-lg font-semibold text-heading">
                 {isLoading ? '—' : `${totalActiveCapital.toFixed(2)} USDT`}

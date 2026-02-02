@@ -103,8 +103,7 @@ export default function PackagesPage() {
 
       <main className="mx-auto w-full max-w-5xl px-4 py-6">
         <section className="grid gap-3 text-xs text-muted sm:grid-cols-2 md:grid-cols-4">
-          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-success/10 blur-2xl" />
+          <div className="arbix-card arbix-3d rounded-2xl p-4">
             <div className="text-[11px] text-muted">Active Packages</div>
             <div className={'mt-1 text-lg font-semibold text-heading ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : activePackages.length}
@@ -112,8 +111,7 @@ export default function PackagesPage() {
             <div className="mt-1 text-[11px] text-subtle">Only status = active</div>
           </div>
 
-          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-info/10 blur-2xl" />
+          <div className="arbix-card arbix-3d rounded-2xl p-4">
             <div className="text-[11px] text-muted">Total Capital</div>
             <div className={'mt-1 text-lg font-semibold text-heading ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : formatMoney(totals.totalCapital)}
@@ -121,8 +119,7 @@ export default function PackagesPage() {
             <div className="mt-1 text-[11px] text-subtle">All packages combined</div>
           </div>
 
-          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-2xl" />
+          <div className="arbix-card arbix-3d rounded-2xl p-4">
             <div className="text-[11px] text-muted">Active Capital</div>
             <div className={'mt-1 text-lg font-semibold text-heading ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : formatMoney(totals.activeCapital)}
@@ -130,8 +127,7 @@ export default function PackagesPage() {
             <div className="mt-1 text-[11px] text-subtle">In active packages</div>
           </div>
 
-          <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-warning/10 blur-2xl" />
+          <div className="arbix-card arbix-3d rounded-2xl p-4">
             <div className="text-[11px] text-muted">Earnings (Today)</div>
             <div className={'mt-1 text-lg font-semibold text-warning ' + (loading ? 'animate-pulse' : '')}>
               {loading ? '—' : formatMoney(totals.todayEarned)}
