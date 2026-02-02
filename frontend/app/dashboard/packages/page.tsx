@@ -88,7 +88,7 @@ export default function PackagesPage() {
   return (
     <div className="bg-transparent text-fg">
       <section className="border-b border-border bg-theme-hero backdrop-blur-sm">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 md:py-8">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 md:py-8">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
             PACKAGES
           </p>
@@ -101,8 +101,8 @@ export default function PackagesPage() {
         </div>
       </section>
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-6">
-        <section className="grid gap-3 text-xs text-muted sm:grid-cols-2 lg:grid-cols-4">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6">
+        <section className="grid gap-3 text-xs text-muted sm:grid-cols-2 md:grid-cols-4">
           <div className="arbix-card arbix-3d group relative overflow-hidden rounded-2xl border border-border bg-surface/40 p-4 shadow-theme-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-theme-md">
             <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-success/10 blur-2xl" />
             <div className="text-[11px] text-muted">Active Packages</div>
