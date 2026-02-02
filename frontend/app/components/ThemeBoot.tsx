@@ -2,15 +2,57 @@
 
 import { useEffect } from 'react';
 
-type SiteTheme = 'light' | 'dark' | 'colorful';
+type SiteTheme = 'light' | 'dark' | 'colorful' | 'aurora';
 type SystemTheme = 'light' | 'dark';
 
 const THEME_STORAGE_KEY = 'arbix_theme_override';
 const SITE_THEME_STORAGE_KEY = 'arbix_site_theme';
 const THEME_EVENT_NAME = 'arbix-theme-change';
 
+const AURORA_TOKENS = [
+  '--t-page',
+  '--t-surface',
+  '--t-surface-2',
+  '--t-overlay',
+  '--t-fg',
+  '--t-heading',
+  '--t-muted',
+  '--t-subtle',
+  '--t-border',
+  '--t-border-2',
+  '--t-ring',
+  '--t-primary',
+  '--t-primary-hover',
+  '--t-on-primary',
+  '--t-secondary',
+  '--t-on-secondary',
+  '--t-info',
+  '--t-on-info',
+  '--t-success',
+  '--t-on-success',
+  '--t-warning',
+  '--t-on-warning',
+  '--t-danger',
+  '--t-on-danger',
+  '--t-accent',
+  '--t-on-accent',
+  '--t-brand-1',
+  '--t-brand-2',
+  '--t-brand-3',
+  '--t-white',
+  '--t-shadow-rgb',
+  '--t-dashboard-1',
+  '--t-dashboard-2',
+  '--t-dashboard-3',
+  '--t-warning-deep',
+  '--t-success-deep',
+  '--t-danger-soft',
+  '--t-danger-deep',
+  '--t-border-soft',
+] as const;
+
 function normalizeTheme(theme: unknown): SiteTheme | null {
-  if (theme === 'light' || theme === 'dark' || theme === 'colorful') return theme;
+  if (theme === 'light' || theme === 'dark' || theme === 'colorful' || theme === 'aurora') return theme;
   return null;
 }
 
@@ -26,10 +68,29 @@ function applyThemeToDocument(theme: unknown) {
   document.documentElement.style.colorScheme = themeToColorScheme(t);
 }
 
+function clearAuroraOverrides() {
+  if (typeof document === 'undefined') return;
+  for (const token of AURORA_TOKENS) {
+    document.documentElement.style.removeProperty(token);
+  }
+}
+
+function applyAuroraOverrides(overrides: Record<string, unknown>) {
+  if (typeof document === 'undefined') return;
+  if (!overrides || typeof overrides !== 'object') return;
+
+  for (const token of AURORA_TOKENS) {
+    const v = (overrides as any)[token];
+    if (typeof v === 'string' && v.trim()) {
+      document.documentElement.style.setProperty(token, v.trim());
+    }
+  }
+}
+
 function readStoredTheme(): SiteTheme | null {
   try {
     const raw = localStorage.getItem(THEME_STORAGE_KEY);
-    if (raw === 'light' || raw === 'dark' || raw === 'colorful') return raw;
+    if (raw === 'light' || raw === 'dark' || raw === 'colorful' || raw === 'aurora') return raw;
     return null;
   } catch {
     return null;
@@ -88,6 +149,36 @@ export default function ThemeBoot() {
   useEffect(() => {
     let cancelled = false;
 
+    let auroraOverrides: Record<string, unknown> | null = null;
+
+    const fetchAndApplyAuroraOverrides = async () => {
+      const { res, data } = await fetchJsonSafe('/api/public/aurora-theme', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (cancelled) return;
+      if (!res || !res.ok || !data?.success) return;
+
+      auroraOverrides = data?.overrides && typeof data.overrides === 'object' ? data.overrides : {};
+
+      if (document.documentElement.getAttribute('data-theme') !== 'aurora') return;
+      applyAuroraOverrides(auroraOverrides || {});
+    };
+
+    const applyResolvedTheme = (theme: unknown) => {
+      const normalized = normalizeTheme(theme);
+      const resolved = normalized || getSystemTheme();
+      applyThemeToDocument(resolved);
+      if (resolved !== 'aurora') {
+        clearAuroraOverrides();
+        return;
+      }
+
+      if (auroraOverrides) applyAuroraOverrides(auroraOverrides);
+      fetchAndApplyAuroraOverrides();
+    };
+
     let hasSiteTheme = false;
     let siteTheme: SiteTheme | null = null;
 
@@ -106,39 +197,39 @@ export default function ThemeBoot() {
 
           if (siteTheme) {
             storeSiteTheme(siteTheme);
-            applyThemeToDocument(siteTheme);
+            applyResolvedTheme(siteTheme);
             return;
           }
 
           clearSiteTheme();
 
           if (hasServerTheme && serverTheme) {
-            applyThemeToDocument(serverTheme);
+            applyResolvedTheme(serverTheme);
             return;
           }
 
           const stored = readStoredTheme();
           if (stored) {
-            applyThemeToDocument(stored);
+            applyResolvedTheme(stored);
             return;
           }
 
-          applyThemeToDocument(getSystemTheme());
+          applyResolvedTheme(getSystemTheme());
           return;
         }
 
         if (hasSiteTheme && siteTheme) {
-          applyThemeToDocument(siteTheme);
+          applyResolvedTheme(siteTheme);
           return;
         }
 
         if (persist === 'clear' && (theme === null || theme === undefined || theme === '' || theme === 'default' || theme === 'system')) {
           clearStoredTheme();
-          applyThemeToDocument(getSystemTheme());
+          applyResolvedTheme(getSystemTheme());
           return;
         }
 
-        applyThemeToDocument(theme);
+        applyResolvedTheme(theme);
         if (persist === 'override') storeTheme(theme);
         if (persist === 'clear') clearStoredTheme();
       }
@@ -154,7 +245,7 @@ export default function ThemeBoot() {
       const stored = readStoredTheme();
       if (stored) return;
 
-      applyThemeToDocument(getSystemTheme());
+      applyResolvedTheme(getSystemTheme());
     };
 
     window.addEventListener(THEME_EVENT_NAME, onThemeChange);
@@ -173,7 +264,7 @@ export default function ThemeBoot() {
           if (normalized) {
             if (!cancelled) {
               storeSiteTheme(normalized);
-              applyThemeToDocument(normalized);
+              applyResolvedTheme(normalized);
             }
             return;
           }
@@ -206,7 +297,7 @@ export default function ThemeBoot() {
 
           if (!cancelled) {
             if (normalized) {
-              applyThemeToDocument(normalized);
+              applyResolvedTheme(normalized);
               storeTheme(normalized);
             } else {
               clearStoredTheme();
@@ -218,7 +309,7 @@ export default function ThemeBoot() {
 
         if (normalizeTheme(userTheme)) {
           if (!cancelled) {
-            applyThemeToDocument(userTheme);
+            applyResolvedTheme(userTheme);
             storeTheme(userTheme);
           }
           return;
@@ -226,14 +317,14 @@ export default function ThemeBoot() {
 
         const storedTheme = readStoredTheme();
         if (storedTheme) {
-          if (!cancelled) applyThemeToDocument(storedTheme);
+          if (!cancelled) applyResolvedTheme(storedTheme);
           return;
         }
 
-        if (!cancelled) applyThemeToDocument(getSystemTheme());
+        if (!cancelled) applyResolvedTheme(getSystemTheme());
       } catch {
         if (!cancelled) {
-          applyThemeToDocument('dark');
+          applyResolvedTheme('dark');
         }
       }
     };

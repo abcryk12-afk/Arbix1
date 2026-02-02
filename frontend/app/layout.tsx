@@ -30,7 +30,7 @@ export default function RootLayout({
           id="arbix-theme-init"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var ok=function(v){return v==='light'||v==='dark'||v==='colorful';};var k='arbix_theme_override';var sk='arbix_site_theme';var s=localStorage.getItem(sk);var t=localStorage.getItem(k);var hasSite=ok(s);var hasOverride=ok(t);var systemDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var next=hasSite?s:(hasOverride?t:(systemDark?'dark':'light'));document.documentElement.setAttribute('data-theme',next);document.documentElement.style.colorScheme=(next==='dark'?'dark':'light');}catch(e){}})();`,
+            __html: `(function(){try{var ok=function(v){return v==='light'||v==='dark'||v==='colorful'||v==='aurora';};var k='arbix_theme_override';var sk='arbix_site_theme';var s=localStorage.getItem(sk);var t=localStorage.getItem(k);var hasSite=ok(s);var hasOverride=ok(t);var systemDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var next=hasSite?s:(hasOverride?t:(systemDark?'dark':'light'));document.documentElement.setAttribute('data-theme',next);document.documentElement.style.colorScheme=(next==='dark'?'dark':'light');}catch(e){}})();`,
           }}
         />
         <ThemeBoot />

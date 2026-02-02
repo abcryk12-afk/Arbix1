@@ -72,7 +72,7 @@ const ensureSchema = async () => {
     const colSet = new Set(cols.map((c) => String(c.Field || '').toLowerCase()).filter(Boolean));
 
     if (!colSet.has('theme_preference')) {
-      await sequelize.query("ALTER TABLE users ADD COLUMN theme_preference ENUM('light','dark','colorful') NULL");
+      await sequelize.query("ALTER TABLE users ADD COLUMN theme_preference ENUM('light','dark','colorful','aurora') NULL");
     } else {
       const [rows] = await sequelize.query("SHOW COLUMNS FROM users LIKE 'theme_preference'");
       const row = Array.isArray(rows) && rows.length ? rows[0] : null;
@@ -85,7 +85,7 @@ const ensureSchema = async () => {
             .map((s) => s.replace(/^'/, '').replace(/'$/, ''))
             .filter(Boolean)
         : [];
-      const desiredValues = ['light', 'dark', 'colorful'];
+      const desiredValues = ['light', 'dark', 'colorful', 'aurora'];
       const merged = Array.from(new Set([...existingValues, ...desiredValues]));
       if (merged.length && desiredValues.some((v) => !existingValues.includes(v))) {
         const enumSql = merged.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');

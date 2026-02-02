@@ -81,7 +81,7 @@ const User = db.define('User', {
     field: 'reset_token_expires_at'
   },
   theme_preference: {
-    type: DataTypes.ENUM('light', 'dark', 'colorful'),
+    type: DataTypes.ENUM('light', 'dark', 'colorful', 'aurora'),
     allowNull: true,
     field: 'theme_preference',
   },

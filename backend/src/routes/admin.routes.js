@@ -48,6 +48,11 @@ const {
   setAdminSiteTheme,
 } = require('../controllers/siteThemeController');
 
+const {
+  getAdminAuroraTheme,
+  setAdminAuroraTheme,
+} = require('../controllers/auroraThemeController');
+
 router.use(requireAdminKey);
 
 router.get('/check', protect, requireAdminUser, checkAccess);
@@ -62,6 +67,8 @@ router.get('/auto-withdraw', protect, requireAdminUser, getAutoWithdrawSetting);
 router.put('/auto-withdraw', protect, requireAdminUser, auditAdminAction('auto_withdraw.toggle', { entity: 'site_setting' }), setAutoWithdrawSetting);
 router.get('/site-theme', protect, requireAdminUser, getAdminSiteTheme);
 router.put('/site-theme', protect, requireAdminUser, auditAdminAction('site_theme.update', { entity: 'site_setting' }), setAdminSiteTheme);
+router.get('/aurora-theme', protect, requireAdminUser, getAdminAuroraTheme);
+router.put('/aurora-theme', protect, requireAdminUser, auditAdminAction('aurora_theme.update', { entity: 'site_setting' }), setAdminAuroraTheme);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/withdrawal-hold', protect, requireAdminUser, auditAdminAction('user.withdrawal_hold', { entity: 'user' }), setUserWithdrawalHold);

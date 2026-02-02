@@ -9,6 +9,7 @@ function normalizeTheme(input) {
   if (raw === 'light') return 'light';
   if (raw === 'dark') return 'dark';
   if (raw === 'colorful') return 'colorful';
+  if (raw === 'aurora') return 'aurora';
   return null;
 }
 

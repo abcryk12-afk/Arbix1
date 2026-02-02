@@ -18,7 +18,7 @@ type NavItem = {
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasRewardReady, setHasRewardReady] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'colorful'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'colorful' | 'aurora'>('dark');
   const [themeLoading, setThemeLoading] = useState(false);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ type NavItem = {
   useEffect(() => {
     const read = () => {
       const t = document.documentElement.getAttribute('data-theme');
-      const next = t === 'light' || t === 'dark' || t === 'colorful' ? t : 'dark';
+      const next = t === 'light' || t === 'dark' || t === 'colorful' || t === 'aurora' ? t : 'dark';
       setTheme(next);
     };
 
@@ -186,7 +186,7 @@ type NavItem = {
     router.replace('/auth/login');
   };
 
-  const requestThemeChange = (nextTheme: 'light' | 'dark' | 'colorful', persist: 'override' | 'clear') => {
+  const requestThemeChange = (nextTheme: 'light' | 'dark' | 'colorful' | 'aurora', persist: 'override' | 'clear') => {
     try {
       window.dispatchEvent(new CustomEvent('arbix-theme-change', { detail: { theme: nextTheme, persist } }));
     } catch {
@@ -195,7 +195,7 @@ type NavItem = {
   };
 
   const handleToggleTheme = async () => {
-    const themeOrder: Array<'light' | 'dark' | 'colorful'> = ['light', 'dark', 'colorful'];
+    const themeOrder: Array<'light' | 'dark' | 'colorful' | 'aurora'> = ['light', 'dark', 'colorful', 'aurora'];
     const nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % themeOrder.length] || 'dark';
     setThemeLoading(true);
     try {

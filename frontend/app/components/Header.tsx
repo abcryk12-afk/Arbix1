@@ -7,7 +7,7 @@ export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'colorful'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'colorful' | 'aurora'>('light');
   const [themeLoading, setThemeLoading] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function Header() {
   useEffect(() => {
     const read = () => {
       const t = document.documentElement.getAttribute('data-theme');
-      const next = t === 'light' || t === 'dark' || t === 'colorful' ? t : 'light';
+      const next = t === 'light' || t === 'dark' || t === 'colorful' || t === 'aurora' ? t : 'light';
       setTheme(next);
     };
 
@@ -62,7 +62,7 @@ export default function Header() {
     { name: "Join Now", href: "/auth/signup" },
   ];
 
-  const requestThemeChange = (nextTheme: 'light' | 'dark' | 'colorful', persist: 'override' | 'clear') => {
+  const requestThemeChange = (nextTheme: 'light' | 'dark' | 'colorful' | 'aurora', persist: 'override' | 'clear') => {
     try {
       window.dispatchEvent(new CustomEvent('arbix-theme-change', { detail: { theme: nextTheme, persist } }));
     } catch {
@@ -71,7 +71,7 @@ export default function Header() {
   };
 
   const handleToggleTheme = async () => {
-    const themeOrder: Array<'light' | 'dark' | 'colorful'> = ['light', 'dark', 'colorful'];
+    const themeOrder: Array<'light' | 'dark' | 'colorful' | 'aurora'> = ['light', 'dark', 'colorful', 'aurora'];
     const nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % themeOrder.length] || 'light';
     setThemeLoading(true);
     try {
@@ -232,7 +232,7 @@ export default function Header() {
               >
                 <span>Theme</span>
                 <span className="inline-flex items-center gap-2 text-xs text-muted">
-                  {theme === 'dark' ? 'Dark' : theme === 'colorful' ? 'Colorful' : 'Light'}
+                  {theme === 'dark' ? 'Dark' : theme === 'colorful' ? 'Colorful' : theme === 'aurora' ? 'Aurora' : 'Light'}
                   <span className="inline-flex h-4 w-4 items-center justify-center">
                     {theme === 'dark' ? (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4">

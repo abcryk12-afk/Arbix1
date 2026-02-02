@@ -4,12 +4,56 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type SiteTheme = 'light' | 'dark' | 'colorful';
+type SiteTheme = 'light' | 'dark' | 'colorful' | 'aurora';
 type SiteThemeSetting = SiteTheme | null;
+
+const AURORA_TOKENS = [
+  '--t-page',
+  '--t-surface',
+  '--t-surface-2',
+  '--t-overlay',
+  '--t-fg',
+  '--t-heading',
+  '--t-muted',
+  '--t-subtle',
+  '--t-border',
+  '--t-border-2',
+  '--t-ring',
+  '--t-primary',
+  '--t-primary-hover',
+  '--t-on-primary',
+  '--t-secondary',
+  '--t-on-secondary',
+  '--t-info',
+  '--t-on-info',
+  '--t-success',
+  '--t-on-success',
+  '--t-warning',
+  '--t-on-warning',
+  '--t-danger',
+  '--t-on-danger',
+  '--t-accent',
+  '--t-on-accent',
+  '--t-brand-1',
+  '--t-brand-2',
+  '--t-brand-3',
+  '--t-white',
+  '--t-shadow-rgb',
+  '--t-dashboard-1',
+  '--t-dashboard-2',
+  '--t-dashboard-3',
+  '--t-warning-deep',
+  '--t-success-deep',
+  '--t-danger-soft',
+  '--t-danger-deep',
+  '--t-border-soft',
+] as const;
+
+type AuroraToken = (typeof AURORA_TOKENS)[number];
 
 function normalizeTheme(theme: unknown): SiteThemeSetting {
   if (theme === null || theme === undefined || theme === '' || theme === 'default' || theme === 'system') return null;
-  if (theme === 'light' || theme === 'dark' || theme === 'colorful') return theme;
+  if (theme === 'light' || theme === 'dark' || theme === 'colorful' || theme === 'aurora') return theme;
   return null;
 }
 
@@ -29,7 +73,24 @@ export default function AdminHeader() {
   const [siteTheme, setSiteTheme] = useState<SiteThemeSetting>(null);
   const [themeLoading, setThemeLoading] = useState(false);
 
-  const themeLabel = siteTheme === null ? 'Default' : siteTheme === 'colorful' ? 'Colorful' : siteTheme === 'dark' ? 'Dark' : 'Light';
+  const [auroraOverrides, setAuroraOverrides] = useState<Record<AuroraToken, string>>(() => {
+    const out = {} as Record<AuroraToken, string>;
+    for (const t of AURORA_TOKENS) out[t] = '';
+    return out;
+  });
+  const [auroraLoading, setAuroraLoading] = useState(false);
+  const [auroraSaving, setAuroraSaving] = useState(false);
+
+  const themeLabel =
+    siteTheme === null
+      ? 'Default'
+      : siteTheme === 'aurora'
+        ? 'Aurora'
+        : siteTheme === 'colorful'
+          ? 'Colorful'
+          : siteTheme === 'dark'
+            ? 'Dark'
+            : 'Light';
 
   useEffect(() => {
     try {
@@ -81,6 +142,55 @@ export default function AdminHeader() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const read = async () => {
+      if (siteTheme !== 'aurora') return;
+
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) return;
+
+        setAuroraLoading(true);
+        const res = await fetch('/api/admin/aurora-theme', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.success) return;
+
+        const incoming = data?.overrides && typeof data.overrides === 'object' ? data.overrides : {};
+        const next = {} as Record<AuroraToken, string>;
+        for (const t of AURORA_TOKENS) {
+          const v = (incoming as any)[t];
+          next[t] = typeof v === 'string' ? v : '';
+        }
+
+        if (!cancelled) {
+          setAuroraOverrides(next);
+          for (const t of AURORA_TOKENS) {
+            const v = next[t];
+            if (v && document?.documentElement?.getAttribute('data-theme') === 'aurora') {
+              document.documentElement.style.setProperty(t, v);
+            }
+          }
+        }
+      } catch {
+      } finally {
+        if (!cancelled) setAuroraLoading(false);
+      }
+    };
+
+    read();
+    return () => {
+      cancelled = true;
+    };
+  }, [siteTheme]);
+
   if ((pathname || "").startsWith("/admin/login")) return null;
 
   const handleLogout = () => {
@@ -98,7 +208,7 @@ export default function AdminHeader() {
       const token = localStorage.getItem('adminToken');
       if (!token) return;
 
-      const themeOrder: SiteThemeSetting[] = [null, 'light', 'dark', 'colorful'];
+      const themeOrder: SiteThemeSetting[] = [null, 'light', 'dark', 'colorful', 'aurora'];
       const nextTheme = themeOrder[(themeOrder.indexOf(siteTheme) + 1) % themeOrder.length];
       setThemeLoading(true);
 
@@ -142,9 +252,87 @@ export default function AdminHeader() {
     { label: "Logs", href: "/admin/logs" },
   ];
 
+  const rgbTripletToHex = (value: string) => {
+    const raw = String(value || '').trim();
+    const parts = raw.split(/\s+/).filter(Boolean);
+    if (parts.length !== 3) return null;
+    const nums = parts.map((p) => Number(p));
+    if (nums.some((n) => !Number.isFinite(n) || n < 0 || n > 255)) return null;
+    const hex = nums
+      .map((n) => Math.round(n).toString(16).padStart(2, '0'))
+      .join('');
+    return `#${hex}`;
+  };
+
+  const readComputedTokenRgb = (token: AuroraToken) => {
+    try {
+      return getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+    } catch {
+      return '';
+    }
+  };
+
+  const hexToRgbTriplet = (hex: string) => {
+    const raw = String(hex || '').trim();
+    const m = raw.match(/^#?([0-9a-fA-F]{6})$/);
+    if (!m) return null;
+    const n = m[1];
+    const r = parseInt(n.slice(0, 2), 16);
+    const g = parseInt(n.slice(2, 4), 16);
+    const b = parseInt(n.slice(4, 6), 16);
+    if (![r, g, b].every((v) => Number.isFinite(v))) return null;
+    return `${r} ${g} ${b}`;
+  };
+
+  const setTokenValue = (token: AuroraToken, rgbTriplet: string) => {
+    setAuroraOverrides((prev) => {
+      const next = { ...prev, [token]: rgbTriplet };
+      return next;
+    });
+
+    try {
+      if (document.documentElement.getAttribute('data-theme') === 'aurora') {
+        document.documentElement.style.setProperty(token, rgbTriplet);
+      }
+    } catch {
+    }
+  };
+
+  const handleSaveAurora = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return;
+      setAuroraSaving(true);
+
+      const res = await fetch('/api/admin/aurora-theme', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ overrides: auroraOverrides }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) return;
+
+      const incoming = data?.overrides && typeof data.overrides === 'object' ? data.overrides : {};
+      const next = {} as Record<AuroraToken, string>;
+      for (const t of AURORA_TOKENS) {
+        const v = (incoming as any)[t];
+        next[t] = typeof v === 'string' ? v : '';
+      }
+      setAuroraOverrides(next);
+    } catch {
+    } finally {
+      setAuroraSaving(false);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-surface/90 backdrop-blur shadow-theme-sm">
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+    <div className="sticky top-0 z-50">
+      <header className="border-b border-border bg-surface/90 backdrop-blur shadow-theme-sm">
+        <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-3">
           <Link href="/admin" className="relative flex items-center gap-2 group">
             <span className="absolute -inset-2 rounded-2xl bg-theme-hero-overlay opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
@@ -321,23 +509,81 @@ export default function AdminHeader() {
         </div>
       )}
 
-      <div className="border-t border-border/80 bg-surface/80">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-[10px] text-muted">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
-              Live admin environment
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              Monitor users, wallets &amp; payouts in real-time
+        <div className="border-t border-border/80 bg-surface/80">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-[10px] text-muted">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                Live admin environment
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                Monitor users, wallets &amp; payouts in real-time
+              </span>
+            </div>
+            <span className="hidden text-[10px] text-subtle md:inline">
+              Admin activity is logged for security &amp; compliance.
             </span>
           </div>
-          <span className="hidden text-[10px] text-subtle md:inline">
-            Admin activity is logged for security &amp; compliance.
-          </span>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {siteTheme === 'aurora' && (
+        <div className="border-b border-border bg-surface/70 backdrop-blur">
+          <div className="mx-auto max-w-7xl px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-heading">Aurora Theme Customizer</div>
+                <div className="text-[11px] text-muted">Edit tokens live. Changes are saved only for the aurora theme.</div>
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveAurora}
+                disabled={auroraSaving || auroraLoading}
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/40 px-3 py-1.5 text-[11px] text-muted transition-colors duration-150 hover:shadow-theme-sm disabled:opacity-60"
+              >
+                {auroraSaving ? 'Saving…' : 'Save Aurora'}
+              </button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+              {AURORA_TOKENS.map((token) => {
+                const value = auroraOverrides[token] || '';
+                const hex = rgbTripletToHex(value) || rgbTripletToHex(readComputedTokenRgb(token)) || rgbTripletToHex(readComputedTokenRgb('--t-page')) || '#000000';
+                return (
+                  <div key={token} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface/40 px-3 py-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-[11px] font-medium text-heading">{token}</div>
+                      <div className="truncate text-[10px] text-muted">{value || '—'}</div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={hex}
+                        onChange={(e) => {
+                          const rgb = hexToRgbTriplet(e.target.value);
+                          if (!rgb) return;
+                          setTokenValue(token, rgb);
+                        }}
+                        className="h-8 w-10 rounded-md border border-border bg-surface"
+                        aria-label={`${token} color`}
+                      />
+                      <input
+                        value={value}
+                        onChange={(e) => setTokenValue(token, e.target.value)}
+                        className="h-8 w-[120px] rounded-md border border-border bg-surface/60 px-2 text-[11px] text-fg"
+                        placeholder="r g b"
+                        aria-label={`${token} rgb`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
