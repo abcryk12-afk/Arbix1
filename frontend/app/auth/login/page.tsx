@@ -1,16 +1,69 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = useMemo(() => {
+    const n = searchParams?.get('next') || '';
+    if (!n) return '/dashboard';
+    if (!n.startsWith('/')) return '/dashboard';
+    return n;
+  }, [searchParams]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [showPassword, setShowPassword] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const res = await fetch('/api/public/site-assets', { method: 'GET', cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        const nextLogo = data?.success ? (data?.assets?.logo?.url || null) : null;
+        if (!cancelled) setLogoUrl(nextLogo);
+      } catch {
+        if (!cancelled) setLogoUrl(null);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!cancelled && res.ok) {
+          router.replace(nextPath || '/dashboard');
+        }
+      } catch {
+        // ignore
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [router, nextPath]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +94,7 @@ export default function LoginPage() {
         setMessageType('success');
         if (data?.token) localStorage.setItem('token', data.token);
         if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
-        setTimeout(() => router.push('/dashboard'), 800);
+        setTimeout(() => router.push(nextPath || '/dashboard'), 800);
       } else {
         setMessage(data?.message || `Login failed (HTTP ${response.status}).`);
         setMessageType('error');
@@ -55,19 +108,42 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-page bg-theme-page flex items-center justify-center px-4 py-12 overflow-hidden network-grid-bg">
-      <div className="pointer-events-none absolute inset-0 bg-theme-hero-overlay opacity-60"></div>
-      <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl"></div>
-      <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-secondary/20 rounded-full filter blur-3xl"></div>
+    <div className="min-h-screen bg-theme-page text-fg">
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-info/20 to-secondary/25" />
+        <div className="absolute inset-0 opacity-70 bg-theme-hero-overlay" />
 
-      <div className="relative w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-heading mb-2">Login to Your Account</h1>
-          <p className="text-muted">SSL Protected • Encrypted Login</p>
+        <div className="relative mx-auto max-w-md px-5 pt-14 pb-24">
+          <div className="flex flex-col items-center">
+            <div className="h-20 w-20 rounded-[28px] bg-surface/85 border border-border shadow-theme-md flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="Arbix" className="h-14 w-14 object-contain" />
+              ) : (
+                <span className="text-2xl font-extrabold text-heading">AX</span>
+              )}
+            </div>
+            <div className="mt-4 text-2xl font-semibold tracking-tight text-heading">Arbix</div>
+            <div className="mt-1 text-[12px] text-muted">Login</div>
+          </div>
         </div>
 
-        <div className="arbix-card arbix-3d arbix-shine arbix-shine-active arbix-auth-card arbix-auth-float backdrop-blur-lg rounded-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <svg className="absolute bottom-[-1px] left-0 right-0 w-full" viewBox="0 0 1440 240" preserveAspectRatio="none">
+          <path
+            fill="rgb(var(--t-page))"
+            d="M0,160 C240,220 480,220 720,160 C960,100 1200,100 1440,160 L1440,240 L0,240 Z"
+          />
+        </svg>
+      </div>
+
+      <div className="mx-auto max-w-md px-5 -mt-14 pb-12">
+        <div className="arbix-card rounded-3xl p-5 shadow-theme-lg">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-heading">Welcome back!</div>
+            <div className="mt-1 text-[12px] text-muted">Login to continue to your dashboard</div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-muted mb-2">Email</label>
               <input
@@ -76,7 +152,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-surface/50 border border-border rounded-lg text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all"
+                className="w-full px-4 py-3 bg-surface/50 border border-border rounded-2xl text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all"
                 placeholder="Enter your email"
               />
             </div>
@@ -90,7 +166,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-lg text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all pr-12"
+                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-2xl text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all pr-12"
                   placeholder="Enter your password"
                 />
                 <button
@@ -128,29 +204,24 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
+              className="m3-ripple w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
             >
               {isSubmitting ? 'Logging in...' : 'Login Securely'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-muted">
-              New here?{' '}
-              <a href="/auth/signup" className="text-primary hover:text-heading font-medium transition-colors">
-                Create an account
-              </a>
-            </p>
+          <div className="mt-5 text-center text-[12px] text-muted">
+            New here?{' '}
+            <a href="/auth/signup" className="text-primary hover:text-heading font-semibold transition-colors">
+              Create an account
+            </a>
           </div>
-        </div>
 
-        <div className="mt-8 text-center">
-          <a href="/" className="inline-flex items-center text-muted hover:text-heading transition-colors">
-            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Home
-          </a>
+          <div className="mt-4 text-center">
+            <a href="/welcome" className="text-[11px] text-muted hover:text-heading transition-colors">
+              Back
+            </a>
+          </div>
         </div>
       </div>
     </div>

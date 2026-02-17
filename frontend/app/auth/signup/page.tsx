@@ -26,6 +26,25 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const res = await fetch('/api/public/site-assets', { method: 'GET', cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        const nextLogo = data?.success ? (data?.assets?.logo?.url || null) : null;
+        if (!cancelled) setLogoUrl(nextLogo);
+      } catch {
+        if (!cancelled) setLogoUrl(null);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -212,18 +231,36 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-page flex items-center justify-center px-4 py-12 overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-surface/30 opacity-60"></div>
-      <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl"></div>
-      <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-info/20 rounded-full filter blur-3xl"></div>
+    <div className="min-h-screen bg-theme-page text-fg">
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-info/20 to-secondary/25" />
+        <div className="absolute inset-0 opacity-70 bg-theme-hero-overlay" />
 
-      <div className="relative w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-heading mb-2">Create Your Arbix Account</h1>
-          <p className="text-muted">Sign up in a few easy steps, verify your email, and start earning with arbitrage trading.</p>
+        <div className="relative mx-auto max-w-md px-5 pt-14 pb-24">
+          <div className="flex flex-col items-center">
+            <div className="h-20 w-20 rounded-[28px] bg-surface/85 border border-border shadow-theme-md flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="Arbix" className="h-14 w-14 object-contain" />
+              ) : (
+                <span className="text-2xl font-extrabold text-heading">AX</span>
+              )}
+            </div>
+            <div className="mt-4 text-2xl font-semibold tracking-tight text-heading">Arbix</div>
+            <div className="mt-1 text-[12px] text-muted">Create Account</div>
+          </div>
         </div>
 
-        <div className="arbix-card arbix-3d arbix-shine arbix-shine-active arbix-auth-card arbix-auth-float backdrop-blur-lg rounded-2xl p-8">
+        <svg className="absolute bottom-[-1px] left-0 right-0 w-full" viewBox="0 0 1440 240" preserveAspectRatio="none">
+          <path
+            fill="rgb(var(--t-page))"
+            d="M0,160 C240,220 480,220 720,160 C960,100 1200,100 1440,160 L1440,240 L0,240 Z"
+          />
+        </svg>
+      </div>
+
+      <div className="mx-auto max-w-md px-5 -mt-14 pb-12">
+        <div className="arbix-card rounded-3xl p-5 shadow-theme-lg">
           {step === 1 && (
             <form onSubmit={handleRegister} className="space-y-6">
               <div>
@@ -350,7 +387,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 px-4 bg-primary text-primary-fg rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg transform hover:scale-105 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="m3-ripple w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 {isSubmitting ? 'Sending OTP...' : 'Next: Send OTP'}
               </button>
@@ -405,7 +442,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || otpString.length !== 6}
-                className="w-full py-3 px-4 bg-primary text-primary-fg rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="m3-ripple w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 {isSubmitting ? 'Verifying...' : 'Verify & Continue'}
               </button>
@@ -465,7 +502,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => router.push('/auth/login')}
-                className="w-full py-3 px-4 bg-primary text-primary-fg rounded-lg font-semibold transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="m3-ripple w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-2xl font-semibold transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 Go to Login
               </button>
@@ -473,7 +510,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => router.push('/how-it-works')}
-                className="w-full py-3 px-4 bg-surface/50 border border-border text-fg rounded-lg font-semibold transition-all hover:shadow-theme-sm hover:opacity-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="m3-ripple w-full py-3 px-4 bg-surface/50 border border-border text-fg rounded-2xl font-semibold transition-all hover:shadow-theme-sm hover:opacity-95 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 Explore How It Works
               </button>
@@ -490,12 +527,9 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="mt-8 text-center">
-          <a href="/" className="inline-flex items-center text-muted hover:text-heading transition">
-            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Home
+        <div className="mt-4 text-center">
+          <a href="/welcome" className="text-[11px] text-muted hover:text-heading transition-colors">
+            Back
           </a>
         </div>
       </div>
