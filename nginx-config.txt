@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name arbix.space www.arbix.space;
+    server_name arbix.cloud www.arbix.cloud;
 
     # Frontend
     location / {

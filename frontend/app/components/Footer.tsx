@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import PwaInstallButton from './PwaInstallButton';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -114,10 +115,10 @@ export default function Footer() {
                   />
                 </svg>
                 <a
-                  href="mailto:support@arbix.space"
+                  href="mailto:support@arbix.cloud"
                   className="hover:text-heading hover:underline"
                 >
-                  support@arbix.space
+                  support@arbix.cloud
                 </a>
               </li>
               <li className="flex items-center gap-2">
@@ -142,6 +143,9 @@ export default function Footer() {
                 >
                   @arbix_support
                 </a>
+              </li>
+              <li className="pt-1">
+                <PwaInstallButton />
               </li>
             </ul>
           </div>

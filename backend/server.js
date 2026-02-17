@@ -39,6 +39,23 @@ app.use((err, req, res, next) => {
 });
 app.use(express.urlencoded({ extended: true }));
 
+// Basic security headers (keep dependency-free and non-breaking)
+app.use((req, res, next) => {
+  try {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    if (req.secure || String(req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https') {
+      res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+    }
+  } catch {}
+  next();
+});
+
+// Static uploads (site assets like favicon / OG image). Cloud-ready: can be swapped later.
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+
 // Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/email', emailRoutes);

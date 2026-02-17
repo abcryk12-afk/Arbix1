@@ -250,6 +250,9 @@ export default function AdminHeader() {
     { label: "Trade Logs", href: "/admin/trades" },
     { label: "Notifications", href: "/admin/notifications" },
     { label: "Logs", href: "/admin/logs" },
+    { label: "CMS Pages", href: "/admin/cms-pages" },
+    { label: "Site Settings", href: "/admin/site-settings" },
+    { label: "SEO Settings", href: "/admin/seo-settings" },
   ];
 
   const rgbTripletToHex = (value: string) => {

@@ -91,8 +91,8 @@ export default function ProfilePage() {
   const referralLink = useMemo(() => {
     const base =
       process.env.NEXT_PUBLIC_SITE_URL ||
-      (typeof window !== 'undefined' ? window.location.origin : 'https://arbix.space') ||
-      'https://arbix.space';
+      (typeof window !== 'undefined' ? window.location.origin : 'https://arbix.cloud') ||
+      'https://arbix.cloud';
     if (!referralCode || referralCode === '—') return `${base}/auth/signup`;
     return `${base}/auth/signup?ref=${encodeURIComponent(referralCode)}`;
   }, [referralCode]);

@@ -124,7 +124,7 @@ export default function AmlKycPage() {
             If you have questions or concerns about verification or AML/KYC
             procedures, please contact our compliance team at:
           </p>
-          <p className="mt-2 text-slate-400">compliance@arbix.com</p>
+          <p className="mt-2 text-slate-400">compliance@arbix.cloud</p>
         </div>
       </section>
     </div>

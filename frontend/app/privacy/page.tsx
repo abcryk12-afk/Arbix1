@@ -162,7 +162,7 @@ export default function PrivacyPage() {
             If you have any questions or concerns about how your data is handled,
             please contact us at:
           </p>
-          <p className="mt-2 text-muted">privacy@arbix.com</p>
+          <p className="mt-2 text-muted">privacy@arbix.cloud</p>
         </div>
       </section>
     </div>

@@ -44,6 +44,20 @@ const {
 } = require('../controllers/brandingController');
 
 const {
+  getAdminSiteAssets,
+  uploadAdminSiteAsset,
+  deleteAdminSiteAsset,
+} = require('../controllers/siteAssetsController');
+
+const {
+  getAdminSeoSettings,
+  updateAdminSeoSettings,
+  listAdminRouteSeo,
+  upsertAdminRouteSeo,
+  deleteAdminRouteSeo,
+} = require('../controllers/seoSettingsController');
+
+const {
   getAdminSiteTheme,
   setAdminSiteTheme,
 } = require('../controllers/siteThemeController');
@@ -52,6 +66,14 @@ const {
   getAdminAuroraTheme,
   setAdminAuroraTheme,
 } = require('../controllers/auroraThemeController');
+
+const {
+  listAdminCmsPages,
+  getAdminCmsPage,
+  createAdminCmsPage,
+  updateAdminCmsPage,
+  deleteAdminCmsPage,
+} = require('../controllers/cmsPagesController');
 
 router.use(requireAdminKey);
 
@@ -103,5 +125,21 @@ router.post('/branding/logo', protect, requireAdminUser, setLogo);
 router.delete('/branding/logo', protect, requireAdminUser, removeLogo);
 router.post('/branding', protect, requireAdminUser, setLogo);
 router.delete('/branding', protect, requireAdminUser, removeLogo);
+
+router.get('/site-assets', protect, requireAdminUser, getAdminSiteAssets);
+router.post('/site-assets/:asset', protect, requireAdminUser, auditAdminAction('site_assets.upload', { entity: 'site_setting' }), uploadAdminSiteAsset);
+router.delete('/site-assets/:asset', protect, requireAdminUser, auditAdminAction('site_assets.delete', { entity: 'site_setting' }), deleteAdminSiteAsset);
+
+router.get('/seo-settings', protect, requireAdminUser, getAdminSeoSettings);
+router.put('/seo-settings', protect, requireAdminUser, auditAdminAction('seo_settings.update', { entity: 'site_setting' }), updateAdminSeoSettings);
+router.get('/route-seo', protect, requireAdminUser, listAdminRouteSeo);
+router.put('/route-seo', protect, requireAdminUser, auditAdminAction('route_seo.upsert', { entity: 'site_setting' }), upsertAdminRouteSeo);
+router.delete('/route-seo', protect, requireAdminUser, auditAdminAction('route_seo.delete', { entity: 'site_setting' }), deleteAdminRouteSeo);
+
+router.get('/cms-pages', protect, requireAdminUser, listAdminCmsPages);
+router.post('/cms-pages', protect, requireAdminUser, auditAdminAction('cms_pages.create', { entity: 'cms_page' }), createAdminCmsPage);
+router.get('/cms-pages/:id', protect, requireAdminUser, getAdminCmsPage);
+router.put('/cms-pages/:id', protect, requireAdminUser, auditAdminAction('cms_pages.update', { entity: 'cms_page' }), updateAdminCmsPage);
+router.delete('/cms-pages/:id', protect, requireAdminUser, auditAdminAction('cms_pages.delete', { entity: 'cms_page' }), deleteAdminCmsPage);
 
 module.exports = router;

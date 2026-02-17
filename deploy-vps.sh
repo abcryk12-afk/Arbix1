@@ -51,7 +51,7 @@ EMAIL_SECURE=true
 EMAIL_USER=CHANGE_ME
 EMAIL_PASS=CHANGE_ME
 JWT_SECRET=CHANGE_ME
-FRONTEND_URL=https://www.arbix.space
+FRONTEND_URL=https://www.arbix.cloud
 ADMIN_API_KEY=CHANGE_ME_STRONG_KEY
 ADMIN_EMAILS=admin@example.com
 ADMIN_LOGIN_CODE=CHANGE_ME
@@ -112,7 +112,7 @@ echo "Step 12: Setting up Nginx..."
 cat > /etc/nginx/sites-available/arbix << 'EOF'
 server {
     listen 80;
-    server_name arbix.space www.arbix.space;
+    server_name arbix.cloud www.arbix.cloud;
 
     # Frontend
     location / {
@@ -164,7 +164,7 @@ sudo systemctl restart nginx
 # Step 14: Install SSL
 echo "Step 14: Installing SSL certificate..."
 sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d arbix.space -d www.arbix.space --non-interactive --agree-tos --email admin@example.com
+sudo certbot --nginx -d arbix.cloud -d www.arbix.cloud --non-interactive --agree-tos --email admin@example.com
 
 # Step 15: Setup firewall
 echo "Step 15: Setting up firewall..."
@@ -178,7 +178,7 @@ pm2 status
 sudo systemctl status nginx --no-pager
 
 echo "=== Deployment Complete! ==="
-echo "Your website should be live at: https://www.arbix.space"
-echo "Backend API: https://www.arbix.space/api"
+echo "Your website should be live at: https://www.arbix.cloud"
+echo "Backend API: https://www.arbix.cloud/api"
 echo "To check logs: pm2 logs"
 echo "To restart: pm2 restart all"

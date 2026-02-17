@@ -264,8 +264,8 @@ export default function TermsPage() {
             us at:
           </p>
           <ul className="mt-2 space-y-1 text-muted">
-            <li>Support: support@arbix.com</li>
-            <li>Compliance: compliance@arbix.com</li>
+            <li>Support: support@arbix.cloud</li>
+            <li>Compliance: compliance@arbix.cloud</li>
           </ul>
         </div>
       </section>

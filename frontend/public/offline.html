@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline</title>
+    <style>
+      html, body { height: 100%; }
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #0b0d12; color: #e8eaf0; display: flex; align-items: center; justify-content: center; }
+      .card { width: min(520px, calc(100% - 32px)); border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 20px; background: rgba(255,255,255,.04); }
+      .title { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+      .muted { color: rgba(232,234,240,.75); font-size: 13px; margin: 0 0 16px; }
+      a { color: #7aa8ff; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      button { border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #e8eaf0; padding: 10px 14px; border-radius: 12px; cursor: pointer; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <p class="title">You’re offline</p>
+      <p class="muted">Check your connection and try again. Some pages may still work if they were previously opened.</p>
+      <button onclick="location.reload()">Retry</button>
+      <p class="muted" style="margin-top:12px;">Back to <a href="/">home</a></p>
+    </div>
+  </body>
+</html>

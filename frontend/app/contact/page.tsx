@@ -29,7 +29,7 @@ function getBotReply(raw: string) {
   }
 
   if (text.includes('agent') || text.includes('human')) {
-    return 'I can help right away. If you want a human agent, please email support@arbix.com with your registered email and a short summary, and our team will respond as soon as possible.';
+    return 'I can help right away. If you want a human agent, please email support@arbix.cloud with your registered email and a short summary, and our team will respond as soon as possible.';
   }
 
   return 'Thanks — please share a little more detail (registered email + what you’re trying to do). I can help with deposits, withdrawals, account access, and verification.';
@@ -111,9 +111,9 @@ export default function ContactPage() {
     const subject = `Arbix Support — ${subjectMap[subjectKey] || 'Support Request'}`;
     const body = `Full Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}\n`;
 
-    const mailto = `mailto:support@arbix.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailto = `mailto:support@arbix.cloud?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailto;
-    setFormNotice('Opening your email app… If it doesn’t open, please email support@arbix.com.');
+    setFormNotice('Opening your email app… If it doesn’t open, please email support@arbix.cloud.');
   };
 
   return (
@@ -178,10 +178,10 @@ export default function ContactPage() {
                 Ideal for KYC issues, formal documentation, and account-related investigations.
               </p>
               <a
-                href="mailto:support@arbix.com"
+                href="mailto:support@arbix.cloud"
                 className="mt-3 inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-xs font-medium text-fg transition hover:opacity-95"
               >
-                support@arbix.com
+                support@arbix.cloud
               </a>
             </div>
           </div>
@@ -346,7 +346,7 @@ export default function ContactPage() {
             </p>
             <p>
               <span className="font-semibold text-heading">Compliance Email:</span>{' '}
-              compliance@arbix.com
+              compliance@arbix.cloud
             </p>
           </div>
 

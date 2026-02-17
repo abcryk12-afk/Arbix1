@@ -4,12 +4,118 @@ import Script from 'next/script';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ThemeBoot from "./components/ThemeBoot";
+import PwaBoot from "./components/PwaBoot";
 import type { ReactNode } from 'react';
 
-export const metadata: Metadata = {
-  title: "ArbiPro / Arbix",
-  description: "Automated Arbitrage Trading + MLM Investment Platform",
+type PublicSeoResponse = {
+  success: boolean;
+  global?: {
+    defaultMetaTitle?: string;
+    defaultMetaDescription?: string;
+    defaultKeywords?: string;
+    openGraphTitle?: string;
+    openGraphDescription?: string;
+    ogImageUrl?: string;
+    twitterCardType?: string;
+    canonicalBase?: string;
+    robotsIndex?: boolean;
+    googleVerification?: string;
+  };
 };
+
+type PublicSiteAssetsResponse = {
+  success: boolean;
+  assets?: {
+    favicon?: { url?: string } | null;
+    logo?: { url?: string } | null;
+    ogImage?: { url?: string } | null;
+  };
+};
+
+async function safeFetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    const data = await res.json().catch(() => null);
+    return data as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const fallbackTitle = "ArbiPro / Arbix";
+  const fallbackDescription = "Automated Arbitrage Trading + MLM Investment Platform";
+
+  const backendBase = process.env.BACKEND_URL || 'http://localhost:5000';
+
+  const [seo, siteAssets] = await Promise.all([
+    safeFetchJson<PublicSeoResponse>(`${backendBase}/api/public/seo-settings`),
+    safeFetchJson<PublicSiteAssetsResponse>(`${backendBase}/api/public/site-assets`),
+  ]);
+
+  const g = seo?.success ? (seo.global || {}) : {};
+  const assets = siteAssets?.success ? (siteAssets.assets || {}) : {};
+
+  const canonicalBase = typeof g.canonicalBase === 'string' ? g.canonicalBase.trim() : '';
+  const metadataBase = canonicalBase ? (() => {
+    try {
+      return new URL(canonicalBase);
+    } catch {
+      return undefined;
+    }
+  })() : undefined;
+
+  const faviconUrl = typeof assets?.favicon?.url === 'string' ? assets.favicon.url : '';
+  const ogImageUrl =
+    (typeof g.ogImageUrl === 'string' && g.ogImageUrl.trim())
+      ? g.ogImageUrl.trim()
+      : (typeof assets?.ogImage?.url === 'string' ? assets.ogImage.url : '');
+
+  const title = (typeof g.defaultMetaTitle === 'string' && g.defaultMetaTitle.trim()) ? g.defaultMetaTitle.trim() : fallbackTitle;
+  const description = (typeof g.defaultMetaDescription === 'string' && g.defaultMetaDescription.trim()) ? g.defaultMetaDescription.trim() : fallbackDescription;
+  const keywords = (typeof g.defaultKeywords === 'string' && g.defaultKeywords.trim()) ? g.defaultKeywords.trim() : '';
+
+  const robotsIndex = g.robotsIndex !== false;
+  const googleVerification = (typeof g.googleVerification === 'string' && g.googleVerification.trim()) ? g.googleVerification.trim() : '';
+
+  const openGraphTitle = (typeof g.openGraphTitle === 'string' && g.openGraphTitle.trim()) ? g.openGraphTitle.trim() : title;
+  const openGraphDescription = (typeof g.openGraphDescription === 'string' && g.openGraphDescription.trim()) ? g.openGraphDescription.trim() : description;
+  const twitterCard = (typeof g.twitterCardType === 'string' && g.twitterCardType.trim()) ? g.twitterCardType.trim() : 'summary_large_image';
+
+  const metadata: Metadata = {
+    metadataBase,
+    title,
+    description,
+    manifest: '/manifest.webmanifest',
+    keywords: keywords ? keywords.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+    icons: faviconUrl
+      ? {
+          icon: [
+            { url: faviconUrl },
+          ],
+          apple: [
+            { url: '/icon-maskable.svg' },
+          ],
+        }
+      : undefined,
+    robots: robotsIndex ? { index: true, follow: true } : { index: false, follow: false },
+    verification: googleVerification ? { google: googleVerification } : undefined,
+    openGraph: {
+      type: 'website',
+      title: openGraphTitle,
+      description: openGraphDescription,
+      images: ogImageUrl ? [{ url: ogImageUrl }] : undefined,
+    },
+    twitter: {
+      card: twitterCard as any,
+      title: openGraphTitle,
+      description: openGraphDescription,
+      images: ogImageUrl ? [ogImageUrl] : undefined,
+    },
+  };
+
+  return metadata;
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -34,6 +140,7 @@ export default function RootLayout({
           }}
         />
         <ThemeBoot />
+        <PwaBoot />
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>
