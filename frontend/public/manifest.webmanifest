@@ -9,15 +9,15 @@
   "theme_color": "#0b0d12",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/pwa-icon.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable.svg",
+      "src": "/pwa-icon-maskable.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]

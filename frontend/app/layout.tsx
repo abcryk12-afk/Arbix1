@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ThemeBoot from "./components/ThemeBoot";
 import PwaBoot from "./components/PwaBoot";
+import InstallPrompt from "./components/InstallPrompt";
 import type { ReactNode } from 'react';
 
 type PublicSeoResponse = {
@@ -57,13 +58,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const assets = siteAssets?.success ? (siteAssets.assets || {}) : {};
 
   const canonicalBase = typeof g.canonicalBase === 'string' ? g.canonicalBase.trim() : '';
-  const metadataBase = canonicalBase ? (() => {
-    try {
-      return new URL(canonicalBase);
-    } catch {
-      return undefined;
-    }
-  })() : undefined;
+  const envBase = (process.env.NEXT_PUBLIC_SITE_URL || process.env.FRONTEND_URL || '').trim();
+  const metadataBaseCandidate = canonicalBase || envBase;
+  const metadataBase = metadataBaseCandidate
+    ? (() => {
+        try {
+          return new URL(metadataBaseCandidate);
+        } catch {
+          return undefined;
+        }
+      })()
+    : undefined;
 
   const faviconUrl = typeof assets?.favicon?.url === 'string' ? assets.favicon.url : '';
   const ogImageUrl =
@@ -141,6 +146,7 @@ export default function RootLayout({
         />
         <ThemeBoot />
         <PwaBoot />
+        <InstallPrompt />
         <div className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">{children}</main>
