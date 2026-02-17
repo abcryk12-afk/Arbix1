@@ -4,6 +4,16 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: `${baseUrl}/uploads/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {
