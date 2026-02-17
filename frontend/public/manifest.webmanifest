@@ -2,7 +2,7 @@
   "name": "Arbix",
   "short_name": "Arbix",
   "description": "Automated Arbitrage Trading + MLM Investment Platform",
-  "start_url": "/",
+  "start_url": "/welcome",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0b0d12",
