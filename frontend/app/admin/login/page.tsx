@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [variant, setVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal'>('default');
+  const [variant, setVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal' | 'galileo'>('default');
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
 
         const nextLogo = assets?.success ? (assets?.assets?.logo?.url || null) : null;
         const nextVariantRaw = theme?.success ? String(theme?.variant || '') : '';
-        const nextVariant: 'default' | 'blue' | 'green' | 'midnight' | 'royal' =
+        const nextVariant: 'default' | 'blue' | 'green' | 'midnight' | 'royal' | 'galileo' =
           nextVariantRaw === 'green'
             ? 'green'
             : nextVariantRaw === 'blue'
@@ -36,7 +36,9 @@ export default function AdminLoginPage() {
                 ? 'midnight'
                 : nextVariantRaw === 'royal'
                   ? 'royal'
-                : 'default';
+                  : nextVariantRaw === 'galileo'
+                    ? 'galileo'
+                  : 'default';
 
         if (!cancelled) {
           setLogoUrl(nextLogo);
@@ -56,6 +58,16 @@ export default function AdminLoginPage() {
   }, []);
 
   const palette = useMemo(() => {
+    if (variant === 'galileo') {
+      return {
+        bg: 'bg-[#b99af8]',
+        sheet: 'bg-white/15',
+        accent: 'bg-[#0b0d12]',
+        accentText: 'text-white',
+        inputRing: 'focus-visible:outline-white/40',
+        icon: 'text-white',
+      };
+    }
     if (variant === 'royal') {
       return {
         bg: 'bg-[#061634]',
@@ -249,6 +261,117 @@ export default function AdminLoginPage() {
 
             <div className="mt-6 text-center">
               <a href="/auth/login" className="text-muted hover:text-heading transition-colors text-sm">Back to User Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : variant === 'galileo' ? (
+      <div
+        className="relative min-h-screen overflow-hidden"
+        style={{
+          background:
+            'radial-gradient(1000px 500px at 15% 35%, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%), radial-gradient(900px 520px at 80% 30%, rgba(255,255,255,0.14), rgba(255,255,255,0) 60%), linear-gradient(135deg, #c7a3ff 0%, #8d7cff 45%, #5e85ff 100%)',
+        }}
+      >
+        <div className="pointer-events-none absolute inset-0" style={{ opacity: 0.45 }}>
+          <div
+            className="absolute -left-24 top-24 h-[520px] w-[520px] rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0) 65%)' }}
+          />
+          <div
+            className="absolute right-[-180px] top-[-120px] h-[520px] w-[520px] rounded-full"
+            style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0) 68%)' }}
+          />
+          <div
+            className="absolute inset-x-0 bottom-[-160px] h-[520px]"
+            style={{ background: 'radial-gradient(700px 280px at 50% 50%, rgba(255,255,255,0.18), rgba(255,255,255,0) 65%)' }}
+          />
+        </div>
+
+        <div className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-6 py-10">
+          <div className="w-full rounded-[34px] border border-white/25 bg-white/10 shadow-theme-lg backdrop-blur-2xl">
+            <div className="grid grid-cols-1 gap-8 p-8 md:grid-cols-2 md:gap-10 md:p-10">
+              <div className="text-white">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center overflow-hidden">
+                    {logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logoUrl} alt="Arbix" className="h-7 w-7 object-contain" />
+                    ) : (
+                      <span className="text-sm font-bold">A</span>
+                    )}
+                  </div>
+                  <div className="text-sm font-semibold tracking-tight">Arbix</div>
+                </div>
+
+                <div className="mt-10">
+                  <div className="text-3xl font-semibold leading-tight">Welcome Back</div>
+                  <div className="mt-2 text-[13px] text-white/80">
+                    Sign in to manage your admin dashboard.
+                  </div>
+                </div>
+
+                <div className="mt-8 max-w-md text-[12px] leading-relaxed text-white/70">
+                  Secure admin access with your email and secret code. This page uses a glassmorphism theme for a modern look.
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center">
+                <div className="w-full max-w-md rounded-[28px] border border-white/25 bg-white/20 p-7 shadow-theme-lg backdrop-blur-2xl">
+                  <div className="text-center">
+                    <div className="text-[11px] font-semibold tracking-[0.18em] text-white/80">WELCOME BACK EXCLUSIVE MEMBER</div>
+                    <div className="mt-2 text-[10px] text-white/70">LOG IN TO CONTINUE</div>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                    <div>
+                      <label htmlFor="email" className="block text-[11px] font-medium text-white/75 mb-2">Email</label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="w-full rounded-xl bg-white/95 px-4 py-3 text-[13px] text-[#0b0d12] placeholder:text-[#6b7280] shadow-theme-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35"
+                        placeholder="admin@arbix.cloud"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="secretCode" className="block text-[11px] font-medium text-white/75 mb-2">Secret Code</label>
+                      <input
+                        id="secretCode"
+                        type="text"
+                        value={secretCode}
+                        onChange={(e) => setSecretCode(e.target.value)}
+                        required
+                        className="w-full rounded-xl bg-white/95 px-4 py-3 text-[13px] text-[#0b0d12] placeholder:text-[#6b7280] shadow-theme-sm focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35"
+                        placeholder="Enter secret code"
+                      />
+                    </div>
+
+                    {message && (
+                      <div className="rounded-xl border border-white/25 bg-white/10 p-3 text-[12px] text-white">
+                        {message}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="m3-ripple w-full rounded-xl bg-[#0b0d12] px-4 py-3 text-[13px] font-semibold text-white shadow-theme-md transition hover:opacity-95 disabled:opacity-60"
+                    >
+                      {isSubmitting ? 'Signing In...' : 'Proceed to my Account'}
+                    </button>
+                  </form>
+
+                  <div className="mt-5 text-center">
+                    <a href="/auth/login" className="text-[11px] text-white/75 hover:text-white transition-colors">
+                      Back to User Login
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

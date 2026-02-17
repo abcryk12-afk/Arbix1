@@ -74,7 +74,7 @@ export default function AdminSiteSettingsPage() {
   const [dbBusy, setDbBusy] = useState(false);
   const [importSqlFile, setImportSqlFile] = useState<File | null>(null);
 
-  const [adminLoginVariant, setAdminLoginVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal'>('default');
+  const [adminLoginVariant, setAdminLoginVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal' | 'galileo'>('default');
   const [adminLoginVariantSaving, setAdminLoginVariantSaving] = useState(false);
 
   const loadAssets = async () => {
@@ -119,6 +119,8 @@ export default function AdminSiteSettingsPage() {
               ? 'midnight'
               : nextVariantRaw === 'royal'
                 ? 'royal'
+                : nextVariantRaw === 'galileo'
+                  ? 'galileo'
               : 'default';
       setAdminLoginVariant(nextVariant);
 
@@ -471,6 +473,8 @@ export default function AdminSiteSettingsPage() {
                           ? 'midnight'
                           : v === 'royal'
                             ? 'royal'
+                            : v === 'galileo'
+                              ? 'galileo'
                             : 'default',
                   );
                 }}
@@ -481,6 +485,7 @@ export default function AdminSiteSettingsPage() {
                 <option value="green">Green Variant</option>
                 <option value="midnight">Midnight Variant</option>
                 <option value="royal">Royal Variant</option>
+                <option value="galileo">Galileo Variant</option>
               </select>
               <button
                 type="button"

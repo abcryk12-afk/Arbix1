@@ -11,6 +11,7 @@ function normalizeVariant(input) {
   if (raw === 'blue') return 'blue';
   if (raw === 'midnight') return 'midnight';
   if (raw === 'royal') return 'royal';
+  if (raw === 'galileo') return 'galileo';
   return DEFAULT_VARIANT;
 }
 
