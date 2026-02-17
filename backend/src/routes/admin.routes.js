@@ -50,6 +50,11 @@ const {
 } = require('../controllers/siteAssetsController');
 
 const {
+  exportDatabase,
+  importDatabase,
+} = require('../controllers/dbBackupController');
+
+const {
   getAdminSeoSettings,
   updateAdminSeoSettings,
   listAdminRouteSeo,
@@ -129,6 +134,9 @@ router.delete('/branding', protect, requireAdminUser, removeLogo);
 router.get('/site-assets', protect, requireAdminUser, getAdminSiteAssets);
 router.post('/site-assets/:asset', protect, requireAdminUser, auditAdminAction('site_assets.upload', { entity: 'site_setting' }), uploadAdminSiteAsset);
 router.delete('/site-assets/:asset', protect, requireAdminUser, auditAdminAction('site_assets.delete', { entity: 'site_setting' }), deleteAdminSiteAsset);
+
+router.get('/db-backup/export', protect, requireAdminUser, auditAdminAction('db_backup.export', { entity: 'database' }), exportDatabase);
+router.post('/db-backup/import', protect, requireAdminUser, auditAdminAction('db_backup.import', { entity: 'database' }), importDatabase);
 
 router.get('/seo-settings', protect, requireAdminUser, getAdminSeoSettings);
 router.put('/seo-settings', protect, requireAdminUser, auditAdminAction('seo_settings.update', { entity: 'site_setting' }), updateAdminSeoSettings);

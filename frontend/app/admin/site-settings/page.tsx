@@ -62,6 +62,10 @@ export default function AdminSiteSettingsPage() {
 
   const [busyKey, setBusyKey] = useState<'' | 'favicon' | 'logo' | 'ogImage'>('');
 
+  const [backupPassword, setBackupPassword] = useState('');
+  const [dbBusy, setDbBusy] = useState(false);
+  const [importSqlFile, setImportSqlFile] = useState<File | null>(null);
+
   const loadAssets = async () => {
     try {
       setLoading(true);
@@ -207,6 +211,118 @@ export default function AdminSiteSettingsPage() {
     [],
   );
 
+  const downloadDb = async () => {
+    try {
+      setStatusText('');
+      setStatusKind('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
+      if (!backupPassword.trim()) {
+        setStatusText('Backup password is required.');
+        setStatusKind('error');
+        return;
+      }
+
+      setDbBusy(true);
+      const res = await fetch('/api/admin/db-backup', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-Backup-Password': backupPassword.trim(),
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setStatusText(data?.message || 'Database export failed');
+        setStatusKind('error');
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const disposition = res.headers.get('content-disposition') || '';
+      const m = disposition.match(/filename="?([^";]+)"?/i);
+      const filename = m?.[1] ? String(m[1]) : 'database-backup.sql';
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      setStatusText('Database export started.');
+      setStatusKind('success');
+    } catch {
+      setStatusText('Database export failed.');
+      setStatusKind('error');
+    } finally {
+      setDbBusy(false);
+    }
+  };
+
+  const importDb = async () => {
+    try {
+      setStatusText('');
+      setStatusKind('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
+      if (!backupPassword.trim()) {
+        setStatusText('Backup password is required.');
+        setStatusKind('error');
+        return;
+      }
+
+      if (!importSqlFile) {
+        setStatusText('Please select a .sql file to import.');
+        setStatusKind('error');
+        return;
+      }
+
+      setDbBusy(true);
+
+      const text = await importSqlFile.text();
+      const res = await fetch('/api/admin/db-backup', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-Backup-Password': backupPassword.trim(),
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+        body: text,
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        setStatusText(data?.message || 'Database import failed');
+        setStatusKind('error');
+        return;
+      }
+
+      setStatusText(data?.message || 'Database import completed');
+      setStatusKind('success');
+      setImportSqlFile(null);
+    } catch {
+      setStatusText('Database import failed.');
+      setStatusKind('error');
+    } finally {
+      setDbBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-page text-fg">
       <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
@@ -243,6 +359,67 @@ export default function AdminSiteSettingsPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+        <div className="arbix-card rounded-2xl p-4 mb-4">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-heading">Database Backup</div>
+              <div className="mt-0.5 text-[11px] text-muted">
+                Download a full SQL backup or import a SQL file to restore data.
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex flex-col">
+                <label className="text-[10px] text-subtle">Backup password</label>
+                <input
+                  type="password"
+                  value={backupPassword}
+                  onChange={(e) => setBackupPassword(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border bg-surface/40 px-3 py-2 text-[11px] text-fg outline-none"
+                  placeholder="Enter backup password"
+                  disabled={dbBusy}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={downloadDb}
+                disabled={dbBusy}
+                className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
+              >
+                {dbBusy ? 'Working…' : 'Download DB'}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-2 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <input
+                type="file"
+                accept=".sql,text/plain,application/sql"
+                onChange={(e) => setImportSqlFile(e.target.files?.[0] || null)}
+                disabled={dbBusy}
+                className="block w-full text-[11px] text-muted file:mr-3 file:rounded-lg file:border file:border-border file:bg-surface/40 file:px-3 file:py-1.5 file:text-[11px] file:text-fg"
+                aria-label="Import SQL file"
+              />
+              {importSqlFile ? (
+                <div className="mt-1 text-[10px] text-subtle break-all">
+                  Selected: {importSqlFile.name} ({formatBytes(importSqlFile.size)})
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              onClick={importDb}
+              disabled={dbBusy || !importSqlFile}
+              className="rounded-lg border border-warning/50 bg-warning/10 px-3 py-2 text-[11px] font-medium text-warning transition hover:border-warning/70 hover:shadow-theme-sm disabled:opacity-60"
+            >
+              {dbBusy ? 'Working…' : 'Import DB'}
+            </button>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           {rows.map((r) => {
             const current = (assets as any)?.[r.key] as SiteAsset;
