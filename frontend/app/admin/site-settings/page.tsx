@@ -55,6 +55,8 @@ export default function AdminSiteSettingsPage() {
   const [assets, setAssets] = useState<AdminAssetsResponse['assets']>({});
   const [loading, setLoading] = useState(false);
 
+  const [pendingFiles, setPendingFiles] = useState<Partial<Record<'favicon' | 'logo' | 'ogImage', File>>>({});
+
   const [statusText, setStatusText] = useState('');
   const [statusKind, setStatusKind] = useState<'success' | 'error' | ''>('');
 
@@ -82,7 +84,6 @@ export default function AdminSiteSettingsPage() {
 
       const data: AdminAssetsResponse = await res.json().catch(() => ({ success: false } as any));
       if (!res.ok || !data?.success) {
-        setAssets({});
         setStatusText(data?.message || 'Failed to load site assets');
         setStatusKind('error');
         return;
@@ -90,7 +91,6 @@ export default function AdminSiteSettingsPage() {
 
       setAssets(data.assets || {});
     } catch {
-      setAssets({});
       setStatusText('Failed to load site assets');
       setStatusKind('error');
     } finally {
@@ -145,6 +145,11 @@ export default function AdminSiteSettingsPage() {
 
       setStatusText('Asset uploaded successfully.');
       setStatusKind('success');
+      setPendingFiles((prev) => {
+        const next = { ...prev };
+        delete (next as any)[key];
+        return next;
+      });
       await loadAssets();
     } catch {
       setStatusText('Upload failed. Please try again.');
@@ -242,6 +247,7 @@ export default function AdminSiteSettingsPage() {
           {rows.map((r) => {
             const current = (assets as any)?.[r.key] as SiteAsset;
             const isBusy = busyKey === r.key;
+            const pending = (pendingFiles as any)?.[r.key] as File | undefined;
             return (
               <div key={r.key} className="arbix-card rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-2">
@@ -277,11 +283,24 @@ export default function AdminSiteSettingsPage() {
                   <input
                     type="file"
                     accept={(ACCEPT as any)[r.key]}
-                    onChange={(e) => upload(r.key, e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      if (!f) return;
+                      setPendingFiles((prev) => ({ ...prev, [r.key]: f }));
+                    }}
                     disabled={isBusy}
                     className="block w-full text-[11px] text-muted file:mr-3 file:rounded-lg file:border file:border-border file:bg-surface/40 file:px-3 file:py-1.5 file:text-[11px] file:text-fg"
                     aria-label={`${r.label} upload`}
                   />
+
+                  <button
+                    type="button"
+                    onClick={() => upload(r.key, pending || null)}
+                    disabled={isBusy || !pending}
+                    className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-50"
+                  >
+                    {isBusy ? 'Uploading…' : pending ? 'Save' : 'Select a file first'}
+                  </button>
 
                   <button
                     type="button"
@@ -292,6 +311,12 @@ export default function AdminSiteSettingsPage() {
                     {isBusy ? 'Working…' : 'Remove'}
                   </button>
                 </div>
+
+                {pending ? (
+                  <div className="mt-2 text-[10px] text-subtle break-all">
+                    Selected: {pending.name} ({formatBytes(pending.size)})
+                  </div>
+                ) : null}
 
                 <div className="mt-3 text-[10px] text-subtle">
                   Max size: {formatBytes((MAX_BYTES as any)[r.key])}
