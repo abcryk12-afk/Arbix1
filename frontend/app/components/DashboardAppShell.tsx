@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import DashboardBottomNav from './DashboardBottomNav';
+import DashboardFooter from './DashboardFooter';
 
 type Props = {
   children: React.ReactNode;
@@ -46,7 +47,10 @@ export default function DashboardAppShell({ children }: Props) {
   return (
     <>
       <div className="relative min-h-[calc(100vh-64px)] overflow-hidden text-fg network-grid-bg arbix-dashboard-bg">
-        <div className="relative pb-24 arbix-page-enter">{children}</div>
+        <div className="relative pb-24 arbix-page-enter">
+          {children}
+          <DashboardFooter />
+        </div>
       </div>
       <DashboardBottomNav />
 
