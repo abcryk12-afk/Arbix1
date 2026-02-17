@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const res = await fetch(`${baseUrl}/api/public/site-assets`, { cache: 'no-store' });
@@ -10,7 +10,8 @@ export async function GET() {
 
     const url = data?.success && typeof data?.assets?.favicon?.url === 'string' ? data.assets.favicon.url : '';
     if (url) {
-      return NextResponse.redirect(new URL(url, 'http://localhost'), 307);
+      const origin = new URL(request.url).origin;
+      return NextResponse.redirect(new URL(url, origin), 307);
     }
   } catch {
     // ignore
