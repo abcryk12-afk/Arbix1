@@ -74,7 +74,7 @@ export default function AdminSiteSettingsPage() {
   const [dbBusy, setDbBusy] = useState(false);
   const [importSqlFile, setImportSqlFile] = useState<File | null>(null);
 
-  const [adminLoginVariant, setAdminLoginVariant] = useState<'blue' | 'green'>('blue');
+  const [adminLoginVariant, setAdminLoginVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal'>('default');
   const [adminLoginVariantSaving, setAdminLoginVariantSaving] = useState(false);
 
   const loadAssets = async () => {
@@ -110,7 +110,17 @@ export default function AdminSiteSettingsPage() {
       const themeData = await themeRes.json().catch(() => null);
 
       const nextVariantRaw = themeData?.success ? String(themeData?.variant || '') : '';
-      setAdminLoginVariant(nextVariantRaw === 'green' ? 'green' : 'blue');
+      const nextVariant =
+        nextVariantRaw === 'green'
+          ? 'green'
+          : nextVariantRaw === 'blue'
+            ? 'blue'
+            : nextVariantRaw === 'midnight'
+              ? 'midnight'
+              : nextVariantRaw === 'royal'
+                ? 'royal'
+              : 'default';
+      setAdminLoginVariant(nextVariant);
 
       if (!assetsRes.ok || !data?.success) {
         setStatusText(data?.message || 'Failed to load site assets');
@@ -450,11 +460,27 @@ export default function AdminSiteSettingsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <select
                 value={adminLoginVariant}
-                onChange={(e) => setAdminLoginVariant(e.target.value === 'green' ? 'green' : 'blue')}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setAdminLoginVariant(
+                    v === 'blue'
+                      ? 'blue'
+                      : v === 'green'
+                        ? 'green'
+                        : v === 'midnight'
+                          ? 'midnight'
+                          : v === 'royal'
+                            ? 'royal'
+                            : 'default',
+                  );
+                }}
                 className="rounded-lg border border-border bg-surface/50 px-3 py-2 text-[11px] text-fg shadow-theme-sm"
               >
+                <option value="default">Default (Legacy)</option>
                 <option value="blue">Blue Variant</option>
                 <option value="green">Green Variant</option>
+                <option value="midnight">Midnight Variant</option>
+                <option value="royal">Royal Variant</option>
               </select>
               <button
                 type="button"

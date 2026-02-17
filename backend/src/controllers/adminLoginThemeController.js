@@ -1,13 +1,16 @@
 const { SiteSetting } = require('../models');
 
 const KEY = 'admin_login_theme_variant';
-const DEFAULT_VARIANT = 'blue';
+const DEFAULT_VARIANT = 'default';
 
 function normalizeVariant(input) {
   const raw = String(input || '').trim().toLowerCase();
+  if (!raw) return DEFAULT_VARIANT;
+  if (raw === 'default' || raw === 'legacy') return 'default';
   if (raw === 'green') return 'green';
   if (raw === 'blue') return 'blue';
-  if (!raw) return DEFAULT_VARIANT;
+  if (raw === 'midnight') return 'midnight';
+  if (raw === 'royal') return 'royal';
   return DEFAULT_VARIANT;
 }
 

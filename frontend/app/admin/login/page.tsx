@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [variant, setVariant] = useState<'blue' | 'green'>('blue');
+  const [variant, setVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal'>('default');
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +27,16 @@ export default function AdminLoginPage() {
 
         const nextLogo = assets?.success ? (assets?.assets?.logo?.url || null) : null;
         const nextVariantRaw = theme?.success ? String(theme?.variant || '') : '';
-        const nextVariant: 'blue' | 'green' = nextVariantRaw === 'green' ? 'green' : 'blue';
+        const nextVariant: 'default' | 'blue' | 'green' | 'midnight' | 'royal' =
+          nextVariantRaw === 'green'
+            ? 'green'
+            : nextVariantRaw === 'blue'
+              ? 'blue'
+              : nextVariantRaw === 'midnight'
+                ? 'midnight'
+                : nextVariantRaw === 'royal'
+                  ? 'royal'
+                : 'default';
 
         if (!cancelled) {
           setLogoUrl(nextLogo);
@@ -36,7 +45,7 @@ export default function AdminLoginPage() {
       } catch {
         if (!cancelled) {
           setLogoUrl(null);
-          setVariant('blue');
+          setVariant('default');
         }
       }
     };
@@ -47,6 +56,26 @@ export default function AdminLoginPage() {
   }, []);
 
   const palette = useMemo(() => {
+    if (variant === 'royal') {
+      return {
+        bg: 'bg-[#061634]',
+        sheet: 'bg-[#0b2a5b]',
+        accent: 'bg-[#3f7cff]',
+        accentText: 'text-white',
+        inputRing: 'focus-visible:outline-[#3f7cff]/60',
+        icon: 'text-[#0b2a5b]',
+      };
+    }
+    if (variant === 'midnight') {
+      return {
+        bg: 'bg-[#071a3a]',
+        sheet: 'bg-[#0b2a5b]',
+        accent: 'bg-[#4f8cff]',
+        accentText: 'text-white',
+        inputRing: 'focus-visible:outline-[#4f8cff]/60',
+        icon: 'text-[#0b2a5b]',
+      };
+    }
     if (variant === 'green') {
       return {
         bg: 'bg-[#2c7f73]',
@@ -57,13 +86,23 @@ export default function AdminLoginPage() {
         icon: 'text-[#1f6e64]',
       };
     }
+    if (variant === 'blue') {
+      return {
+        bg: 'bg-[#5a60b4]',
+        sheet: 'bg-[#4a4f98]',
+        accent: 'bg-[#8ea2ff]',
+        accentText: 'text-[#1b2152]',
+        inputRing: 'focus-visible:outline-[#8ea2ff]/60',
+        icon: 'text-[#4a4f98]',
+      };
+    }
     return {
-      bg: 'bg-[#5a60b4]',
-      sheet: 'bg-[#4a4f98]',
-      accent: 'bg-[#8ea2ff]',
-      accentText: 'text-[#1b2152]',
-      inputRing: 'focus-visible:outline-[#8ea2ff]/60',
-      icon: 'text-[#4a4f98]',
+      bg: 'bg-theme-page',
+      sheet: 'bg-surface/30',
+      accent: 'bg-theme-primary',
+      accentText: 'text-primary-fg',
+      inputRing: 'focus-visible:outline-ring/30',
+      icon: 'text-heading',
     };
   }, [variant]);
 
@@ -139,9 +178,102 @@ export default function AdminLoginPage() {
   };
 
   return (
+    variant === 'default' ? (
+      <div className="relative min-h-screen bg-page bg-theme-page flex items-center justify-center px-4 py-12 overflow-hidden network-grid-bg">
+        <div className="pointer-events-none absolute inset-0 bg-theme-hero-overlay opacity-60"></div>
+        <div className="pointer-events-none absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl"></div>
+        <div className="pointer-events-none absolute bottom-20 right-10 w-72 h-72 bg-secondary/20 rounded-full filter blur-3xl"></div>
+
+        <div className="relative w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-theme-primary rounded-xl mb-4 shadow-theme-md overflow-hidden">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="Arbix" className="h-12 w-12 object-contain" />
+              ) : (
+                <span className="text-primary-fg font-bold text-2xl">A</span>
+              )}
+            </div>
+            <h1 className="text-3xl font-bold text-heading mb-2">Admin Panel</h1>
+            <p className="text-muted">Sign in with your admin email and secret code</p>
+          </div>
+
+          <div className="bg-surface/30 backdrop-blur-lg rounded-2xl border border-border/50 p-8 shadow-theme-md">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-muted mb-2">Email Address</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-lg text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all"
+                  placeholder="admin@example.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="secretCode" className="block text-sm font-medium text-muted mb-2">Secret Code</label>
+                <input
+                  id="secretCode"
+                  type="text"
+                  value={secretCode}
+                  onChange={(e) => setSecretCode(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-surface/50 border border-border rounded-lg text-fg placeholder-subtle focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 transition-all"
+                  placeholder="Enter secret code"
+                />
+              </div>
+
+              {message && (
+                <div
+                  className={`p-4 rounded-lg text-sm ${
+                    messageType === 'success'
+                      ? 'bg-secondary/10 border border-secondary/30 text-secondary'
+                      : 'bg-danger/10 border border-danger/30 text-danger'
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3 px-4 bg-theme-primary text-primary-fg rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-theme-md hover:shadow-theme-lg focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
+              >
+                {isSubmitting ? 'Signing In...' : 'Sign In as Admin'}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <a href="/auth/login" className="text-muted hover:text-heading transition-colors text-sm">Back to User Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
     <div className={`min-h-screen ${palette.bg} text-white`}
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
+      {variant === 'midnight' ? (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(1200px 600px at 50% 0%, rgba(79,140,255,0.55), rgba(7,26,58,0) 55%), radial-gradient(900px 500px at 50% 100%, rgba(79,140,255,0.15), rgba(7,26,58,0) 60%)',
+          }}
+        />
+      ) : variant === 'royal' ? (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(1100px 520px at 50% 18%, rgba(68,115,255,0.65), rgba(6,22,52,0) 58%), radial-gradient(900px 520px at 50% 100%, rgba(68,115,255,0.20), rgba(6,22,52,0) 65%), linear-gradient(180deg, rgba(6,22,52,0) 0%, rgba(6,22,52,0.85) 76%, rgba(6,22,52,1) 100%)',
+          }}
+        />
+      ) : null}
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col">
         <div className="relative px-6 pt-10">
           <div className="flex flex-col items-center">
@@ -243,5 +375,6 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+    )
   );
 }
