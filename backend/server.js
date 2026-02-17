@@ -19,6 +19,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json({
+  limit: '10mb',
   verify: (req, res, buf) => {
     try {
       req.rawBody = buf.toString('utf8');
@@ -37,7 +38,7 @@ app.use((err, req, res, next) => {
   }
   return next(err);
 });
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Basic security headers (keep dependency-free and non-breaking)
 app.use((req, res, next) => {
