@@ -1,17 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const nextPath = useMemo(() => {
-    const n = searchParams?.get('next') || '';
-    if (!n) return '/dashboard';
-    if (!n.startsWith('/')) return '/dashboard';
-    return n;
-  }, [searchParams]);
+  const [nextPath, setNextPath] = useState('/dashboard');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,6 +13,18 @@ export default function LoginPage() {
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [showPassword, setShowPassword] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const n = params.get('next') || '';
+      if (n && n.startsWith('/')) setNextPath(n);
+      else setNextPath('/dashboard');
+    } catch {
+      setNextPath('/dashboard');
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
