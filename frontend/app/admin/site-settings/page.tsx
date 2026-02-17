@@ -484,12 +484,14 @@ export default function AdminSiteSettingsPage() {
                     <div className="space-y-2">
                       <div className="text-[11px] text-muted break-all">{current.url}</div>
                       <div className="rounded-lg border border-border bg-black/5 p-2">
-                        <img
-                          src={current.url}
-                          alt={`${r.label} preview`}
-                          className={previewBoxClass(r.key)}
-                          loading="lazy"
-                        />
+                        <a href={current.url} target="_blank" rel="noreferrer" className="inline-block">
+                          <img
+                            src={current.url}
+                            alt={`${r.label} preview`}
+                            className={previewBoxClass(r.key)}
+                            loading="lazy"
+                          />
+                        </a>
                       </div>
                       <div className="text-[10px] text-subtle">Updated: {current.updatedAt ? String(current.updatedAt).slice(0, 19).replace('T', ' ') : '—'}</div>
                       <a
@@ -520,14 +522,16 @@ export default function AdminSiteSettingsPage() {
                     aria-label={`${r.label} upload`}
                   />
 
-                  <button
-                    type="button"
-                    onClick={() => upload(r.key, pending || null)}
-                    disabled={isBusy || !pending}
-                    className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-50"
-                  >
-                    {isBusy ? 'Uploading…' : pending ? 'Save' : 'Select a file first'}
-                  </button>
+                  {pending ? (
+                    <button
+                      type="button"
+                      onClick={() => upload(r.key, pending)}
+                      disabled={isBusy}
+                      className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-50"
+                    >
+                      {isBusy ? 'Uploading…' : 'Save'}
+                    </button>
+                  ) : null}
 
                   <button
                     type="button"
@@ -546,11 +550,13 @@ export default function AdminSiteSettingsPage() {
                     </div>
                     {pendingPreviewUrls[r.key] ? (
                       <div className="rounded-lg border border-border bg-black/5 p-2">
-                        <img
-                          src={pendingPreviewUrls[r.key]}
-                          alt={`${r.label} selected preview`}
-                          className={previewBoxClass(r.key)}
-                        />
+                        <a href={pendingPreviewUrls[r.key]} target="_blank" rel="noreferrer" className="inline-block">
+                          <img
+                            src={pendingPreviewUrls[r.key]}
+                            alt={`${r.label} selected preview`}
+                            className={previewBoxClass(r.key)}
+                          />
+                        </a>
                       </div>
                     ) : null}
                   </div>
