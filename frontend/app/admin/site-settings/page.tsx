@@ -49,6 +49,12 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+function previewBoxClass(key: 'favicon' | 'logo' | 'ogImage') {
+  if (key === 'favicon') return 'h-10 w-10';
+  if (key === 'logo') return 'h-16 w-auto max-w-full';
+  return 'h-24 w-auto max-w-full';
+}
+
 export default function AdminSiteSettingsPage() {
   const router = useRouter();
 
@@ -56,6 +62,8 @@ export default function AdminSiteSettingsPage() {
   const [loading, setLoading] = useState(false);
 
   const [pendingFiles, setPendingFiles] = useState<Partial<Record<'favicon' | 'logo' | 'ogImage', File>>>({});
+
+  const [pendingPreviewUrls, setPendingPreviewUrls] = useState<Partial<Record<'favicon' | 'logo' | 'ogImage', string>>>({});
 
   const [statusText, setStatusText] = useState('');
   const [statusKind, setStatusKind] = useState<'success' | 'error' | ''>('');
@@ -106,6 +114,40 @@ export default function AdminSiteSettingsPage() {
     loadAssets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setPendingPreviewUrls((prev) => {
+      const next: Partial<Record<'favicon' | 'logo' | 'ogImage', string>> = { ...prev };
+
+      (['favicon', 'logo', 'ogImage'] as const).forEach((k) => {
+        const f = pendingFiles[k];
+        const existing = next[k];
+
+        if (!f && existing) {
+          URL.revokeObjectURL(existing);
+          delete (next as any)[k];
+          return;
+        }
+
+        if (f) {
+          if (existing) URL.revokeObjectURL(existing);
+          next[k] = URL.createObjectURL(f);
+        }
+      });
+
+      return next;
+    });
+
+    return () => {
+      setPendingPreviewUrls((prev) => {
+        Object.values(prev).forEach((u) => {
+          if (u) URL.revokeObjectURL(u);
+        });
+        return {};
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFiles.favicon, pendingFiles.logo, pendingFiles.ogImage]);
 
   const upload = async (key: 'favicon' | 'logo' | 'ogImage', file: File | null) => {
     if (!file) return;
@@ -441,6 +483,14 @@ export default function AdminSiteSettingsPage() {
                   {current?.url ? (
                     <div className="space-y-2">
                       <div className="text-[11px] text-muted break-all">{current.url}</div>
+                      <div className="rounded-lg border border-border bg-black/5 p-2">
+                        <img
+                          src={current.url}
+                          alt={`${r.label} preview`}
+                          className={previewBoxClass(r.key)}
+                          loading="lazy"
+                        />
+                      </div>
                       <div className="text-[10px] text-subtle">Updated: {current.updatedAt ? String(current.updatedAt).slice(0, 19).replace('T', ' ') : '—'}</div>
                       <a
                         href={current.url}
@@ -490,8 +540,19 @@ export default function AdminSiteSettingsPage() {
                 </div>
 
                 {pending ? (
-                  <div className="mt-2 text-[10px] text-subtle break-all">
-                    Selected: {pending.name} ({formatBytes(pending.size)})
+                  <div className="mt-2 space-y-2">
+                    <div className="text-[10px] text-subtle break-all">
+                      Selected: {pending.name} ({formatBytes(pending.size)})
+                    </div>
+                    {pendingPreviewUrls[r.key] ? (
+                      <div className="rounded-lg border border-border bg-black/5 p-2">
+                        <img
+                          src={pendingPreviewUrls[r.key]}
+                          alt={`${r.label} selected preview`}
+                          className={previewBoxClass(r.key)}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
