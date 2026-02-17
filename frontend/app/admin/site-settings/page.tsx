@@ -74,6 +74,9 @@ export default function AdminSiteSettingsPage() {
   const [dbBusy, setDbBusy] = useState(false);
   const [importSqlFile, setImportSqlFile] = useState<File | null>(null);
 
+  const [adminLoginVariant, setAdminLoginVariant] = useState<'blue' | 'green'>('blue');
+  const [adminLoginVariantSaving, setAdminLoginVariantSaving] = useState(false);
+
   const loadAssets = async () => {
     try {
       setLoading(true);
@@ -86,16 +89,30 @@ export default function AdminSiteSettingsPage() {
         return;
       }
 
-      const res = await fetch('/api/admin/site-assets', {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const [assetsRes, themeRes] = await Promise.all([
+        fetch('/api/admin/site-assets', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch('/api/admin/admin-login-theme', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
 
-      const data: AdminAssetsResponse = await res.json().catch(() => ({ success: false } as any));
-      if (!res.ok || !data?.success) {
+      const data: AdminAssetsResponse = await assetsRes.json().catch(() => ({ success: false } as any));
+      const themeData = await themeRes.json().catch(() => null);
+
+      const nextVariantRaw = themeData?.success ? String(themeData?.variant || '') : '';
+      setAdminLoginVariant(nextVariantRaw === 'green' ? 'green' : 'blue');
+
+      if (!assetsRes.ok || !data?.success) {
         setStatusText(data?.message || 'Failed to load site assets');
         setStatusKind('error');
         return;
@@ -107,6 +124,44 @@ export default function AdminSiteSettingsPage() {
       setStatusKind('error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveAdminLoginVariant = async () => {
+    setStatusText('');
+    setStatusKind('');
+    setAdminLoginVariantSaving(true);
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
+      const res = await fetch('/api/admin/admin-login-theme', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ variant: adminLoginVariant }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        setStatusText(data?.message || 'Failed to update admin login theme');
+        setStatusKind('error');
+        return;
+      }
+
+      setStatusText('Admin login theme updated');
+      setStatusKind('success');
+    } catch {
+      setStatusText('Failed to update admin login theme');
+      setStatusKind('error');
+    } finally {
+      setAdminLoginVariantSaving(false);
     }
   };
 
@@ -363,17 +418,18 @@ export default function AdminSiteSettingsPage() {
     } finally {
       setDbBusy(false);
     }
+
   };
 
   return (
     <div className="min-h-screen bg-page text-fg">
       <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight md:text-xl">Site Settings</h1>
-              <p className="mt-1 text-[11px] text-muted md:text-xs">Upload favicon/logo/OG image for the entire site.</p>
-            </div>
+        <div className="relative w-full max-w-5xl">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight md:text-xl">Site Settings</h1>
+            <p className="mt-1 text-[11px] text-muted md:text-xs">Upload favicon/logo/OG image for the entire site.</p>
+          </div>
 
             <button
               type="button"
@@ -383,7 +439,40 @@ export default function AdminSiteSettingsPage() {
             >
               {loading ? 'Loading…' : 'Refresh'}
             </button>
+        </div>
+
+        <div className="arbix-card rounded-2xl p-4 mt-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-heading">Admin Login Theme</div>
+              <div className="mt-0.5 text-[11px] text-muted">Choose which design variant shows on /admin/login.</div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={adminLoginVariant}
+                onChange={(e) => setAdminLoginVariant(e.target.value === 'green' ? 'green' : 'blue')}
+                className="rounded-lg border border-border bg-surface/50 px-3 py-2 text-[11px] text-fg shadow-theme-sm"
+              >
+                <option value="blue">Blue Variant</option>
+                <option value="green">Green Variant</option>
+              </select>
+              <button
+                type="button"
+                onClick={saveAdminLoginVariant}
+                disabled={adminLoginVariantSaving}
+                className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
+              >
+                {adminLoginVariantSaving ? 'Saving…' : 'Save'}
+              </button>
+              <a
+                href="/admin/login"
+                className="rounded-lg border border-border px-3 py-2 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
+              >
+                Preview
+              </a>
+            </div>
           </div>
+        </div>
 
           {statusText && (
             <div

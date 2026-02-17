@@ -8,10 +8,12 @@ const { getPublicAuroraTheme } = require('../controllers/auroraThemeController')
 const { getPublicSeoSettings, getPublicRouteSeo } = require('../controllers/seoSettingsController');
 const { getPublicSiteAssets } = require('../controllers/siteAssetsController');
 const { getPublicCmsPageBySlug, listPublicCmsPages } = require('../controllers/cmsPagesController');
+const { getPublicAdminLoginTheme } = require('../controllers/adminLoginThemeController');
 
 router.get('/branding', getPublicBranding);
 router.get('/site-theme', getPublicSiteTheme);
 router.get('/aurora-theme', getPublicAuroraTheme);
+router.get('/admin-login-theme', getPublicAdminLoginTheme);
 router.get('/investment-packages', getPublicInvestmentPackages);
 router.get('/site-assets', getPublicSiteAssets);
 router.get('/seo-settings', getPublicSeoSettings);

@@ -80,6 +80,11 @@ const {
   deleteAdminCmsPage,
 } = require('../controllers/cmsPagesController');
 
+const {
+  getAdminAdminLoginTheme,
+  setAdminAdminLoginTheme,
+} = require('../controllers/adminLoginThemeController');
+
 router.use(requireAdminKey);
 
 router.get('/check', protect, requireAdminUser, checkAccess);
@@ -96,6 +101,8 @@ router.get('/site-theme', protect, requireAdminUser, getAdminSiteTheme);
 router.put('/site-theme', protect, requireAdminUser, auditAdminAction('site_theme.update', { entity: 'site_setting' }), setAdminSiteTheme);
 router.get('/aurora-theme', protect, requireAdminUser, getAdminAuroraTheme);
 router.put('/aurora-theme', protect, requireAdminUser, auditAdminAction('aurora_theme.update', { entity: 'site_setting' }), setAdminAuroraTheme);
+router.get('/admin-login-theme', protect, requireAdminUser, getAdminAdminLoginTheme);
+router.put('/admin-login-theme', protect, requireAdminUser, auditAdminAction('admin_login_theme.update', { entity: 'site_setting' }), setAdminAdminLoginTheme);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/withdrawal-hold', protect, requireAdminUser, auditAdminAction('user.withdrawal_hold', { entity: 'user' }), setUserWithdrawalHold);
