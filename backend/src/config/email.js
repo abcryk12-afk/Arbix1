@@ -9,6 +9,10 @@ const emailConfig = {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    servername: process.env.EMAIL_TLS_SERVERNAME || undefined,
+    rejectUnauthorized: process.env.EMAIL_TLS_REJECT_UNAUTHORIZED === 'false' ? false : undefined,
+  },
 };
 
 // Create transporter
