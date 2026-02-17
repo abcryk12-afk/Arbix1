@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
 
     const response = await fetch(`${baseUrl}/api/public/admin-login-theme`, {
       method: 'GET',
