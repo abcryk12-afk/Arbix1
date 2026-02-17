@@ -57,11 +57,10 @@ type NavItem = {
     let cancelled = false;
     const run = async () => {
       try {
-        const res = await fetch('/api/public/branding', { method: 'GET' });
-        const data = await res.json();
-        if (!cancelled && data?.success) {
-          setLogoDataUrl(data?.branding?.logoDataUrl || null);
-        }
+        const res = await fetch('/api/public/site-assets', { method: 'GET', cache: 'no-store' });
+        const data = await res.json().catch(() => null);
+        const nextUrl = data?.success ? (data?.assets?.logo?.url || null) : null;
+        if (!cancelled) setLogoDataUrl(nextUrl);
       } catch {
         if (!cancelled) setLogoDataUrl(null);
       }
