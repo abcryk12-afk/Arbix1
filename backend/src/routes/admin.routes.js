@@ -85,6 +85,11 @@ const {
   setAdminAdminLoginTheme,
 } = require('../controllers/adminLoginThemeController');
 
+const {
+  getAdminUiTheme,
+  setAdminUiTheme,
+} = require('../controllers/uiThemeController');
+
 router.use(requireAdminKey);
 
 router.get('/check', protect, requireAdminUser, checkAccess);
@@ -103,6 +108,8 @@ router.get('/aurora-theme', protect, requireAdminUser, getAdminAuroraTheme);
 router.put('/aurora-theme', protect, requireAdminUser, auditAdminAction('aurora_theme.update', { entity: 'site_setting' }), setAdminAuroraTheme);
 router.get('/admin-login-theme', protect, requireAdminUser, getAdminAdminLoginTheme);
 router.put('/admin-login-theme', protect, requireAdminUser, auditAdminAction('admin_login_theme.update', { entity: 'site_setting' }), setAdminAdminLoginTheme);
+router.get('/ui-theme', protect, requireAdminUser, getAdminUiTheme);
+router.put('/ui-theme', protect, requireAdminUser, auditAdminAction('ui_theme.update', { entity: 'site_setting' }), setAdminUiTheme);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/withdrawal-hold', protect, requireAdminUser, auditAdminAction('user.withdrawal_hold', { entity: 'user' }), setUserWithdrawalHold);

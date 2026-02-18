@@ -77,6 +77,9 @@ export default function AdminSiteSettingsPage() {
   const [adminLoginVariant, setAdminLoginVariant] = useState<'default' | 'blue' | 'green' | 'midnight' | 'royal' | 'galileo'>('default');
   const [adminLoginVariantSaving, setAdminLoginVariantSaving] = useState(false);
 
+  const [uiTheme, setUiTheme] = useState<'default' | 'aurora_glass'>('default');
+  const [uiThemeSaving, setUiThemeSaving] = useState(false);
+
   const loadAssets = async () => {
     try {
       setLoading(true);
@@ -89,7 +92,7 @@ export default function AdminSiteSettingsPage() {
         return;
       }
 
-      const [assetsRes, themeRes] = await Promise.all([
+      const [assetsRes, themeRes, uiThemeRes] = await Promise.all([
         fetch('/api/admin/site-assets', {
           method: 'GET',
           cache: 'no-store',
@@ -104,10 +107,18 @@ export default function AdminSiteSettingsPage() {
             Authorization: `Bearer ${token}`,
           },
         }),
+        fetch('/api/admin/ui-theme', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       ]);
 
       const data: AdminAssetsResponse = await assetsRes.json().catch(() => ({ success: false } as any));
       const themeData = await themeRes.json().catch(() => null);
+      const uiThemeData = await uiThemeRes.json().catch(() => null);
 
       const nextVariantRaw = themeData?.success ? String(themeData?.variant || '') : '';
       const nextVariant =
@@ -123,6 +134,10 @@ export default function AdminSiteSettingsPage() {
                   ? 'galileo'
               : 'default';
       setAdminLoginVariant(nextVariant);
+
+      const nextUiThemeRaw = uiThemeData?.success ? String(uiThemeData?.theme || '') : '';
+      const nextUiTheme = nextUiThemeRaw === 'aurora_glass' || nextUiThemeRaw === 'aurora-glass' ? 'aurora_glass' : 'default';
+      setUiTheme(nextUiTheme);
 
       if (!assetsRes.ok || !data?.success) {
         setStatusText(data?.message || 'Failed to load site assets');
@@ -174,6 +189,48 @@ export default function AdminSiteSettingsPage() {
       setStatusKind('error');
     } finally {
       setAdminLoginVariantSaving(false);
+    }
+  };
+
+  const saveUiTheme = async () => {
+    setStatusText('');
+    setStatusKind('');
+    setUiThemeSaving(true);
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
+      const res = await fetch('/api/admin/ui-theme', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ theme: uiTheme }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        setStatusText(data?.message || 'Failed to update UI theme');
+        setStatusKind('error');
+        return;
+      }
+
+      try {
+        window.dispatchEvent(new CustomEvent('arbix-ui-theme-change', { detail: { theme: uiTheme } }));
+      } catch {}
+
+      setStatusText('UI theme updated');
+      setStatusKind('success');
+    } catch {
+      setStatusText('Failed to update UI theme');
+      setStatusKind('error');
+    } finally {
+      setUiThemeSaving(false);
     }
   };
 
@@ -501,6 +558,36 @@ export default function AdminSiteSettingsPage() {
               >
                 Preview
               </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="arbix-card rounded-2xl p-4 mt-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-heading">Global UI Theme</div>
+              <div className="mt-0.5 text-[11px] text-muted">Applies instantly across all pages (no reload).</div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={uiTheme}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setUiTheme(v === 'aurora_glass' ? 'aurora_glass' : 'default');
+                }}
+                className="rounded-lg border border-border bg-surface/50 px-3 py-2 text-[11px] text-fg shadow-theme-sm"
+              >
+                <option value="default">Default</option>
+                <option value="aurora_glass">Aurora Glass</option>
+              </select>
+              <button
+                type="button"
+                onClick={saveUiTheme}
+                disabled={uiThemeSaving}
+                className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
+              >
+                {uiThemeSaving ? 'Saving…' : 'Save'}
+              </button>
             </div>
           </div>
         </div>

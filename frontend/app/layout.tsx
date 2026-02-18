@@ -4,6 +4,7 @@ import Script from 'next/script';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ThemeBoot from "./components/ThemeBoot";
+import { UiThemeProvider } from "./components/UiThemeProvider";
 import PwaBoot from "./components/PwaBoot";
 import InstallPrompt from "./components/InstallPrompt";
 import type { ReactNode } from 'react';
@@ -135,8 +136,15 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="light">
+    <html lang="en" data-theme="light" data-ui-theme="default">
       <body className="min-h-screen bg-page text-fg">
+        <Script
+          id="arbix-ui-theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var k='arbix_ui_theme';var v=localStorage.getItem(k);var t=(v==='aurora_glass'||v==='aurora-glass'||v==='auroraglass')?'aurora_glass':'default';document.documentElement.setAttribute('data-ui-theme',t);}catch(e){}})();`,
+          }}
+        />
         <Script
           id="arbix-theme-init"
           strategy="beforeInteractive"
@@ -147,11 +155,13 @@ export default function RootLayout({
         <ThemeBoot />
         <PwaBoot />
         <InstallPrompt />
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <UiThemeProvider>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </UiThemeProvider>
       </body>
     </html>
   );

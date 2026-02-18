@@ -16,7 +16,7 @@ export async function GET(request) {
       );
     }
 
-    const response = await fetch(`${baseUrl}/api/admin/site-theme`, {
+    const response = await fetch(`${baseUrl}/api/admin/ui-theme`, {
       method: 'GET',
       headers: {
         Authorization: authHeader,
@@ -28,7 +28,7 @@ export async function GET(request) {
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Admin site theme GET API error:', error);
+    console.error('Admin ui theme GET API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -47,22 +47,22 @@ export async function PUT(request) {
       );
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
 
-    const response = await fetch(`${baseUrl}/api/admin/site-theme`, {
+    const response = await fetch(`${baseUrl}/api/admin/ui-theme`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Authorization: authHeader,
         'X-Admin-Key': adminKey,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body || {}),
     });
 
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Admin site theme PUT API error:', error);
+    console.error('Admin ui theme PUT API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
