@@ -137,6 +137,7 @@ export default function DashboardPage() {
   const l1Count = teamCounts.l1;
   const l2Count = teamCounts.l2;
   const l3Count = teamCounts.l3;
+  const teamTotal = l1Count + l2Count + l3Count;
   const teamTodayEarnings = networkToday;
 
   const activityPageSize = 8;
@@ -155,7 +156,11 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
 
+    let running = false;
+
     const run = async () => {
+      if (running) return;
+      running = true;
       let myTradingTodayValue = 0;
       let myTradingAllValue = 0;
       let networkTodayValue = 0;
@@ -164,6 +169,7 @@ export default function DashboardPage() {
       const token = localStorage.getItem('token');
       if (!token) {
         if (!cancelled) setIsLoading(false);
+        running = false;
         return;
       }
 
@@ -181,6 +187,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/user/summary', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -202,6 +209,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/auth/me', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -224,6 +232,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/user/referrals', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -244,6 +253,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/user/packages', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -289,6 +299,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/user/referral-earnings', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -306,6 +317,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch('/api/user/activity?limit=30', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -383,17 +395,30 @@ export default function DashboardPage() {
         setNetworkAll(networkAllValue);
         setTodayEarnings(myTradingTodayValue);
         setTotalEarnings(myTradingAllValue + networkAllValue);
-        setIsLoading(false);
       }
+      running = false;
+    };
+
+    const onUserUpdated = () => run();
+    const onFocus = () => run();
+    const onVisibility = () => {
+      if (typeof document === 'undefined') return;
+      if (document.visibilityState === 'visible') run();
     };
 
     run();
+
+    window.addEventListener('arbix-user-updated', onUserUpdated);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
-
-  const teamTotal = l1Count + l2Count + l3Count;
 
   const handleCopyReferralLink = async () => {
     try {

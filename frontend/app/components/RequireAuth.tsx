@@ -15,17 +15,23 @@ export default function RequireAuth({ children }: RequireAuthProps) {
   useEffect(() => {
     let cancelled = false;
 
+    let running = false;
+
     const run = async () => {
+      if (running) return;
+      running = true;
       const token = localStorage.getItem('token');
 
       if (!token) {
         router.replace(`/auth/login?next=${encodeURIComponent(pathname || '/')}`);
+        running = false;
         return;
       }
 
       try {
         const res = await fetch('/api/auth/me', {
           method: 'GET',
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -35,6 +41,7 @@ export default function RequireAuth({ children }: RequireAuthProps) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           router.replace(`/auth/login?next=${encodeURIComponent(pathname || '/')}`);
+          running = false;
           return;
         }
 
@@ -42,6 +49,11 @@ export default function RequireAuth({ children }: RequireAuthProps) {
         if (!cancelled) {
           if (data?.success && data?.user) {
             localStorage.setItem('user', JSON.stringify(data.user));
+            try {
+              window.dispatchEvent(new Event('arbix-user-updated'));
+            } catch {
+              // ignore
+            }
           }
           setIsAllowed(true);
         }
@@ -49,13 +61,26 @@ export default function RequireAuth({ children }: RequireAuthProps) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.replace(`/auth/login?next=${encodeURIComponent(pathname || '/')}`);
+      } finally {
+        running = false;
       }
+    };
+
+    const onFocus = () => run();
+    const onVisibility = () => {
+      if (typeof document === 'undefined') return;
+      if (document.visibilityState === 'visible') run();
     };
 
     run();
 
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [router, pathname]);
 
