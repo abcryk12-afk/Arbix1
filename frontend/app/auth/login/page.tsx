@@ -100,7 +100,18 @@ export default function LoginPage() {
         setMessageType('success');
         if (data?.token) localStorage.setItem('token', data.token);
         if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
-        setTimeout(() => router.push(nextPath || '/dashboard'), 800);
+        try {
+          window.dispatchEvent(new Event('arbix-user-updated'));
+        } catch {
+          // ignore
+        }
+        setTimeout(() => {
+          try {
+            window.location.href = nextPath || '/dashboard';
+          } catch {
+            router.push(nextPath || '/dashboard');
+          }
+        }, 800);
       } else {
         setMessage(data?.message || `Login failed (HTTP ${response.status}).`);
         setMessageType('error');

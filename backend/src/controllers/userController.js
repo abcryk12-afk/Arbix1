@@ -1330,19 +1330,35 @@ exports.activatePackage = async (req, res) => {
 
     const config = packages[String(packageId)];
 
-    const cap =
+    const minCap =
       config.capital === 'flex'
+        ? Number(config.minCapital || 1000)
+        : Number(config.capital);
+
+    const maxCap = config.maxCapital != null ? Number(config.maxCapital) : null;
+
+    const cap =
+      capital != null && capital !== ''
         ? Number(capital)
+        : config.capital === 'flex'
+        ? Number(minCap)
         : Number(config.capital);
 
     if (!Number.isFinite(cap) || cap <= 0) {
       return res.status(400).json({ success: false, message: 'Invalid capital amount' });
     }
 
-    if (config.capital === 'flex' && cap < Number(config.minCapital || 1000)) {
+    if (Number.isFinite(minCap) && minCap > 0 && cap < minCap) {
       return res.status(400).json({
         success: false,
-        message: `Elite+ requires capital of at least ${Number(config.minCapital || 1000)}`,
+        message: `Capital must be at least ${minCap}`,
+      });
+    }
+
+    if (maxCap !== null && Number.isFinite(maxCap) && maxCap > 0 && cap > maxCap) {
+      return res.status(400).json({
+        success: false,
+        message: `Capital must be at most ${maxCap}`,
       });
     }
 

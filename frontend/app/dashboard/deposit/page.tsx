@@ -663,130 +663,136 @@ export default function DepositPage() {
             Deposit Requests
           </h2>
 
-          {selectedRequest ? (
-            <div className="mt-3 arbix-card arbix-3d rounded-2xl p-4">
-              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <div className="text-sm font-semibold text-heading">Request #{String(selectedRequest.id)}</div>
-                  <div className="mt-0.5 text-[11px] text-muted">Status: {String(selectedRequest.status || '').toLowerCase() || '-'}</div>
-                </div>
-                <div className="text-[11px] text-muted">
-                  Amount: <span className="font-semibold text-heading">{Number(selectedRequest.amount || 0).toFixed(2)} USDT</span>
-                </div>
-              </div>
-
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
-                <div className="rounded-xl border border-border bg-surface/40 p-3">
-                  <div className="text-[10px] text-subtle">Deposit Address</div>
-                  <div className="mt-1 flex items-start justify-between gap-2">
-                    <div className="break-all font-mono text-[10px] text-heading">{selectedRequest.address || '-'}</div>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          if (!selectedRequest.address) return;
-                          await navigator.clipboard.writeText(String(selectedRequest.address));
-                        } catch {}
-                      }}
-                      className="shrink-0 rounded-lg border border-border px-2 py-1 text-[10px] text-fg transition hover:shadow-theme-sm"
-                      disabled={!selectedRequest.address}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-border bg-surface/40 p-3">
-                  <div className="text-[10px] text-subtle">Transaction</div>
-                  <div className="mt-1 text-[11px] text-muted">
-                    {selectedRequest.txHash ? `Tx: ${String(selectedRequest.txHash).slice(0, 18)}...` : 'Waiting for payment'}
-                  </div>
-                  <div className="mt-1 text-[10px] text-subtle">
-                    Created: {selectedRequest.createdAt ? String(selectedRequest.createdAt).slice(0, 19).replace('T', ' ') : '-'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mt-3 overflow-x-auto arbix-card arbix-3d rounded-2xl">
-            <table className="min-w-full divide-y divide-border text-[11px]">
-              <thead className="bg-surface/60 text-muted">
-                <tr>
-                  <th className="px-3 py-2 text-left">Date / Time</th>
-                  <th className="px-3 py-2 text-left">Request ID</th>
-                  <th className="px-3 py-2 text-left">Amount (USDT)</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-muted">
-                {depositRequests.length === 0 ? (
+          <div className="mt-3 grid gap-3 md:grid-cols-[2fr,1fr]">
+            <div className="overflow-x-auto arbix-card arbix-3d rounded-2xl">
+              <table className="min-w-full divide-y divide-border text-[11px]">
+                <thead className="bg-surface/60 text-muted">
                   <tr>
-                    <td colSpan={4} className="px-3 py-6 text-center text-subtle">
-                      {isLoading || isLoadingRequests ? 'Loading...' : 'No deposit requests yet'}
-                    </td>
+                    <th className="px-3 py-2 text-left">Date / Time</th>
+                    <th className="px-3 py-2 text-left">Request ID</th>
+                    <th className="px-3 py-2 text-left">Amount (USDT)</th>
+                    <th className="px-3 py-2 text-left">Status</th>
                   </tr>
-                ) : (
-                  depositRequests.map((r) => (
-                    <tr
-                      key={String(r.id)}
-                      onClick={() => setSelectedRequestId(String(r.id))}
-                      className={
-                        'cursor-pointer transition ' +
-                        (String(selectedRequestId) === String(r.id)
-                          ? 'bg-surface/40'
-                          : 'hover:bg-surface/30')
-                      }
-                    >
-                      <td className="px-3 py-2">
-                        {r?.createdAt ? String(r.createdAt).slice(0, 19).replace('T', ' ') : '-'}
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="font-semibold text-heading">#{String(r.id)}</div>
-                        {r?.txHash ? (
-                          <div className="mt-0.5 text-[10px] text-subtle">Tx: {String(r.txHash).slice(0, 10)}...</div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-2">{Number(r?.amount || 0).toFixed(2)}</td>
-                      <td
-                        className={
-                          'px-3 py-2 ' +
-                          (String(r?.status || '').toLowerCase() === 'pending' && r?.txHash
-                            ? 'text-info'
-                            : String(r?.status || '').toLowerCase() === 'pending'
-                            ? 'text-warning'
-                            : String(r?.status || '').toLowerCase() === 'approved'
-                            ? 'text-success'
-                            : String(r?.status || '').toLowerCase() === 'rejected'
-                            ? 'text-danger'
-                            : 'text-muted')
-                        }
-                      >
-                        {(() => {
-                          const lower = String(r?.status || '').toLowerCase();
-                          if (lower === 'pending' && r?.txHash) return 'processing';
-                          if (isExpiredByTtl(r) || isExpiredStatus(r)) return 'expired';
-                          return lower || '-';
-                        })()}
-
-                        {(() => {
-                          const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
-                          const createdMs = r?.createdAt ? new Date(r.createdAt).getTime() : NaN;
-                          const msRemaining = Number.isFinite(createdMs) ? (createdMs + ttlMs - nowMs) : NaN;
-                          const showCountdown = String(r?.status || '').toLowerCase() === 'pending' && !r?.txHash && Number.isFinite(msRemaining);
-                          if (!showCountdown) return null;
-                          return (
-                            <div className="mt-0.5 text-[10px] text-subtle">
-                              Time left: {formatCountdown(msRemaining)}
-                            </div>
-                          );
-                        })()}
+                </thead>
+                <tbody className="divide-y divide-border text-muted">
+                  {depositRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-6 text-center text-subtle">
+                        {isLoading || isLoadingRequests ? 'Loading...' : 'No deposit requests yet'}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    depositRequests.map((r) => (
+                      <tr
+                        key={String(r.id)}
+                        onClick={() => setSelectedRequestId(String(r.id))}
+                        className={
+                          'cursor-pointer transition ' +
+                          (String(selectedRequestId) === String(r.id)
+                            ? 'bg-surface/40'
+                            : 'hover:bg-surface/30')
+                        }
+                      >
+                        <td className="px-3 py-2">
+                          {r?.createdAt ? String(r.createdAt).slice(0, 19).replace('T', ' ') : '-'}
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="font-semibold text-heading">#{String(r.id)}</div>
+                          {r?.txHash ? (
+                            <div className="mt-0.5 text-[10px] text-subtle">Tx: {String(r.txHash).slice(0, 10)}...</div>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-2">{Number(r?.amount || 0).toFixed(2)}</td>
+                        <td
+                          className={
+                            'px-3 py-2 ' +
+                            (String(r?.status || '').toLowerCase() === 'pending' && r?.txHash
+                              ? 'text-info'
+                              : String(r?.status || '').toLowerCase() === 'pending'
+                              ? 'text-warning'
+                              : String(r?.status || '').toLowerCase() === 'approved'
+                              ? 'text-success'
+                              : String(r?.status || '').toLowerCase() === 'rejected'
+                              ? 'text-danger'
+                              : 'text-muted')
+                          }
+                        >
+                          {(() => {
+                            const lower = String(r?.status || '').toLowerCase();
+                            if (lower === 'pending' && r?.txHash) return 'processing';
+                            if (isExpiredByTtl(r) || isExpiredStatus(r)) return 'expired';
+                            return lower || '-';
+                          })()}
+
+                          {(() => {
+                            const ttlMs = Math.max(1, depositRequestTtlMinutes) * 60 * 1000;
+                            const createdMs = r?.createdAt ? new Date(r.createdAt).getTime() : NaN;
+                            const msRemaining = Number.isFinite(createdMs) ? (createdMs + ttlMs - nowMs) : NaN;
+                            const showCountdown = String(r?.status || '').toLowerCase() === 'pending' && !r?.txHash && Number.isFinite(msRemaining);
+                            if (!showCountdown) return null;
+                            return (
+                              <div className="mt-0.5 text-[10px] text-subtle">
+                                Time left: {formatCountdown(msRemaining)}
+                              </div>
+                            );
+                          })()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className={selectedRequest ? '' : 'md:opacity-60'}>
+              {selectedRequest ? (
+                <div className="arbix-card arbix-3d rounded-2xl p-4">
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <div className="text-sm font-semibold text-heading">Request #{String(selectedRequest.id)}</div>
+                      <div className="mt-0.5 text-[11px] text-muted">Status: {String(selectedRequest.status || '').toLowerCase() || '-'}</div>
+                    </div>
+                    <div className="text-[11px] text-muted">
+                      Amount: <span className="font-semibold text-heading">{Number(selectedRequest.amount || 0).toFixed(2)} USDT</span>
+                    </div>
+
+                    <div className="mt-2 rounded-xl border border-border bg-surface/40 p-3">
+                      <div className="text-[10px] text-subtle">Deposit Address</div>
+                      <div className="mt-1 flex items-start justify-between gap-2">
+                        <div className="break-all font-mono text-[10px] text-heading">{selectedRequest.address || '-'}</div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              if (!selectedRequest.address) return;
+                              await navigator.clipboard.writeText(String(selectedRequest.address));
+                            } catch {}
+                          }}
+                          className="shrink-0 rounded-lg border border-border px-2 py-1 text-[10px] text-fg transition hover:shadow-theme-sm"
+                          disabled={!selectedRequest.address}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-surface/40 p-3">
+                      <div className="text-[10px] text-subtle">Transaction</div>
+                      <div className="mt-1 text-[11px] text-muted">
+                        {selectedRequest.txHash ? `Tx: ${String(selectedRequest.txHash).slice(0, 18)}...` : 'Waiting for payment'}
+                      </div>
+                      <div className="mt-1 text-[10px] text-subtle">
+                        Created: {selectedRequest.createdAt ? String(selectedRequest.createdAt).slice(0, 19).replace('T', ' ') : '-'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="arbix-card arbix-3d rounded-2xl p-4 text-[11px] text-subtle">
+                  Select a deposit request from the list to view details.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

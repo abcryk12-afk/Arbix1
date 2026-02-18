@@ -3,12 +3,12 @@ const { SiteSetting } = require('../models');
 const SETTINGS_KEY = 'investment_packages_config';
 
 const DEFAULT_PACKAGES = {
-  starter: { name: 'Starter', capital: 10, dailyRoi: 1, durationDays: 365 },
-  basic: { name: 'Basic', capital: 30, dailyRoi: 1.3, durationDays: 365 },
-  growth: { name: 'Growth', capital: 50, dailyRoi: 1.5, durationDays: 365 },
-  silver: { name: 'Silver', capital: 100, dailyRoi: 2, durationDays: 365 },
-  gold: { name: 'Gold', capital: 500, dailyRoi: 3, durationDays: 365 },
-  platinum: { name: 'Platinum', capital: 1000, dailyRoi: 4, durationDays: 365 },
+  starter: { name: 'Starter', capital: 10, maxCapital: 30, dailyRoi: 1, durationDays: 365 },
+  basic: { name: 'Basic', capital: 30, maxCapital: 50, dailyRoi: 1.3, durationDays: 365 },
+  growth: { name: 'Growth', capital: 50, maxCapital: 100, dailyRoi: 1.5, durationDays: 365 },
+  silver: { name: 'Silver', capital: 100, maxCapital: 500, dailyRoi: 2, durationDays: 365 },
+  gold: { name: 'Gold', capital: 500, maxCapital: 1000, dailyRoi: 3, durationDays: 365 },
+  platinum: { name: 'Platinum', capital: 1000, maxCapital: 5000, dailyRoi: 4, durationDays: 365 },
   elite_plus: { name: 'Elite+', capital: 'flex', minCapital: 1000, dailyRoi: 4.5, durationDays: 365 },
 };
 
@@ -46,6 +46,14 @@ const sanitizePackage = (id, input, fallback) => {
     if (Number.isFinite(cap) && cap > 0) capital = cap;
   }
 
+  const maxCapital = toNumber(raw.maxCapital);
+  const baseMaxCapital = toNumber(base.maxCapital);
+  const finalMaxCapital = Number.isFinite(maxCapital) && maxCapital > 0
+    ? maxCapital
+    : Number.isFinite(baseMaxCapital) && baseMaxCapital > 0
+    ? baseMaxCapital
+    : undefined;
+
   const minCapital = toNumber(raw.minCapital);
   const finalMinCapital = base.capital === 'flex'
     ? Number.isFinite(minCapital) && minCapital > 0 ? minCapital : toNumber(base.minCapital || 1000)
@@ -54,6 +62,7 @@ const sanitizePackage = (id, input, fallback) => {
   const out = {
     name,
     capital,
+    ...(finalMaxCapital != null ? { maxCapital: finalMaxCapital } : {}),
     dailyRoi: finalDailyRoi,
     durationDays: finalDurationDays,
   };

@@ -16,6 +16,7 @@ type PackageConfig = {
   name: string;
   capital: number | 'flex';
   minCapital?: number;
+  maxCapital?: number;
   dailyRoi: number; // percent
   durationDays: number;
   bullets: string[];
@@ -26,6 +27,7 @@ const DEFAULT_PACKAGES: PackageConfig[] = [
     id: 'starter',
     name: 'Starter',
     capital: 10,
+    maxCapital: 30,
     dailyRoi: 1,
     durationDays: 365,
     bullets: [
@@ -38,6 +40,7 @@ const DEFAULT_PACKAGES: PackageConfig[] = [
     id: 'basic',
     name: 'Basic',
     capital: 30,
+    maxCapital: 50,
     dailyRoi: 1.3,
     durationDays: 365,
     bullets: [
@@ -50,6 +53,7 @@ const DEFAULT_PACKAGES: PackageConfig[] = [
     id: 'growth',
     name: 'Growth',
     capital: 50,
+    maxCapital: 100,
     dailyRoi: 1.5,
     durationDays: 365,
     bullets: [
@@ -62,6 +66,7 @@ const DEFAULT_PACKAGES: PackageConfig[] = [
     id: 'silver',
     name: 'Silver',
     capital: 100,
+    maxCapital: 500,
     dailyRoi: 2,
     durationDays: 365,
     bullets: [
@@ -74,6 +79,7 @@ const DEFAULT_PACKAGES: PackageConfig[] = [
     id: 'gold',
     name: 'Gold',
     capital: 500,
+    maxCapital: 1000,
     dailyRoi: 3,
     durationDays: 365,
     bullets: [
@@ -86,6 +92,7 @@ const DEFAULT_PACKAGES: PackageConfig[] = [
     id: 'platinum',
     name: 'Platinum',
     capital: 1000,
+    maxCapital: 5000,
     dailyRoi: 4,
     durationDays: 365,
     bullets: [
@@ -138,6 +145,7 @@ export default function StartInvestmentPage() {
   );
   const [showActivation, setShowActivation] = useState(false);
   const [eliteCapital, setEliteCapital] = useState<number>(1000);
+  const [manualCapital, setManualCapital] = useState<number>(0);
 
   const selectedConfig = useMemo(
     () => packagesConfig.find((p) => p.id === selectedPackageId) || null,
@@ -185,6 +193,12 @@ export default function StartInvestmentPage() {
               minCapital = undefined;
             }
 
+            let maxCapital: number | undefined = p.maxCapital;
+            const mx = Number(r.maxCapital);
+            if (Number.isFinite(mx) && mx > 0) {
+              maxCapital = mx;
+            }
+
             return {
               ...p,
               name,
@@ -192,6 +206,7 @@ export default function StartInvestmentPage() {
               dailyRoi: Number.isFinite(dailyRoi) && dailyRoi > 0 ? dailyRoi : p.dailyRoi,
               durationDays: Number.isFinite(durationDays) && durationDays > 0 ? Math.floor(durationDays) : p.durationDays,
               ...(capital === 'flex' ? { minCapital } : { minCapital: undefined }),
+              ...(maxCapital != null ? { maxCapital } : { maxCapital: undefined }),
             };
           })
         );
@@ -209,6 +224,8 @@ export default function StartInvestmentPage() {
   const requiredCapital =
     selectedConfig?.capital === 'flex'
       ? eliteCapital
+      : manualCapital > 0
+      ? manualCapital
       : selectedConfig?.capital || 0;
   const hasEnoughBalance = availableBalance + rewardBalance >= requiredCapital;
 
@@ -224,6 +241,9 @@ export default function StartInvestmentPage() {
     setShowActivation(true);
     if (pkg?.capital === 'flex') {
       setEliteCapital(Number(pkg.minCapital || 1000));
+      setManualCapital(0);
+    } else {
+      setManualCapital(Number(pkg?.capital || 0));
     }
     const el = document.getElementById('activation-panel');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -239,7 +259,11 @@ export default function StartInvestmentPage() {
       return;
     }
 
-    const cap = selectedConfig.capital === 'flex' ? eliteCapital : selectedConfig.capital;
+    const cap = selectedConfig.capital === 'flex'
+      ? eliteCapital
+      : manualCapital > 0
+      ? manualCapital
+      : Number(selectedConfig.capital);
     if (!Number.isFinite(cap) || cap <= 0) {
       setActivationError('Invalid capital amount.');
       return;
@@ -249,6 +273,17 @@ export default function StartInvestmentPage() {
       const minCap = Number(selectedConfig.minCapital || 1000);
       if (Number.isFinite(minCap) && cap < minCap) {
         setActivationError(`Capital must be at least ${minCap}.`);
+        return;
+      }
+    } else {
+      const minCap = Number(selectedConfig.capital || 0);
+      const maxCap = selectedConfig.maxCapital != null ? Number(selectedConfig.maxCapital) : null;
+      if (Number.isFinite(minCap) && minCap > 0 && cap < minCap) {
+        setActivationError(`Capital must be at least ${minCap}.`);
+        return;
+      }
+      if (maxCap !== null && Number.isFinite(maxCap) && maxCap > 0 && cap > maxCap) {
+        setActivationError(`Capital must be at most ${maxCap}.`);
         return;
       }
     }
@@ -262,7 +297,7 @@ export default function StartInvestmentPage() {
         },
         body: JSON.stringify({
           packageId: selectedConfig.id,
-          capital: selectedConfig.capital === 'flex' ? cap : undefined,
+          capital: cap,
         }),
       });
 
@@ -447,10 +482,13 @@ export default function StartInvestmentPage() {
           <div className="mt-4 grid gap-4 text-xs text-muted sm:grid-cols-2">
             {packagesConfig.map((pkg) => {
               const minCap = Number(pkg.minCapital || 1000);
+              const maxCap = pkg.maxCapital != null ? Number(pkg.maxCapital) : null;
               const capLabel =
                 pkg.capital === 'flex'
-                  ? `$${minCap.toLocaleString()}+` 
-                  : `$${pkg.capital.toLocaleString()}`;
+                  ? `$${minCap.toLocaleString()}+`
+                  : maxCap !== null && Number.isFinite(maxCap) && maxCap > 0
+                  ? `$${Number(pkg.capital).toLocaleString()} - $${maxCap.toLocaleString()}`
+                  : `$${Number(pkg.capital).toLocaleString()}`;
               const tagColor =
                 pkg.id === 'starter'
                   ? 'bg-info/10 text-info border-info/40'
@@ -572,6 +610,22 @@ export default function StartInvestmentPage() {
                         onChange={(e) => setEliteCapital(Number(e.target.value || 0))}
                         type="number"
                         min={Number(selectedConfig.minCapital || 1000)}
+                        className="mt-1 w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
+                      />
+                    </div>
+                  )}
+                  {selectedConfig.capital !== 'flex' && (
+                    <div className="mt-2">
+                      <label className="block text-[11px] text-muted">
+                        Enter Capital (min {Number(selectedConfig.capital)}
+                        {selectedConfig.maxCapital != null ? ` · max ${Number(selectedConfig.maxCapital)}` : ''})
+                      </label>
+                      <input
+                        value={manualCapital}
+                        onChange={(e) => setManualCapital(Number(e.target.value || 0))}
+                        type="number"
+                        min={Number(selectedConfig.capital)}
+                        max={selectedConfig.maxCapital != null ? Number(selectedConfig.maxCapital) : undefined}
                         className="mt-1 w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                       />
                     </div>

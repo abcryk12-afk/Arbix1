@@ -180,10 +180,19 @@ export default function ProfilePage() {
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      try {
+        window.dispatchEvent(new Event('arbix-user-updated'));
+      } catch {
+        // ignore
+      }
     } catch {
       // ignore
     }
-    router.replace('/auth/login');
+    try {
+      window.location.href = '/auth/login';
+    } catch {
+      router.replace('/auth/login');
+    }
   };
 
   const kycBlock = (() => {

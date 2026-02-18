@@ -44,12 +44,16 @@ type NavItem = {
 
     const onUserUpdated = () => refresh();
 
+    const onFocus = () => refresh();
+
     window.addEventListener('storage', onStorage);
     window.addEventListener('arbix-user-updated', onUserUpdated);
+    window.addEventListener('focus', onFocus);
 
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('arbix-user-updated', onUserUpdated);
+      window.removeEventListener('focus', onFocus);
     };
   }, []);
 
@@ -179,10 +183,19 @@ type NavItem = {
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      try {
+        window.dispatchEvent(new Event('arbix-user-updated'));
+      } catch {
+        // ignore
+      }
     } catch {
       // ignore
     }
-    router.replace('/auth/login');
+    try {
+      window.location.href = '/auth/login';
+    } catch {
+      router.replace('/auth/login');
+    }
   };
 
   const requestThemeChange = (nextTheme: 'light' | 'dark' | 'colorful' | 'aurora', persist: 'override' | 'clear') => {
