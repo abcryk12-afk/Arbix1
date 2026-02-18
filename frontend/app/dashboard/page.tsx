@@ -173,6 +173,10 @@ export default function DashboardPage() {
         return;
       }
 
+      if (!cancelled) setIsLoading(true);
+
+      try {
+
       try {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -396,7 +400,10 @@ export default function DashboardPage() {
         setTodayEarnings(myTradingTodayValue);
         setTotalEarnings(myTradingAllValue + networkAllValue);
       }
-      running = false;
+      } finally {
+        if (!cancelled) setIsLoading(false);
+        running = false;
+      }
     };
 
     const onUserUpdated = () => run();
