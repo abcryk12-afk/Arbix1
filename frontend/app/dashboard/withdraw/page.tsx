@@ -8,6 +8,8 @@ type PendingWithdrawal = {
   address: string;
   createdAt: string;
   status: 'Pending' | 'Reviewing' | 'Processing';
+  txHash?: string;
+  adminNote?: string | null;
 };
 
 type WithdrawalHistory = {
@@ -17,6 +19,7 @@ type WithdrawalHistory = {
   createdAt: string;
   status: 'Successful' | 'Rejected' | 'Failed';
   txHash?: string;
+  adminNote?: string | null;
 };
 
 function shortHash(hash?: string) {
@@ -33,12 +36,23 @@ export default function WithdrawPage() {
   const [addressError, setAddressError] = useState('');
   const [amountError, setAmountError] = useState('');
   const [withdrawHoldNote, setWithdrawHoldNote] = useState<string | null>(null);
+  const [withdrawLimitNote, setWithdrawLimitNote] = useState<string | null>(null);
+  const [minWithdrawalLimit, setMinWithdrawalLimit] = useState<number>(10);
+  const [maxWithdrawalLimit, setMaxWithdrawalLimit] = useState<number | null>(null);
   const [savedAddresses] = useState<string[]>([]); // demo stored address
 
   const [pending, setPending] = useState<PendingWithdrawal[]>([]);
+  const [expandedPendingId, setExpandedPendingId] = useState<string>('');
 
   const [history, setHistory] = useState<WithdrawalHistory[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+
+  const getLimitError = (num: number) => {
+    if (!Number.isFinite(num) || num <= 0) return 'Withdrawal amount must be positive.';
+    if (num < minWithdrawalLimit) return `Minimum withdrawal is ${minWithdrawalLimit} USDT.`;
+    if (maxWithdrawalLimit !== null && num > maxWithdrawalLimit) return `Maximum withdrawal is ${maxWithdrawalLimit} USDT.`;
+    return '';
+  };
 
   const pendingTotal = useMemo(
     () => pending.reduce((sum, w) => sum + w.amount, 0),
@@ -101,12 +115,46 @@ export default function WithdrawPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLimits = async () => {
+      try {
+        const res = await fetch('/api/public/withdrawal-limits', {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (!data?.success) return;
+
+        const settings = data?.settings || {};
+        const min = Number(settings?.min);
+        const max = settings?.max === null || settings?.max === undefined || settings?.max === '' ? null : Number(settings?.max);
+        const note = settings?.note != null ? String(settings.note) : '';
+
+        if (Number.isFinite(min) && min >= 0) setMinWithdrawalLimit(Math.round(min * 100) / 100);
+        if (max !== null && Number.isFinite(max) && max > 0) setMaxWithdrawalLimit(Math.round(max * 100) / 100);
+        if (max === null) setMaxWithdrawalLimit(null);
+        setWithdrawLimitNote(note.trim() ? note.trim() : null);
+      } catch {
+        // ignore
+      }
+    };
+
+    loadLimits();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const loadWithdrawalRequests = async () => {
     try {
       setIsLoadingRequests(true);
       const token = localStorage.getItem('token');
       if (!token) {
         setPending([]);
+        setExpandedPendingId('');
         setHistory([]);
         return;
       }
@@ -141,6 +189,8 @@ export default function WithdrawPage() {
             address: String(r.address || ''),
             createdAt: createdAtStr,
             status: statusRaw === 'processing' ? 'Processing' : 'Pending',
+            txHash: r.txHash != null ? String(r.txHash) : undefined,
+            adminNote: r.adminNote != null ? String(r.adminNote) : null,
           });
           continue;
         }
@@ -157,13 +207,16 @@ export default function WithdrawPage() {
               ? 'Rejected'
               : 'Failed',
           txHash: r.txHash != null ? String(r.txHash) : undefined,
+          adminNote: r.adminNote != null ? String(r.adminNote) : null,
         });
       }
 
       setPending(pendingRows);
+      setExpandedPendingId((prev) => (pendingRows.some((p) => p.id === prev) ? prev : ''));
       setHistory(historyRows);
     } catch {
       setPending([]);
+      setExpandedPendingId('');
       setHistory([]);
     } finally {
       setIsLoadingRequests(false);
@@ -188,9 +241,8 @@ export default function WithdrawPage() {
 
   const validateAmount = (value: string) => {
     const num = parseFloat(value || '0');
-    if (isNaN(num) || num < 10) {
-      return 'Minimum withdrawal is 10 USDT.';
-    }
+    const limitErr = getLimitError(num);
+    if (limitErr) return limitErr;
     if (num > withdrawable) {
       return 'Insufficient balance.';
     }
@@ -202,6 +254,7 @@ export default function WithdrawPage() {
     setAddressError('');
     setAmountError('');
     setWithdrawHoldNote(null);
+    setWithdrawLimitNote((prev) => prev);
 
     const addrErr = validateAddress(address.trim());
     const amtErr = validateAmount(amount);
@@ -237,6 +290,14 @@ export default function WithdrawPage() {
           const note = data?.holdNote != null ? String(data.holdNote) : '';
           setWithdrawHoldNote(note || null);
           setAmountError(typeof data?.message === 'string' ? data.message : 'Withdrawals are currently on hold');
+          return;
+        }
+
+        if (String(data?.code || '') === 'WITHDRAW_LIMIT') {
+          const note = data?.limitNote != null ? String(data.limitNote) : '';
+          setWithdrawLimitNote(note.trim() ? note.trim() : withdrawLimitNote);
+          const msg = typeof data?.message === 'string' ? data.message : 'Withdrawal amount is outside allowed limits';
+          setAmountError(msg);
           return;
         }
 
@@ -388,6 +449,13 @@ export default function WithdrawPage() {
             Submit Withdrawal Request
           </h2>
 
+          {withdrawLimitNote && amountError && (amountError.toLowerCase().includes('minimum withdrawal') || amountError.toLowerCase().includes('maximum withdrawal')) ? (
+            <div className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-[11px] text-warning">
+              <div className="font-semibold">Admin Instructions</div>
+              <div className="mt-1 whitespace-pre-wrap text-warning/90">{withdrawLimitNote}</div>
+            </div>
+          ) : null}
+
           {withdrawHoldNote && (
             <div className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-[11px] text-warning">
               <div className="font-semibold">Withdrawals are currently on hold for your account.</div>
@@ -448,7 +516,10 @@ export default function WithdrawPage() {
                 value={amount}
                 onChange={(e) => {
                   setAmount(e.target.value);
-                  setAmountError('');
+                  const raw = e.target.value;
+                  const n = parseFloat(raw || '0');
+                  const limitErr = getLimitError(n);
+                  setAmountError(limitErr);
                 }}
                 className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
                 placeholder="Enter amount (min 10 USDT)"
@@ -456,7 +527,10 @@ export default function WithdrawPage() {
               />
               <div className="mt-1 flex items-center justify-between text-[10px] text-subtle">
                 <span>Withdrawable: ${withdrawable.toFixed(2)}</span>
-                <span>Minimum withdrawal: 10 USDT</span>
+                <span>
+                  Minimum withdrawal: {minWithdrawalLimit} USDT
+                  {maxWithdrawalLimit !== null ? ` · Maximum: ${maxWithdrawalLimit} USDT` : ''}
+                </span>
               </div>
               {amountError && (
                 <p className="mt-1 text-[10px] text-danger">{amountError}</p>
@@ -493,7 +567,19 @@ export default function WithdrawPage() {
               {pending.map((w) => (
                 <div
                   key={w.id}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-3 text-[11px] text-muted shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setExpandedPendingId((prev) => (prev === w.id ? '' : w.id))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setExpandedPendingId((prev) => (prev === w.id ? '' : w.id));
+                    }
+                  }}
+                  className={
+                    'group relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-3 text-[11px] text-muted shadow-theme-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-border2 hover:shadow-theme-md focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2 cursor-pointer ' +
+                    (expandedPendingId === w.id ? 'border-border2' : '')
+                  }
                 >
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/70 to-transparent opacity-80" />
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -517,6 +603,31 @@ export default function WithdrawPage() {
                         : 'Processing'}
                     </span>
                   </p>
+
+                  {expandedPendingId === w.id ? (
+                    <div className="mt-3 rounded-xl border border-border bg-surface/40 p-3 text-[11px] text-muted">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <div className="break-all">
+                          <span className="text-subtle">Withdrawal Address:</span> {w.address}
+                        </div>
+                        <div>
+                          <span className="text-subtle">Amount:</span>{' '}
+                          <span className="font-semibold text-secondary">${w.amount.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-subtle">Status:</span> {w.status}
+                        </div>
+                        <div>
+                          <span className="text-subtle">Requested at:</span> {w.createdAt || '-'}
+                        </div>
+                        {w.txHash ? (
+                          <div className="sm:col-span-2 break-all">
+                            <span className="text-subtle">Tx Hash:</span> {w.txHash}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -564,6 +675,9 @@ export default function WithdrawPage() {
                         {h.status === 'Failed' && (
                           <span className="text-warning">Failed</span>
                         )}
+                        {h.adminNote && (h.status === 'Rejected' || h.status === 'Successful') ? (
+                          <div className="mt-1 whitespace-pre-wrap text-[10px] text-muted">{h.adminNote}</div>
+                        ) : null}
                       </td>
                       <td className="px-3 py-2 text-right">
                         {h.txHash ? (

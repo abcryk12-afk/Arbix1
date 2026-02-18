@@ -20,6 +20,10 @@ type PackageItem = {
 export default function PackagesPage() {
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deactEnabled, setDeactEnabled] = useState(false);
+  const [refundPercent, setRefundPercent] = useState(70);
+  const [actionBusyId, setActionBusyId] = useState<number | null>(null);
+  const [actionMsg, setActionMsg] = useState('');
 
   const token = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -40,6 +44,18 @@ export default function PackagesPage() {
         }
 
         setLoading(true);
+
+        const settingsRes = await fetch('/api/public/package-deactivation-settings', {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        const settingsData = await settingsRes.json().catch(() => null);
+        if (!cancelled && settingsData?.success) {
+          const enabled = Boolean(settingsData?.settings?.enabled);
+          const pct = Number(settingsData?.settings?.refundPercent);
+          setDeactEnabled(enabled);
+          setRefundPercent(Number.isFinite(pct) ? pct : 70);
+        }
 
         const pkgRes = await fetch('/api/user/packages', {
           method: 'GET',
@@ -67,6 +83,36 @@ export default function PackagesPage() {
       cancelled = true;
     };
   }, [token]);
+
+  const deactivate = async (id: number) => {
+    if (!deactEnabled) return;
+    const ok = typeof window !== 'undefined'
+      ? window.confirm(`Deactivate this package? You will receive ${refundPercent}% refund to your balance.`)
+      : false;
+    if (!ok) return;
+
+    setActionMsg('');
+    setActionBusyId(id);
+    try {
+      const res = await fetch('/api/user/deactivate-package', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ packageId: id }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        setActionMsg(data?.message || 'Failed to deactivate package');
+        return;
+      }
+
+      setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'completed' } : p)));
+      setActionMsg(`Package deactivated. Refund: $${Number(data?.refundAmount || 0).toFixed(2)}`);
+    } catch {
+      setActionMsg('Failed to deactivate package');
+    } finally {
+      setActionBusyId(null);
+    }
+  };
 
   const activePackages = useMemo(() => packages.filter((p) => String(p.status).toLowerCase() === 'active'), [packages]);
 
@@ -145,6 +191,18 @@ export default function PackagesPage() {
             <div className="text-[11px] text-muted">Total earned: {loading ? '—' : formatMoney(totals.totalEarned)}</div>
           </div>
 
+          {deactEnabled ? (
+            <div className="mb-3 rounded-xl border border-border bg-surface/30 p-3 text-[11px] text-muted">
+              Deactivation is enabled. Refund rate: <span className="font-semibold text-heading">{refundPercent}%</span>. Refund goes to your available balance.
+            </div>
+          ) : null}
+
+          {actionMsg ? (
+            <div className="mb-3 rounded-xl border border-border bg-surface/30 p-3 text-[11px] text-fg">
+              {actionMsg}
+            </div>
+          ) : null}
+
           {!loading && packages.length === 0 ? (
             <div className="rounded-2xl border border-border bg-surface/30 p-4 text-xs text-muted">
               No packages found.
@@ -193,6 +251,17 @@ export default function PackagesPage() {
                         <div className="font-semibold text-heading">{Number(p.daysLeft || 0)}</div>
                       </div>
                     </div>
+
+                    {deactEnabled && String(p.status).toLowerCase() === 'active' ? (
+                      <button
+                        type="button"
+                        onClick={() => deactivate(p.id)}
+                        disabled={actionBusyId === p.id}
+                        className="mt-3 w-full rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-[11px] font-semibold text-warning transition hover:border-warning/60 disabled:opacity-60"
+                      >
+                        {actionBusyId === p.id ? 'Working…' : 'Deactivate & Refund'}
+                      </button>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -208,6 +277,7 @@ export default function PackagesPage() {
                       <th className="py-2">Total Earned</th>
                       <th className="py-2">Days Left</th>
                       <th className="py-2">Status</th>
+                      {deactEnabled ? <th className="py-2">Action</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -234,6 +304,22 @@ export default function PackagesPage() {
                             {p.status}
                           </span>
                         </td>
+                        {deactEnabled ? (
+                          <td className="py-2">
+                            {String(p.status).toLowerCase() === 'active' ? (
+                              <button
+                                type="button"
+                                onClick={() => deactivate(p.id)}
+                                disabled={actionBusyId === p.id}
+                                className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-1.5 text-[11px] font-semibold text-warning transition hover:border-warning/60 disabled:opacity-60"
+                              >
+                                {actionBusyId === p.id ? 'Working…' : 'Deactivate'}
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-muted">—</span>
+                            )}
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>

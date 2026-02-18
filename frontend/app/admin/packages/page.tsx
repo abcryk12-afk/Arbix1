@@ -62,6 +62,7 @@ export default function AdminPackagesPage() {
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [query, setQuery] = useState('');
+  const [userFilter, setUserFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const [mobileTab, setMobileTab] = useState<'users' | 'packages'>('users');
 
@@ -72,7 +73,7 @@ export default function AdminPackagesPage() {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState('');
 
-  const fetchUsers = useCallback(async (q: string) => {
+  const fetchUsers = useCallback(async (q: string, filter: 'all' | 'active' | 'inactive') => {
     try {
       setIsLoadingUsers(true);
       const token = localStorage.getItem('adminToken');
@@ -84,6 +85,7 @@ export default function AdminPackagesPage() {
       const qs = new URLSearchParams();
       qs.set('limit', '100');
       if (q.trim()) qs.set('q', q.trim());
+      if (filter !== 'all') qs.set('packageFilter', filter);
 
       const res = await fetch(`/api/admin/users?${qs.toString()}`, {
         method: 'GET',
@@ -156,8 +158,8 @@ export default function AdminPackagesPage() {
   }, [router]);
 
   useEffect(() => {
-    fetchUsers('');
-  }, [fetchUsers]);
+    fetchUsers('', userFilter);
+  }, [fetchUsers, userFilter]);
 
   useEffect(() => {
     if (!selectedUserId) return;
@@ -166,10 +168,10 @@ export default function AdminPackagesPage() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      fetchUsers(query);
+      fetchUsers(query, userFilter);
     }, 350);
     return () => clearTimeout(t);
-  }, [query, fetchUsers]);
+  }, [query, userFilter, fetchUsers]);
 
   const activePackages = useMemo(
     () => packages.filter((p) => String(p.status).toLowerCase() === 'active'),
@@ -233,6 +235,45 @@ export default function AdminPackagesPage() {
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="text-sm font-semibold text-slate-100">Users</div>
             <div className="text-[11px] text-slate-500">{isLoadingUsers ? 'Loading…' : `${users.length} shown`}</div>
+          </div>
+
+          <div className="mb-3 grid grid-cols-3 gap-1 rounded-xl border border-slate-800 bg-slate-950/60 p-1 text-[11px]">
+            <button
+              type="button"
+              onClick={() => setUserFilter('all')}
+              className={
+                'rounded-lg px-2 py-1.5 font-medium transition-colors ' +
+                (userFilter === 'all'
+                  ? 'bg-slate-900 text-slate-50'
+                  : 'text-slate-300 hover:bg-slate-900/50 hover:text-slate-100')
+              }
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setUserFilter('active')}
+              className={
+                'rounded-lg px-2 py-1.5 font-medium transition-colors ' +
+                (userFilter === 'active'
+                  ? 'bg-slate-900 text-slate-50'
+                  : 'text-slate-300 hover:bg-slate-900/50 hover:text-slate-100')
+              }
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              onClick={() => setUserFilter('inactive')}
+              className={
+                'rounded-lg px-2 py-1.5 font-medium transition-colors ' +
+                (userFilter === 'inactive'
+                  ? 'bg-slate-900 text-slate-50'
+                  : 'text-slate-300 hover:bg-slate-900/50 hover:text-slate-100')
+              }
+            >
+              Non-Active
+            </button>
           </div>
 
           <input

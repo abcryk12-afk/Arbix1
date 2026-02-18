@@ -10,12 +10,16 @@ const { getPublicSiteAssets } = require('../controllers/siteAssetsController');
 const { getPublicCmsPageBySlug, listPublicCmsPages } = require('../controllers/cmsPagesController');
 const { getPublicAdminLoginTheme } = require('../controllers/adminLoginThemeController');
 const { getPublicUiTheme } = require('../controllers/uiThemeController');
+const { getPublicPackageDeactivationSettings } = require('../controllers/packageDeactivationSettingsController');
+const { getPublicWithdrawalLimits } = require('../controllers/withdrawalLimitsSettingsController');
 
 router.get('/branding', getPublicBranding);
 router.get('/site-theme', getPublicSiteTheme);
 router.get('/aurora-theme', getPublicAuroraTheme);
 router.get('/admin-login-theme', getPublicAdminLoginTheme);
 router.get('/ui-theme', getPublicUiTheme);
+router.get('/package-deactivation-settings', getPublicPackageDeactivationSettings);
+router.get('/withdrawal-limits', getPublicWithdrawalLimits);
 router.get('/investment-packages', getPublicInvestmentPackages);
 router.get('/site-assets', getPublicSiteAssets);
 router.get('/seo-settings', getPublicSeoSettings);

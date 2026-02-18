@@ -174,10 +174,133 @@ export default function AdminWithdrawalsPage() {
   const [holdActionMessage, setHoldActionMessage] = useState('');
   const [holdActionType, setHoldActionType] = useState<'success' | 'error' | ''>('');
 
+  const DEFAULT_WITHDRAW_REJECT_REASONS = useMemo(
+    () => [
+      'Incorrect withdrawal address',
+      'Insufficient balance',
+      'Suspicious activity / account review required',
+      'Withdrawal is currently on hold (contact support)',
+      'Compliance/KYC required',
+    ],
+    [],
+  );
+
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectRequestId, setRejectRequestId] = useState<string>('');
+  const [rejectSelectedReason, setRejectSelectedReason] = useState<string>('');
+  const [rejectCustomReason, setRejectCustomReason] = useState<string>('');
+
+  const [withdrawalLimitsMin, setWithdrawalLimitsMin] = useState<string>('10');
+  const [withdrawalLimitsMax, setWithdrawalLimitsMax] = useState<string>('');
+  const [withdrawalLimitsNote, setWithdrawalLimitsNote] = useState<string>('');
+  const [isLoadingWithdrawalLimits, setIsLoadingWithdrawalLimits] = useState<boolean>(true);
+  const [isSavingWithdrawalLimits, setIsSavingWithdrawalLimits] = useState<boolean>(false);
+  const [withdrawalLimitsMessage, setWithdrawalLimitsMessage] = useState<string>('');
+  const [withdrawalLimitsMessageType, setWithdrawalLimitsMessageType] = useState<'success' | 'error' | ''>('');
+
   useEffect(() => {
     const t = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  const loadWithdrawalLimits = async () => {
+    try {
+      setIsLoadingWithdrawalLimits(true);
+      setWithdrawalLimitsMessage('');
+      setWithdrawalLimitsMessageType('');
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setIsLoadingWithdrawalLimits(false);
+        return;
+      }
+
+      const res = await fetch('/api/admin/withdrawal-limits', {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!data?.success) {
+        setWithdrawalLimitsMessage(data?.message || 'Failed to load withdrawal limits');
+        setWithdrawalLimitsMessageType('error');
+        return;
+      }
+
+      const settings = data?.settings || {};
+      const min = Number(settings?.min);
+      const max = settings?.max === null || settings?.max === undefined || settings?.max === '' ? null : Number(settings?.max);
+      const note = settings?.note != null ? String(settings.note) : '';
+
+      setWithdrawalLimitsMin(Number.isFinite(min) ? String(min) : '10');
+      setWithdrawalLimitsMax(max !== null && Number.isFinite(max) ? String(max) : '');
+      setWithdrawalLimitsNote(note);
+    } catch {
+      setWithdrawalLimitsMessage('Failed to load withdrawal limits');
+      setWithdrawalLimitsMessageType('error');
+    } finally {
+      setIsLoadingWithdrawalLimits(false);
+    }
+  };
+
+  const saveWithdrawalLimits = async () => {
+    try {
+      setWithdrawalLimitsMessage('');
+      setWithdrawalLimitsMessageType('');
+      setIsSavingWithdrawalLimits(true);
+
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setWithdrawalLimitsMessage('Not logged in');
+        setWithdrawalLimitsMessageType('error');
+        return;
+      }
+
+      const min = Number(withdrawalLimitsMin);
+      const maxRaw = withdrawalLimitsMax.trim();
+      const max = maxRaw ? Number(maxRaw) : null;
+      const note = withdrawalLimitsNote.trim();
+
+      const res = await fetch('/api/admin/withdrawal-limits', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          min,
+          max,
+          note,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!data?.success) {
+        setWithdrawalLimitsMessage(data?.message || 'Failed to save withdrawal limits');
+        setWithdrawalLimitsMessageType('error');
+        return;
+      }
+
+      setWithdrawalLimitsMessage('Withdrawal limits updated');
+      setWithdrawalLimitsMessageType('success');
+
+      const settings = data?.settings || {};
+      const minSaved = Number(settings?.min);
+      const maxSaved = settings?.max === null || settings?.max === undefined || settings?.max === '' ? null : Number(settings?.max);
+      const noteSaved = settings?.note != null ? String(settings.note) : '';
+      setWithdrawalLimitsMin(Number.isFinite(minSaved) ? String(minSaved) : withdrawalLimitsMin);
+      setWithdrawalLimitsMax(maxSaved !== null && Number.isFinite(maxSaved) ? String(maxSaved) : '');
+      setWithdrawalLimitsNote(noteSaved);
+    } catch {
+      setWithdrawalLimitsMessage('Failed to save withdrawal limits');
+      setWithdrawalLimitsMessageType('error');
+    } finally {
+      setIsSavingWithdrawalLimits(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -601,6 +724,7 @@ export default function AdminWithdrawalsPage() {
           await loadRequests();
           await loadDepositRequests();
           await loadAutoWithdrawSetting();
+          await loadWithdrawalLimits();
         }
       } catch {
         localStorage.removeItem('adminToken');
@@ -616,59 +740,68 @@ export default function AdminWithdrawalsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, filterStatus, depositFilterStatus]);
 
+  const submitWithdrawalAction = async (id: string, action: 'approve' | 'reject', txHash?: string, adminNote?: string) => {
+    setActionMessage('');
+    setActionType('');
+    setActionContext('withdrawal');
+
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setActionMessage('Not logged in');
+      setActionType('error');
+      return;
+    }
+
+    const res = await fetch('/api/admin/withdrawal-requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ id, action, txHash, adminNote }),
+    });
+
+    const data = await res.json();
+    if (data?.success) {
+      setActionMessage(data.message || 'Updated successfully');
+      setActionType('success');
+      const updated = data.request || {};
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === String(updated.id)
+            ? {
+                ...r,
+                status: String(updated.status || r.status),
+                txHash: updated.txHash != null ? String(updated.txHash) : r.txHash,
+                adminNote: updated.adminNote != null ? String(updated.adminNote) : r.adminNote,
+              }
+            : r,
+        ),
+      );
+    } else {
+      setActionMessage(data?.message || 'Failed to update withdrawal request');
+      setActionType('error');
+    }
+  };
+
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
     try {
-      setActionMessage('');
-      setActionType('');
-      setActionContext('withdrawal');
-
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setActionMessage('Not logged in');
-        setActionType('error');
-        return;
-      }
-
       let txHash: string | undefined;
       let adminNote: string | undefined;
 
       if (action === 'approve') {
         txHash = window.prompt('Enter Tx Hash (optional, for your reference):') || undefined;
         adminNote = window.prompt('Admin note (optional):') || undefined;
+        if (!adminNote) adminNote = 'Withdrawal approved';
       } else {
-        adminNote = window.prompt('Reason for rejection (optional):') || undefined;
+        setRejectRequestId(String(id));
+        setRejectSelectedReason(DEFAULT_WITHDRAW_REJECT_REASONS[0] || '');
+        setRejectCustomReason('');
+        setRejectModalOpen(true);
+        return;
       }
 
-      const res = await fetch('/api/admin/withdrawal-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id, action, txHash, adminNote }),
-      });
-
-      const data = await res.json();
-      if (data?.success) {
-        setActionMessage(data.message || 'Updated successfully');
-        setActionType('success');
-        const updated = data.request || {};
-        setRequests((prev) =>
-          prev.map((r) =>
-            r.id === String(updated.id)
-              ? {
-                  ...r,
-                  status: String(updated.status || r.status),
-                  txHash: updated.txHash != null ? String(updated.txHash) : r.txHash,
-                  adminNote: updated.adminNote != null ? String(updated.adminNote) : r.adminNote,
-                }
-              : r,
-          ),
-        );
-      } else {
-        setActionMessage(data?.message || 'Failed to update withdrawal request');
-        setActionType('error');
-      }
+      await submitWithdrawalAction(String(id), action, txHash, adminNote);
     } catch {
       setActionMessage('An error occurred while updating the request');
       setActionType('error');
@@ -1223,7 +1356,7 @@ export default function AdminWithdrawalsPage() {
         <div className="mx-auto max-w-7xl px-4 pb-8 text-xs text-muted md:text-sm">
           <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
             <div className="border-b border-border px-4 py-3">
-              <h2 className="text-sm font-semibold text-heading">Request Details</h2>
+              <div className="text-[12px] font-semibold text-heading">Selected Request &amp; User</div>
               <p className="mt-0.5 text-[11px] text-muted">View selected request + user details.</p>
             </div>
 
@@ -1393,6 +1526,91 @@ export default function AdminWithdrawalsPage() {
         <div className="mx-auto max-w-7xl px-4 pb-10 text-xs text-muted md:text-sm">
           <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
             <div className="border-b border-border px-4 py-3">
+              <h2 className="text-sm font-semibold text-heading">Withdrawal Limits (Global)</h2>
+              <p className="mt-0.5 text-[11px] text-muted">
+                Set global minimum/maximum withdrawal amounts and an instruction message shown to users.
+              </p>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {withdrawalLimitsMessage ? (
+                <div
+                  className={
+                    'rounded-lg border border-border px-3 py-2 text-[11px] ' +
+                    (withdrawalLimitsMessageType === 'success' ? 'bg-success/10 text-fg' : 'bg-danger/10 text-fg')
+                  }
+                >
+                  {withdrawalLimitsMessage}
+                </div>
+              ) : null}
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted">Minimum Withdrawal (USDT)</label>
+                  <input
+                    value={withdrawalLimitsMin}
+                    onChange={(e) => setWithdrawalLimitsMin(e.target.value)}
+                    disabled={isLoadingWithdrawalLimits || isSavingWithdrawalLimits}
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+                    placeholder="10"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-muted">Maximum Withdrawal (USDT)</label>
+                  <input
+                    value={withdrawalLimitsMax}
+                    onChange={(e) => setWithdrawalLimitsMax(e.target.value)}
+                    disabled={isLoadingWithdrawalLimits || isSavingWithdrawalLimits}
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+                    placeholder="(optional)"
+                    inputMode="decimal"
+                  />
+                  <div className="mt-1 text-[10px] text-muted">Leave empty for no maximum limit.</div>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={saveWithdrawalLimits}
+                    disabled={isLoadingWithdrawalLimits || isSavingWithdrawalLimits}
+                    className="w-full rounded-lg bg-theme-primary px-4 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
+                  >
+                    {isSavingWithdrawalLimits ? 'Saving...' : 'Save Limits'}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] text-muted">User Instructions / Reason (shown on user withdraw page)</label>
+                <textarea
+                  value={withdrawalLimitsNote}
+                  onChange={(e) => setWithdrawalLimitsNote(e.target.value)}
+                  disabled={isLoadingWithdrawalLimits || isSavingWithdrawalLimits}
+                  rows={3}
+                  className="w-full resize-none rounded-lg border border-border bg-surface px-3 py-2 text-xs text-fg outline-none transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+                  placeholder="Example: Maximum withdrawal is limited due to liquidity / compliance checks. Please try smaller amounts."
+                />
+              </div>
+
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={loadWithdrawalLimits}
+                  disabled={isLoadingWithdrawalLimits || isSavingWithdrawalLimits}
+                  className="rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
+                >
+                  {isLoadingWithdrawalLimits ? 'Loading...' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-surface/30 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-4 pb-10 text-xs text-muted md:text-sm">
+          <div className="rounded-2xl border border-border bg-surface/60 shadow-theme-sm">
+            <div className="border-b border-border px-4 py-3">
               <h2 className="text-sm font-semibold text-heading">Withdrawal Hold Control (Per User)</h2>
               <p className="mt-0.5 text-[11px] text-muted">
                 Search a user and place withdrawals on hold with a note. The note is shown only when the user submits a withdrawal request.
@@ -1515,6 +1733,68 @@ export default function AdminWithdrawalsPage() {
           </div>
         </div>
       </section>
+
+      {rejectModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-surface p-4 shadow-theme-md">
+            <div className="text-[13px] font-semibold text-heading">Reject Withdrawal Request</div>
+            <div className="mt-1 text-[11px] text-muted">Request #{rejectRequestId}</div>
+
+            <div className="mt-4">
+              <label className="block text-[11px] font-medium text-fg">Reason</label>
+              <select
+                value={rejectSelectedReason}
+                onChange={(e) => setRejectSelectedReason(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-[11px] text-fg shadow-theme-sm"
+              >
+                {DEFAULT_WITHDRAW_REJECT_REASONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-[11px] font-medium text-fg">Custom reason (optional)</label>
+              <textarea
+                value={rejectCustomReason}
+                onChange={(e) => setRejectCustomReason(e.target.value)}
+                rows={3}
+                className="mt-1 w-full resize-none rounded-lg border border-border bg-surface/60 px-3 py-2 text-[11px] text-fg shadow-theme-sm"
+                placeholder="Add extra details for the user (optional)"
+              />
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setRejectModalOpen(false);
+                  setRejectRequestId('');
+                }}
+                className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const custom = rejectCustomReason.trim();
+                  const note = custom ? `${rejectSelectedReason} - ${custom}` : rejectSelectedReason;
+                  setRejectModalOpen(false);
+                  const currentId = rejectRequestId;
+                  setRejectRequestId('');
+                  await submitWithdrawalAction(currentId, 'reject', undefined, note || undefined);
+                }}
+                className="inline-flex items-center justify-center rounded-lg bg-danger px-3 py-2 text-[11px] font-medium text-danger-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
+              >
+                Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

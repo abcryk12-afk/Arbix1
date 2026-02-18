@@ -1535,6 +1535,13 @@ exports.listUsers = async (req, res) => {
     const offset = Math.max(0, Number(req.query.offset || (page - 1) * limit));
     const q = req.query.q ? String(req.query.q).trim() : '';
 
+    const packageFilterRaw = String(req.query.packageFilter || '').trim().toLowerCase();
+    const packageFilter = packageFilterRaw === 'active'
+      ? 'active'
+      : (packageFilterRaw === 'inactive' || packageFilterRaw === 'nonactive' || packageFilterRaw === 'non-active')
+        ? 'inactive'
+        : 'all';
+
     const where = {};
     if (q) {
       const maybeId = Number(q);
@@ -1546,6 +1553,27 @@ exports.listUsers = async (req, res) => {
       or.push({ email: { [Op.like]: `%${q}%` } });
       or.push({ referral_code: { [Op.like]: `%${q}%` } });
       where[Op.or] = or;
+    }
+
+    if (packageFilter !== 'all') {
+      const activeUserRows = await UserPackage.findAll({
+        where: { status: 'active' },
+        attributes: [[sequelize.fn('DISTINCT', sequelize.col('user_id')), 'user_id']],
+        raw: true,
+      });
+      const activeUserIds = (activeUserRows || [])
+        .map((r) => Number(r.user_id))
+        .filter((n) => Number.isFinite(n) && n > 0);
+
+      if (packageFilter === 'active') {
+        where.id = { [Op.in]: activeUserIds.length ? activeUserIds : [-1] };
+      }
+
+      if (packageFilter === 'inactive') {
+        if (activeUserIds.length) {
+          where.id = { [Op.notIn]: activeUserIds };
+        }
+      }
     }
 
     const baseAttributes = [

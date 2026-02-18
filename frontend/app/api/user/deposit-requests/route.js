@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 async function proxyJson({ request, method, path, body }) {
-  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const rawBaseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const baseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
   const authHeader = request.headers.get('authorization') || '';
 
   const response = await fetch(`${baseUrl}${path}`, {

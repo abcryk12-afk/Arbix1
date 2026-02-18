@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
 export default function DepositPage() {
@@ -27,6 +26,7 @@ export default function DepositPage() {
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitMessageType, setSubmitMessageType] = useState<'success' | 'error' | ''>('');
   const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setNowMs(Date.now()), 1000);
@@ -251,9 +251,30 @@ export default function DepositPage() {
         setSubmitMessageType('success');
         if (data?.request?.id != null) {
           setCreatedRequestId(String(data.request.id));
+          setSelectedRequestId(String(data.request.id));
         }
         if (data?.request?.address) {
           setWalletAddress(String(data.request.address));
+        }
+
+        if (data?.request) {
+          const r = data.request;
+          const nextRow = {
+            id: r.id,
+            amount: Number(r.amount || value),
+            address: r.address || walletAddress,
+            status: r.status || 'pending',
+            txHash: r.txHash || null,
+            userNote: r.userNote || null,
+            adminNote: r.adminNote || null,
+            createdAt: r.createdAt || new Date().toISOString(),
+            updatedAt: r.updatedAt || r.createdAt || new Date().toISOString(),
+          };
+          setDepositRequests((prev) => {
+            const exists = prev.some((x) => String(x?.id) === String(nextRow.id));
+            if (exists) return prev;
+            return [nextRow, ...prev];
+          });
         }
 
         setTimeout(() => {
@@ -262,26 +283,6 @@ export default function DepositPage() {
             el.scrollIntoView({ behavior: 'smooth' });
           }
         }, 50);
-
-        try {
-          const meRes = await fetch('/api/auth/me', {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const meData = await meRes.json();
-          if (meData?.success && meData?.user) {
-            setWalletAddress(meData.user?.wallet_public_address || meData.user?.walletPublicAddress || '');
-            try {
-              localStorage.setItem('user', JSON.stringify(meData.user));
-            } catch {
-              // ignore
-            }
-          }
-        } catch {
-          // ignore
-        }
 
         try {
           setIsLoadingRequests(true);
@@ -329,6 +330,11 @@ export default function DepositPage() {
           walletAddress
         )}`
       : '';
+
+  const selectedRequest = useMemo(() => {
+    if (!selectedRequestId) return null;
+    return depositRequests.find((r) => String(r?.id) === String(selectedRequestId)) || null;
+  }, [depositRequests, selectedRequestId]);
 
   return (
     <div className="min-h-screen bg-page text-fg">
@@ -564,12 +570,12 @@ export default function DepositPage() {
               <div className="flex items-center justify-center">
                 <div className="arbix-card arbix-3d flex h-32 w-32 items-center justify-center rounded-xl">
                   {qrCodeUrl ? (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src={qrCodeUrl}
                       alt="Deposit address QR code"
-                      width={112}
-                      height={112}
                       className="h-28 w-28 rounded-md"
+                      loading="lazy"
                     />
                   ) : (
                     <span className="text-center text-[10px] text-subtle">
@@ -656,6 +662,53 @@ export default function DepositPage() {
           <h2 className="text-sm font-semibold text-heading md:text-base">
             Deposit Requests
           </h2>
+
+          {selectedRequest ? (
+            <div className="mt-3 arbix-card arbix-3d rounded-2xl p-4">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-heading">Request #{String(selectedRequest.id)}</div>
+                  <div className="mt-0.5 text-[11px] text-muted">Status: {String(selectedRequest.status || '').toLowerCase() || '-'}</div>
+                </div>
+                <div className="text-[11px] text-muted">
+                  Amount: <span className="font-semibold text-heading">{Number(selectedRequest.amount || 0).toFixed(2)} USDT</span>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <div className="rounded-xl border border-border bg-surface/40 p-3">
+                  <div className="text-[10px] text-subtle">Deposit Address</div>
+                  <div className="mt-1 flex items-start justify-between gap-2">
+                    <div className="break-all font-mono text-[10px] text-heading">{selectedRequest.address || '-'}</div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          if (!selectedRequest.address) return;
+                          await navigator.clipboard.writeText(String(selectedRequest.address));
+                        } catch {}
+                      }}
+                      className="shrink-0 rounded-lg border border-border px-2 py-1 text-[10px] text-fg transition hover:shadow-theme-sm"
+                      disabled={!selectedRequest.address}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-surface/40 p-3">
+                  <div className="text-[10px] text-subtle">Transaction</div>
+                  <div className="mt-1 text-[11px] text-muted">
+                    {selectedRequest.txHash ? `Tx: ${String(selectedRequest.txHash).slice(0, 18)}...` : 'Waiting for payment'}
+                  </div>
+                  <div className="mt-1 text-[10px] text-subtle">
+                    Created: {selectedRequest.createdAt ? String(selectedRequest.createdAt).slice(0, 19).replace('T', ' ') : '-'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-3 overflow-x-auto arbix-card arbix-3d rounded-2xl">
             <table className="min-w-full divide-y divide-border text-[11px]">
               <thead className="bg-surface/60 text-muted">
@@ -675,7 +728,16 @@ export default function DepositPage() {
                   </tr>
                 ) : (
                   depositRequests.map((r) => (
-                    <tr key={String(r.id)}>
+                    <tr
+                      key={String(r.id)}
+                      onClick={() => setSelectedRequestId(String(r.id))}
+                      className={
+                        'cursor-pointer transition ' +
+                        (String(selectedRequestId) === String(r.id)
+                          ? 'bg-surface/40'
+                          : 'hover:bg-surface/30')
+                      }
+                    >
                       <td className="px-3 py-2">
                         {r?.createdAt ? String(r.createdAt).slice(0, 19).replace('T', ' ') : '-'}
                       </td>

@@ -15,6 +15,7 @@ const {
   getReferrals,
   getReferralEarnings,
   activatePackage,
+  deactivatePackage,
   getPackages,
   requestWithdrawal,
   listWithdrawalRequests,
@@ -37,6 +38,7 @@ router.get('/footer-demo-stats', protect, getFooterDemoStats);
 router.get('/referrals', protect, getReferrals);
 router.get('/referral-earnings', protect, getReferralEarnings);
 router.post('/activate-package', protect, activatePackage);
+router.post('/deactivate-package', protect, deactivatePackage);
 router.get('/packages', protect, getPackages);
 router.post('/withdraw', protect, requestWithdrawal);
 router.get('/withdrawal-requests', protect, listWithdrawalRequests);

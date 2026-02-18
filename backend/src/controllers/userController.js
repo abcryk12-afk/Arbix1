@@ -5,6 +5,7 @@ const { ensureWalletForUser } = require('../services/walletService');
 const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adminNotificationEmailService');
 const { getInvestmentPackagesConfig } = require('../services/investmentPackageConfigService');
 const { getFooterStatsOverrides } = require('../services/footerStatsOverrideService');
+const { _internal: packageDeactivationSettingsInternal } = require('./packageDeactivationSettingsController');
 
 const CHECKIN_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -60,6 +61,110 @@ exports.getDailyCheckinStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch daily check-in status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+exports.deactivatePackage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const packageId = Number(req.body?.packageId ?? req.body?.id);
+
+    if (!Number.isFinite(packageId) || packageId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid packageId' });
+    }
+
+    const settings = await packageDeactivationSettingsInternal.getSettings().catch(() => ({ enabled: false, refundPercent: 70 }));
+    if (!settings?.enabled) {
+      return res.status(403).json({ success: false, message: 'Package deactivation is disabled' });
+    }
+
+    const refundPercent = Number(settings.refundPercent);
+    if (!Number.isFinite(refundPercent) || refundPercent < 0) {
+      return res.status(500).json({ success: false, message: 'Refund settings are invalid' });
+    }
+
+    const now = new Date();
+
+    const result = await sequelize.transaction(async (t) => {
+      const pkg = await UserPackage.findOne({
+        where: { id: packageId, user_id: userId },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!pkg) {
+        return { ok: false, status: 404, message: 'Package not found' };
+      }
+
+      if (String(pkg.status).toLowerCase() !== 'active') {
+        return { ok: false, status: 400, message: 'Only active packages can be deactivated' };
+      }
+
+      const capital = Number(pkg.capital || 0);
+      if (!Number.isFinite(capital) || capital <= 0) {
+        return { ok: false, status: 400, message: 'Package capital is invalid' };
+      }
+
+      const refund = (capital * refundPercent) / 100;
+      const refundAmount = Number.isFinite(refund) ? Math.max(0, refund) : 0;
+
+      let wallet = await Wallet.findOne({ where: { user_id: userId }, transaction: t, lock: t.LOCK.UPDATE });
+      if (!wallet) {
+        wallet = await Wallet.create({ user_id: userId, balance: 0 }, { transaction: t });
+      }
+
+      wallet.balance = Number(wallet.balance || 0) + refundAmount;
+      await wallet.save({ transaction: t });
+
+      pkg.status = 'completed';
+      pkg.end_at = now;
+      await pkg.save({ transaction: t });
+
+      if (refundAmount > 0) {
+        await Transaction.create(
+          {
+            user_id: userId,
+            type: 'deposit',
+            amount: refundAmount,
+            created_by: 'system',
+            note: `Package deactivation refund (#${pkg.id} - ${pkg.package_name}) ${refundPercent}%`,
+          },
+          { transaction: t }
+        );
+      }
+
+      return {
+        ok: true,
+        refundAmount,
+        refundPercent,
+        walletBalance: Number(wallet.balance || 0),
+        package: {
+          id: pkg.id,
+          status: pkg.status,
+          endAt: pkg.end_at,
+        },
+      };
+    });
+
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ success: false, message: result.message });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Package deactivated',
+      refundPercent: result.refundPercent,
+      refundAmount: Number(result.refundAmount || 0),
+      wallet: { balance: Number(result.walletBalance || 0) },
+      package: result.package,
+    });
+  } catch (error) {
+    console.error('Deactivate package error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to deactivate package',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -1028,6 +1133,33 @@ exports.requestWithdrawal = async (req, res) => {
     const userId = req.user.id;
     const { amount, address, note } = req.body || {};
 
+    let minWithdrawal = 10;
+    let maxWithdrawal = null;
+    let withdrawalLimitNote = null;
+    try {
+      await SiteSetting.sync();
+      const [minRow, maxRow, noteRow] = await Promise.all([
+        SiteSetting.findOne({ where: { key: 'min_withdrawal_amount' }, raw: true }),
+        SiteSetting.findOne({ where: { key: 'max_withdrawal_amount' }, raw: true }),
+        SiteSetting.findOne({ where: { key: 'withdrawal_limit_note' }, raw: true }),
+      ]);
+
+      const minParsed = Number(minRow?.value);
+      if (Number.isFinite(minParsed) && minParsed >= 0) {
+        minWithdrawal = Math.round(minParsed * 100) / 100;
+      }
+
+      const maxParsed = maxRow?.value == null || maxRow?.value === '' ? null : Number(maxRow?.value);
+      if (maxParsed === null) {
+        maxWithdrawal = null;
+      } else if (Number.isFinite(maxParsed) && maxParsed > 0) {
+        maxWithdrawal = Math.round(maxParsed * 100) / 100;
+      }
+
+      const noteParsed = noteRow?.value != null ? String(noteRow.value).trim() : '';
+      withdrawalLimitNote = noteParsed ? noteParsed : null;
+    } catch {}
+
     let autoWithdrawEnabled = false;
     try {
       await SiteSetting.sync();
@@ -1050,8 +1182,24 @@ exports.requestWithdrawal = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Withdrawal amount must be positive' });
     }
 
-    if (value < 10) {
-      return res.status(400).json({ success: false, message: 'Minimum withdrawal is 10 USDT' });
+    if (Number.isFinite(minWithdrawal) && value < minWithdrawal) {
+      return res.status(400).json({
+        success: false,
+        code: 'WITHDRAW_LIMIT',
+        message: `Minimum withdrawal is ${minWithdrawal} USDT`,
+        limits: { min: minWithdrawal, max: maxWithdrawal },
+        limitNote: withdrawalLimitNote,
+      });
+    }
+
+    if (maxWithdrawal !== null && Number.isFinite(Number(maxWithdrawal)) && value > Number(maxWithdrawal)) {
+      return res.status(400).json({
+        success: false,
+        code: 'WITHDRAW_LIMIT',
+        message: `Maximum withdrawal is ${Number(maxWithdrawal)} USDT`,
+        limits: { min: minWithdrawal, max: maxWithdrawal },
+        limitNote: withdrawalLimitNote,
+      });
     }
 
     const now = new Date();

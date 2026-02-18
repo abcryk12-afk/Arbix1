@@ -90,6 +90,16 @@ const {
   setAdminUiTheme,
 } = require('../controllers/uiThemeController');
 
+const {
+  getAdminPackageDeactivationSettings,
+  setAdminPackageDeactivationSettings,
+} = require('../controllers/packageDeactivationSettingsController');
+
+const {
+  getAdminWithdrawalLimits,
+  setAdminWithdrawalLimits,
+} = require('../controllers/withdrawalLimitsSettingsController');
+
 router.use(requireAdminKey);
 
 router.get('/check', protect, requireAdminUser, checkAccess);
@@ -110,6 +120,11 @@ router.get('/admin-login-theme', protect, requireAdminUser, getAdminAdminLoginTh
 router.put('/admin-login-theme', protect, requireAdminUser, auditAdminAction('admin_login_theme.update', { entity: 'site_setting' }), setAdminAdminLoginTheme);
 router.get('/ui-theme', protect, requireAdminUser, getAdminUiTheme);
 router.put('/ui-theme', protect, requireAdminUser, auditAdminAction('ui_theme.update', { entity: 'site_setting' }), setAdminUiTheme);
+router.get('/package-deactivation-settings', protect, requireAdminUser, getAdminPackageDeactivationSettings);
+router.put('/package-deactivation-settings', protect, requireAdminUser, auditAdminAction('package_deactivation_settings.update', { entity: 'site_setting' }), setAdminPackageDeactivationSettings);
+
+router.get('/withdrawal-limits', protect, requireAdminUser, getAdminWithdrawalLimits);
+router.put('/withdrawal-limits', protect, requireAdminUser, auditAdminAction('withdrawal_limits.update', { entity: 'site_setting' }), setAdminWithdrawalLimits);
 router.get('/users', protect, requireAdminUser, listUsers);
 router.get('/users/:id', protect, requireAdminUser, getUserDetails);
 router.put('/users/:id/withdrawal-hold', protect, requireAdminUser, auditAdminAction('user.withdrawal_hold', { entity: 'user' }), setUserWithdrawalHold);

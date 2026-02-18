@@ -80,6 +80,10 @@ export default function AdminSiteSettingsPage() {
   const [uiTheme, setUiTheme] = useState<'default' | 'aurora_glass'>('default');
   const [uiThemeSaving, setUiThemeSaving] = useState(false);
 
+  const [pkgDeactivationEnabled, setPkgDeactivationEnabled] = useState(false);
+  const [pkgRefundPercent, setPkgRefundPercent] = useState('70');
+  const [pkgDeactivationSaving, setPkgDeactivationSaving] = useState(false);
+
   const loadAssets = async () => {
     try {
       setLoading(true);
@@ -92,7 +96,7 @@ export default function AdminSiteSettingsPage() {
         return;
       }
 
-      const [assetsRes, themeRes, uiThemeRes] = await Promise.all([
+      const [assetsRes, themeRes, uiThemeRes, pkgDeactRes] = await Promise.all([
         fetch('/api/admin/site-assets', {
           method: 'GET',
           cache: 'no-store',
@@ -114,11 +118,19 @@ export default function AdminSiteSettingsPage() {
             Authorization: `Bearer ${token}`,
           },
         }),
+        fetch('/api/admin/package-deactivation-settings', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       ]);
 
       const data: AdminAssetsResponse = await assetsRes.json().catch(() => ({ success: false } as any));
       const themeData = await themeRes.json().catch(() => null);
       const uiThemeData = await uiThemeRes.json().catch(() => null);
+      const pkgDeactData = await pkgDeactRes.json().catch(() => null);
 
       const nextVariantRaw = themeData?.success ? String(themeData?.variant || '') : '';
       const nextVariant =
@@ -138,6 +150,11 @@ export default function AdminSiteSettingsPage() {
       const nextUiThemeRaw = uiThemeData?.success ? String(uiThemeData?.theme || '') : '';
       const nextUiTheme = nextUiThemeRaw === 'aurora_glass' || nextUiThemeRaw === 'aurora-glass' ? 'aurora_glass' : 'default';
       setUiTheme(nextUiTheme);
+
+      const enabled = Boolean(pkgDeactData?.success && pkgDeactData?.settings?.enabled);
+      const pct = pkgDeactData?.success ? Number(pkgDeactData?.settings?.refundPercent) : NaN;
+      setPkgDeactivationEnabled(enabled);
+      setPkgRefundPercent(Number.isFinite(pct) ? String(pct) : '70');
 
       if (!assetsRes.ok || !data?.success) {
         setStatusText(data?.message || 'Failed to load site assets');
@@ -231,6 +248,59 @@ export default function AdminSiteSettingsPage() {
       setStatusKind('error');
     } finally {
       setUiThemeSaving(false);
+    }
+  };
+
+  const savePkgDeactivationSettings = async () => {
+    setStatusText('');
+    setStatusKind('');
+    setPkgDeactivationSaving(true);
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
+      const refundPercent = Number(pkgRefundPercent);
+      if (!Number.isFinite(refundPercent) || refundPercent < 0) {
+        setStatusText('Refund percent must be a valid number');
+        setStatusKind('error');
+        return;
+      }
+
+      const res = await fetch('/api/admin/package-deactivation-settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          enabled: pkgDeactivationEnabled,
+          refundPercent,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        setStatusText(data?.message || 'Failed to update package deactivation settings');
+        setStatusKind('error');
+        return;
+      }
+
+      const nextEnabled = Boolean(data?.settings?.enabled);
+      const nextPct = Number(data?.settings?.refundPercent);
+      setPkgDeactivationEnabled(nextEnabled);
+      setPkgRefundPercent(Number.isFinite(nextPct) ? String(nextPct) : pkgRefundPercent);
+
+      setStatusText('Package deactivation settings updated');
+      setStatusKind('success');
+    } catch {
+      setStatusText('Failed to update package deactivation settings');
+      setStatusKind('error');
+    } finally {
+      setPkgDeactivationSaving(false);
     }
   };
 
@@ -558,6 +628,46 @@ export default function AdminSiteSettingsPage() {
               >
                 Preview
               </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="arbix-card rounded-2xl p-4 mt-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="text-sm font-semibold text-heading">User Package Deactivation</div>
+              <div className="mt-0.5 text-[11px] text-muted">Allow users to deactivate active packages and receive a refund.</div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface/40 px-3 py-2 text-[11px] text-fg">
+                <input
+                  type="checkbox"
+                  checked={pkgDeactivationEnabled}
+                  onChange={(e) => setPkgDeactivationEnabled(e.target.checked)}
+                />
+                Enable
+              </label>
+
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-surface/40 px-3 py-2">
+                <span className="text-[11px] text-muted">Refund %</span>
+                <input
+                  value={pkgRefundPercent}
+                  onChange={(e) => setPkgRefundPercent(e.target.value)}
+                  inputMode="decimal"
+                  className="w-20 bg-transparent text-[11px] text-fg outline-none"
+                  aria-label="Refund percentage"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={savePkgDeactivationSettings}
+                disabled={pkgDeactivationSaving}
+                className="rounded-lg bg-theme-primary px-3 py-2 text-[11px] font-medium text-primary-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-60"
+              >
+                {pkgDeactivationSaving ? 'Saving…' : 'Save'}
+              </button>
             </div>
           </div>
         </div>
