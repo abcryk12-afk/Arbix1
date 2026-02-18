@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arbix-pwa-v1';
+const CACHE_NAME = 'arbix-pwa-v3';
 
 const CORE_ASSETS = [
   '/',
@@ -21,6 +21,8 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.resolve()
+      .then(() => caches.keys())
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
       .catch(() => self.clients.claim()),
   );
@@ -35,19 +37,34 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin !== self.location.origin) return;
 
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(req, { cache: 'no-store' }));
+    return;
+  }
+
   const isNavigation = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+
+  const isAuthNavigation = isNavigation && (
+    url.pathname.startsWith('/dashboard') ||
+    url.pathname.startsWith('/profile') ||
+    url.pathname.startsWith('/admin')
+  );
 
   if (isNavigation) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-store' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => null);
+          if (!isAuthNavigation) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => null);
+          }
           return res;
         })
         .catch(async () => {
-          const cached = await caches.match(req);
-          if (cached) return cached;
+          if (!isAuthNavigation) {
+            const cached = await caches.match(req);
+            if (cached) return cached;
+          }
           const offline = await caches.match('/offline.html');
           return offline || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
         }),
@@ -58,10 +75,15 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
-      return fetch(req)
+      return fetch(req, { cache: 'no-store' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => null);
+          if (res && res.ok) {
+            const cc = (res.headers.get('cache-control') || '').toLowerCase();
+            if (!cc.includes('no-store') && !cc.includes('no-cache') && !cc.includes('private')) {
+              const copy = res.clone();
+              caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => null);
+            }
+          }
           return res;
         })
         .catch(() => cached);
