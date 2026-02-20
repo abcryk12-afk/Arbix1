@@ -1278,7 +1278,7 @@ exports.listWithdrawalRequests = async (req, res) => {
       const w = walletMap.get(r.user_id) || {};
 
       const rawStatus = String(r.status || 'pending');
-      const status = rawStatus === 'approved' ? 'completed' : rawStatus === 'rejected' ? 'failed' : rawStatus;
+      const status = rawStatus === 'approved' ? 'completed' : rawStatus;
       return {
         id: r.id,
         userId: r.user_id,
@@ -1359,7 +1359,7 @@ exports.updateWithdrawalRequestStatus = async (req, res) => {
       }
 
       if (normalizedAction === 'reject') {
-        request.status = 'failed';
+        request.status = 'rejected';
         request.admin_note = adminNote || null;
         await request.save({ transaction: t });
         return { ok: true, request };

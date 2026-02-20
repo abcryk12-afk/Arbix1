@@ -158,7 +158,9 @@ export default function DashboardPage() {
 
     let running = false;
 
-    const run = async () => {
+    const refreshMs = 60_000;
+
+    const run = async ({ silent = false }: { silent?: boolean } = {}) => {
       if (running) return;
       running = true;
       let myTradingTodayValue = 0;
@@ -173,7 +175,7 @@ export default function DashboardPage() {
         return;
       }
 
-      if (!cancelled) setIsLoading(true);
+      if (!cancelled && !silent) setIsLoading(true);
 
       try {
 
@@ -406,14 +408,18 @@ export default function DashboardPage() {
       }
     };
 
-    const onUserUpdated = () => run();
-    const onFocus = () => run();
+    const onUserUpdated = () => run({ silent: true });
+    const onFocus = () => run({ silent: true });
     const onVisibility = () => {
       if (typeof document === 'undefined') return;
-      if (document.visibilityState === 'visible') run();
+      if (document.visibilityState === 'visible') run({ silent: true });
     };
 
     run();
+
+    const intervalId = window.setInterval(() => {
+      run({ silent: true });
+    }, refreshMs);
 
     window.addEventListener('arbix-user-updated', onUserUpdated);
     window.addEventListener('focus', onFocus);
@@ -421,6 +427,7 @@ export default function DashboardPage() {
 
     return () => {
       cancelled = true;
+      window.clearInterval(intervalId);
       window.removeEventListener('arbix-user-updated', onUserUpdated);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
