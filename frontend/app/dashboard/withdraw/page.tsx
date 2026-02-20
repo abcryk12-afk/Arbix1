@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 type PendingWithdrawal = {
   id: string;
@@ -16,7 +16,10 @@ type WithdrawalHistory = {
   id: string;
   amount: number;
   address: string;
+  fullAddress?: string;
   createdAt: string;
+  createdAtRaw?: string;
+  updatedAtRaw?: string;
   status: 'Successful' | 'Rejected' | 'Failed';
   txHash?: string;
   adminNote?: string | null;
@@ -45,6 +48,7 @@ export default function WithdrawPage() {
   const [expandedPendingId, setExpandedPendingId] = useState<string>('');
 
   const [history, setHistory] = useState<WithdrawalHistory[]>([]);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string>('');
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
 
   const getLimitError = (num: number) => {
@@ -178,7 +182,9 @@ export default function WithdrawPage() {
 
       for (const r of data.requests) {
         const statusRaw = String(r.status || '').toLowerCase();
-        const createdAtStr = r.createdAt
+        const createdAtRaw = r.createdAt ? String(r.createdAt) : '';
+        const updatedAtRaw = r.updatedAt ? String(r.updatedAt) : '';
+        const createdAtStr = createdAtRaw
           ? String(r.createdAt).slice(0, 16).replace('T', ' ')
           : '';
 
@@ -199,7 +205,10 @@ export default function WithdrawPage() {
           id: String(r.id),
           amount: Number(r.amount || 0),
           address: String(r.address || ''),
+          fullAddress: String(r.address || ''),
           createdAt: createdAtStr,
+          createdAtRaw,
+          updatedAtRaw,
           status:
             statusRaw === 'completed' || statusRaw === 'approved'
               ? 'Successful'
@@ -214,10 +223,12 @@ export default function WithdrawPage() {
       setPending(pendingRows);
       setExpandedPendingId((prev) => (pendingRows.some((p) => p.id === prev) ? prev : ''));
       setHistory(historyRows);
+      setExpandedHistoryId((prev) => (historyRows.some((h) => h.id === prev) ? prev : ''));
     } catch {
       setPending([]);
       setExpandedPendingId('');
       setHistory([]);
+      setExpandedHistoryId('');
     } finally {
       setIsLoadingRequests(false);
     }
@@ -511,18 +522,20 @@ export default function WithdrawPage() {
               <input
                 id="amount"
                 type="number"
-                min={10}
+                min={minWithdrawalLimit}
+                max={maxWithdrawalLimit ?? undefined}
                 step="0.01"
                 value={amount}
                 onChange={(e) => {
-                  setAmount(e.target.value);
+                  const next = e.target.value;
+                  setAmount(next);
                   const raw = e.target.value;
                   const n = parseFloat(raw || '0');
                   const limitErr = getLimitError(n);
                   setAmountError(limitErr);
                 }}
                 className="w-full rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-fg outline-none transition focus:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/30 focus-visible:outline-offset-2"
-                placeholder="Enter amount (min 10 USDT)"
+                placeholder={`Enter amount (min ${minWithdrawalLimit} USDT)`}
                 required
               />
               <div className="mt-1 flex items-center justify-between text-[10px] text-subtle">
@@ -660,40 +673,89 @@ export default function WithdrawPage() {
                 </thead>
                 <tbody className="divide-y divide-border text-muted">
                   {history.map((h) => (
-                    <tr key={h.id}>
-                      <td className="px-3 py-2">{h.id}</td>
-                      <td className="px-3 py-2">${h.amount.toFixed(2)}</td>
-                      <td className="px-3 py-2">{h.createdAt}</td>
-                      <td className="px-3 py-2">{shortHash(h.address)}</td>
-                      <td className="px-3 py-2">
-                        {h.status === 'Successful' && (
-                          <span className="text-success">Successful</span>
-                        )}
-                        {h.status === 'Rejected' && (
-                          <span className="text-danger">Rejected</span>
-                        )}
-                        {h.status === 'Failed' && (
-                          <span className="text-warning">Failed</span>
-                        )}
-                        {h.adminNote && (h.status === 'Rejected' || h.status === 'Successful') ? (
-                          <div className="mt-1 whitespace-pre-wrap text-[10px] text-muted">{h.adminNote}</div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        {h.txHash ? (
-                          <button
-                            type="button"
-                            onClick={() => handleCopyTx(h.txHash)}
-                            title="Click to copy full Tx Hash"
-                            className="text-primary transition hover:text-primary-hover"
-                          >
-                            {shortHash(h.txHash)}
-                          </button>
-                        ) : (
-                          <span className="text-subtle">-</span>
-                        )}
-                      </td>
-                    </tr>
+                    <Fragment key={h.id}>
+                      <tr
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setExpandedHistoryId((prev) => (prev === h.id ? '' : h.id))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setExpandedHistoryId((prev) => (prev === h.id ? '' : h.id));
+                          }
+                        }}
+                        className="cursor-pointer hover:bg-surface/40"
+                      >
+                        <td className="px-3 py-2">{h.id}</td>
+                        <td className="px-3 py-2">${h.amount.toFixed(2)}</td>
+                        <td className="px-3 py-2">{h.createdAt}</td>
+                        <td className="px-3 py-2">{shortHash(h.address)}</td>
+                        <td className="px-3 py-2">
+                          {h.status === 'Successful' && (
+                            <span className="text-success">Successful</span>
+                          )}
+                          {h.status === 'Rejected' && (
+                            <span className="text-danger">Rejected</span>
+                          )}
+                          {h.status === 'Failed' && (
+                            <span className="text-warning">Failed</span>
+                          )}
+                          {h.adminNote ? (
+                            <div className="mt-1 whitespace-pre-wrap text-[10px] text-muted">{h.adminNote}</div>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          {h.txHash ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyTx(h.txHash);
+                              }}
+                              title="Click to copy full Tx Hash"
+                              className="text-primary transition hover:text-primary-hover"
+                            >
+                              {shortHash(h.txHash)}
+                            </button>
+                          ) : (
+                            <span className="text-subtle">-</span>
+                          )}
+                        </td>
+                      </tr>
+                      {expandedHistoryId === h.id ? (
+                        <tr className="bg-surface/20">
+                          <td className="px-3 py-3" colSpan={6}>
+                            <div className="rounded-xl border border-border bg-surface/40 p-3 text-[11px] text-muted">
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                <div className="break-all">
+                                  <span className="text-subtle">Withdrawal Address:</span> {h.fullAddress || h.address}
+                                </div>
+                                <div>
+                                  <span className="text-subtle">Amount:</span>{' '}
+                                  <span className="font-semibold text-secondary">${h.amount.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-subtle">Requested at:</span> {h.createdAtRaw ? String(h.createdAtRaw).slice(0, 19).replace('T', ' ') : h.createdAt || '-'}
+                                </div>
+                                <div>
+                                  <span className="text-subtle">Updated at:</span> {h.updatedAtRaw ? String(h.updatedAtRaw).slice(0, 19).replace('T', ' ') : '-'}
+                                </div>
+                                {h.txHash ? (
+                                  <div className="sm:col-span-2 break-all">
+                                    <span className="text-subtle">Tx Hash:</span> {h.txHash}
+                                  </div>
+                                ) : null}
+                                {h.adminNote ? (
+                                  <div className="sm:col-span-2 whitespace-pre-wrap">
+                                    <span className="text-subtle">Admin Note:</span> {h.adminNote}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
