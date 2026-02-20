@@ -214,6 +214,8 @@ export default function WithdrawPage() {
               ? 'Successful'
               : statusRaw === 'rejected'
               ? 'Rejected'
+              : statusRaw === 'failed' && r.adminNote
+              ? 'Rejected'
               : 'Failed',
           txHash: r.txHash != null ? String(r.txHash) : undefined,
           adminNote: r.adminNote != null ? String(r.adminNote) : null,
