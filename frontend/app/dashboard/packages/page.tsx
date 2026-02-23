@@ -79,8 +79,12 @@ export default function PackagesPage() {
     };
 
     run();
+
+    const onUserUpdated = () => run();
+    window.addEventListener('arbix-user-updated', onUserUpdated);
     return () => {
       cancelled = true;
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
     };
   }, [token]);
 
@@ -107,6 +111,7 @@ export default function PackagesPage() {
 
       setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'completed' } : p)));
       setActionMsg(`Package deactivated. Refund: $${Number(data?.refundAmount || 0).toFixed(2)}`);
+      window.dispatchEvent(new Event('arbix-user-updated'));
     } catch {
       setActionMsg('Failed to deactivate package');
     } finally {

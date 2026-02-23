@@ -114,8 +114,12 @@ export default function WithdrawPage() {
 
     run();
 
+    const onUserUpdated = () => run();
+    window.addEventListener('arbix-user-updated', onUserUpdated);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
     };
   }, []);
 
@@ -241,6 +245,17 @@ export default function WithdrawPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const onUserUpdated = () => {
+      loadWithdrawalRequests();
+    };
+    window.addEventListener('arbix-user-updated', onUserUpdated);
+    return () => {
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleWithdrawAll = () => {
     setAmount(withdrawable.toFixed(2));
   };
@@ -334,6 +349,8 @@ export default function WithdrawPage() {
 
       setPending((prev) => [newReq, ...prev]);
       setAmount('');
+
+      window.dispatchEvent(new Event('arbix-user-updated'));
 
       await loadWithdrawalRequests();
 

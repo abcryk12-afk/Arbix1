@@ -120,6 +120,7 @@ export default function DailyRewardsPage() {
       setToast(`Reward bonus +$${formatMoney(Number(data?.reward?.amount || 0))} USDT added successfully`);
       setCelebrate(true);
       window.dispatchEvent(new Event('arbix-daily-reward-updated'));
+      window.dispatchEvent(new Event('arbix-user-updated'));
       setTimeout(() => setCelebrate(false), 2600);
       await loadStatus();
     } catch {

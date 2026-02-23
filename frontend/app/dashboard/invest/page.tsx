@@ -310,6 +310,7 @@ export default function StartInvestmentPage() {
       setShowActivation(false);
       setAvailableBalance(Number(data?.wallet?.balance || 0));
       setRewardBalance(Number(data?.wallet?.rewardBalance || 0));
+      window.dispatchEvent(new Event('arbix-user-updated'));
 
       const listRes = await fetch('/api/user/packages', {
         method: 'GET',
@@ -397,8 +398,12 @@ export default function StartInvestmentPage() {
     };
 
     load();
+
+    const onUserUpdated = () => load();
+    window.addEventListener('arbix-user-updated', onUserUpdated);
     return () => {
       cancelled = true;
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
     };
   }, []);
 

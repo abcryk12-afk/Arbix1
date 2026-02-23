@@ -170,8 +170,12 @@ export default function DepositPage() {
     };
 
     run();
+
+    const onUserUpdated = () => run();
+    window.addEventListener('arbix-user-updated', onUserUpdated);
     return () => {
       cancelled = true;
+      window.removeEventListener('arbix-user-updated', onUserUpdated);
     };
   }, []);
 
@@ -249,6 +253,7 @@ export default function DepositPage() {
         setAddressGenerated(true);
         setSubmitMessage(data?.message || 'Deposit request submitted');
         setSubmitMessageType('success');
+        window.dispatchEvent(new Event('arbix-user-updated'));
         if (data?.request?.id != null) {
           setCreatedRequestId(String(data.request.id));
           setSelectedRequestId(String(data.request.id));
