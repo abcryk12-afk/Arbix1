@@ -11,6 +11,7 @@ async function forward(request, method) {
 
     const response = await fetch(`${baseUrl}/api/user/notifications/read`, {
       method,
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         Authorization: authHeader,
@@ -19,7 +20,9 @@ async function forward(request, method) {
     });
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    const res = NextResponse.json(data, { status: response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   } catch (error) {
     console.error('User notifications read API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });

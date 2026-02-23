@@ -9,13 +9,16 @@ export async function GET(request) {
 
     const response = await fetch(`${baseUrl}/api/user/footer-demo-stats`, {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         Authorization: authHeader,
       },
     });
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    const res = NextResponse.json(data, { status: response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   } catch (error) {
     console.error('Footer demo stats API error:', error);
     return NextResponse.json(

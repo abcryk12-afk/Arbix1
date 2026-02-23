@@ -9,6 +9,7 @@ async function proxyJson({ request, method, path, body }) {
 
   const response = await fetch(`${baseUrl}${path}`, {
     method,
+    cache: 'no-store',
     headers: {
       ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}),
       Authorization: authHeader,
@@ -29,10 +30,14 @@ export async function GET(request) {
     const primary = await proxyJson({ request, method: 'GET', path: `/api/user/deposit-requests${suffix}` });
     if (primary.response.status === 404 && primary?.data?.message === 'Route not found') {
       const fallback = await proxyJson({ request, method: 'GET', path: `/api/user/deposit_requests${suffix}` });
-      return NextResponse.json(fallback.data, { status: fallback.response.status });
+      const res = NextResponse.json(fallback.data, { status: fallback.response.status });
+      res.headers.set('Cache-Control', 'no-store');
+      return res;
     }
 
-    return NextResponse.json(primary.data, { status: primary.response.status });
+    const res = NextResponse.json(primary.data, { status: primary.response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   } catch (error) {
     console.error('User deposit requests API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
@@ -46,10 +51,14 @@ export async function POST(request) {
     const primary = await proxyJson({ request, method: 'POST', path: '/api/user/deposit-requests', body });
     if (primary.response.status === 404 && primary?.data?.message === 'Route not found') {
       const fallback = await proxyJson({ request, method: 'POST', path: '/api/user/deposit_requests', body });
-      return NextResponse.json(fallback.data, { status: fallback.response.status });
+      const res = NextResponse.json(fallback.data, { status: fallback.response.status });
+      res.headers.set('Cache-Control', 'no-store');
+      return res;
     }
 
-    return NextResponse.json(primary.data, { status: primary.response.status });
+    const res = NextResponse.json(primary.data, { status: primary.response.status });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   } catch (error) {
     console.error('User submit deposit request API error:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
