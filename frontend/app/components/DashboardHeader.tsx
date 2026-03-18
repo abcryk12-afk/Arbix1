@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import RankBadge from './RankBadge';
+import RankUpgradeModal from './RankUpgradeModal';
 
 type NavItem = {
   label: string;
@@ -20,6 +21,8 @@ type NavItem = {
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasRewardReady, setHasRewardReady] = useState(false);
   const [rankName, setRankName] = useState<string>('A1');
+  const [showRankUpgrade, setShowRankUpgrade] = useState(false);
+  const [upgradeRankName, setUpgradeRankName] = useState('A1');
   const [theme, setTheme] = useState<'light' | 'dark' | 'colorful' | 'aurora'>('dark');
   const [themeLoading, setThemeLoading] = useState(false);
 
@@ -89,6 +92,19 @@ type NavItem = {
     const onUserUpdated = () => fetchRank();
     window.addEventListener('arbix-user-updated', onUserUpdated);
     return () => window.removeEventListener('arbix-user-updated', onUserUpdated);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const v = sessionStorage.getItem('arbix-rank-upgrade');
+      if (v && /^A[1-7]$/i.test(v)) {
+        setUpgradeRankName(String(v).toUpperCase());
+        setShowRankUpgrade(true);
+      }
+      sessionStorage.removeItem('arbix-rank-upgrade');
+    } catch {
+      // ignore
+    }
   }, []);
 
   useEffect(() => {
@@ -271,7 +287,14 @@ type NavItem = {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-surface/30 backdrop-blur shadow-theme-md">
+    <>
+      <RankUpgradeModal
+        open={showRankUpgrade}
+        newRank={upgradeRankName}
+        onClose={() => setShowRankUpgrade(false)}
+      />
+
+      <header className="sticky top-0 z-50 border-b border-border bg-surface/30 backdrop-blur shadow-theme-md">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border/20 to-transparent" />
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-3">
@@ -550,6 +573,7 @@ type NavItem = {
           </div>
         </div>
       )}
-    </header>
+      </header>
+    </>
   );
 }

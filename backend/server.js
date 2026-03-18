@@ -262,6 +262,19 @@ const ensureSchema = async () => {
   } catch (e) {}
 
   try {
+    const [colsRaw] = await sequelize.query('SHOW COLUMNS FROM user_rank_status');
+    const cols = Array.isArray(colsRaw) ? colsRaw : [];
+    const colSet = new Set(cols.map((c) => String(c.Field || '').toLowerCase()).filter(Boolean));
+
+    if (!colSet.has('last_seen_rank')) {
+      await sequelize.query("ALTER TABLE user_rank_status ADD COLUMN last_seen_rank VARCHAR(4) NULL");
+    }
+    if (!colSet.has('last_seen_at')) {
+      await sequelize.query('ALTER TABLE user_rank_status ADD COLUMN last_seen_at DATETIME NULL');
+    }
+  } catch (e) {}
+
+  try {
     await sequelize.query('CREATE INDEX idx_user_rank_status_rank_name ON user_rank_status (rank_name)');
   } catch (e) {}
 

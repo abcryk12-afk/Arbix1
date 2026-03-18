@@ -105,6 +105,41 @@ export default function LoginPage() {
         } catch {
           // ignore
         }
+
+        try {
+          const token = data?.token || localStorage.getItem('token');
+          if (token) {
+            const rankRes = await fetch('/api/user/rank', {
+              method: 'GET',
+              cache: 'no-store',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const rankData = await rankRes.json().catch(() => null);
+            const upgraded = Boolean(rankData?.rank?.upgraded);
+            const newRank = String(rankData?.rank?.rankName || 'A1').toUpperCase();
+            if (upgraded && /^A[1-7]$/.test(newRank)) {
+              try {
+                sessionStorage.setItem('arbix-rank-upgrade', newRank);
+              } catch {
+                // ignore
+              }
+              fetch('/api/user/rank', {
+                method: 'POST',
+                cache: 'no-store',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ rankName: newRank }),
+              }).catch(() => null);
+            }
+          }
+        } catch {
+          // ignore
+        }
+
         setTimeout(() => {
           try {
             window.location.href = nextPath || '/dashboard';

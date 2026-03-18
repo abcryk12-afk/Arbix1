@@ -873,6 +873,155 @@ html[data-theme="light"] .arbix-dashboard-bg::after {
     0 6px 18px rgb(var(--t-shadow-rgb) / 0.22);
 }
 
+.arbix-rank-text {
+  color: rgb(var(--t-white) / 0.92);
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+}
+
+.arbix-rank-badge {
+  background: var(--arbix-rank-bg, linear-gradient(135deg, rgb(var(--t-white) / 0.10), rgb(var(--t-white) / 0.02)));
+  border-color: var(--arbix-rank-border, rgb(var(--t-border) / 0.6));
+  box-shadow:
+    0 0 0 1px rgb(var(--t-white) / 0.06),
+    0 14px 38px rgb(var(--t-shadow-rgb) / 0.22),
+    0 0 28px var(--arbix-rank-glow, rgb(var(--t-brand-2) / 0.16));
+  transform: translateZ(0);
+  will-change: transform, filter;
+}
+
+.arbix-rank-badge:hover {
+  filter: brightness(1.06) saturate(1.05);
+}
+
+.arbix-rank-badge.arbix-shine {
+  --arbix-shine-accent: var(--arbix-rank-shine, rgb(var(--t-brand-2) / 0.22));
+}
+
+.arbix-rank-badge::after {
+  border-radius: inherit;
+}
+
+.arbix-rank-badge.arbix-shine-active {
+  animation: arbixRankFloat 3.8s ease-in-out infinite, arbixRankPulse 2.6s ease-in-out infinite;
+}
+
+.arbix-rank-badge[data-rank="A7"],
+.arbix-rank-a7 {
+  animation: arbixRankFloat 3.4s ease-in-out infinite, arbixRankPulseElite 1.9s ease-in-out infinite;
+}
+
+@keyframes arbixRankFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes arbixRankPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgb(var(--t-white) / 0.06),
+      0 14px 38px rgb(var(--t-shadow-rgb) / 0.22),
+      0 0 22px var(--arbix-rank-glow, rgb(var(--t-brand-2) / 0.14));
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgb(var(--t-white) / 0.08),
+      0 18px 44px rgb(var(--t-shadow-rgb) / 0.28),
+      0 0 34px var(--arbix-rank-glow, rgb(var(--t-brand-2) / 0.22));
+  }
+}
+
+@keyframes arbixRankPulseElite {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 14px var(--arbix-rank-glow, rgb(var(--t-brand-2) / 0.22)));
+  }
+  50% {
+    filter: drop-shadow(0 0 28px var(--arbix-rank-glow, rgb(var(--t-brand-2) / 0.34)));
+  }
+}
+
+/* Per-rank crystal palettes */
+.arbix-rank-a1 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(203 213 225 / 0.35), rgb(148 163 184 / 0.10));
+  --arbix-rank-border: rgb(226 232 240 / 0.34);
+  --arbix-rank-glow: rgb(226 232 240 / 0.20);
+  --arbix-rank-shine: rgb(226 232 240 / 0.24);
+}
+
+.arbix-rank-a2 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(56 189 248 / 0.22), rgb(99 102 241 / 0.10));
+  --arbix-rank-border: rgb(56 189 248 / 0.30);
+  --arbix-rank-glow: rgb(56 189 248 / 0.22);
+  --arbix-rank-shine: rgb(56 189 248 / 0.28);
+}
+
+.arbix-rank-a3 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(34 197 94 / 0.22), rgb(16 185 129 / 0.10));
+  --arbix-rank-border: rgb(34 197 94 / 0.28);
+  --arbix-rank-glow: rgb(34 197 94 / 0.22);
+  --arbix-rank-shine: rgb(34 197 94 / 0.26);
+}
+
+.arbix-rank-a4 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(245 158 11 / 0.26), rgb(251 191 36 / 0.10));
+  --arbix-rank-border: rgb(245 158 11 / 0.30);
+  --arbix-rank-glow: rgb(245 158 11 / 0.22);
+  --arbix-rank-shine: rgb(251 191 36 / 0.28);
+}
+
+.arbix-rank-a5 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(226 232 240 / 0.22), rgb(148 163 184 / 0.08));
+  --arbix-rank-border: rgb(203 213 225 / 0.30);
+  --arbix-rank-glow: rgb(148 163 184 / 0.22);
+  --arbix-rank-shine: rgb(226 232 240 / 0.26);
+}
+
+.arbix-rank-a6 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(34 211 238 / 0.22), rgb(56 189 248 / 0.10), rgb(167 139 250 / 0.10));
+  --arbix-rank-border: rgb(34 211 238 / 0.26);
+  --arbix-rank-glow: rgb(34 211 238 / 0.26);
+  --arbix-rank-shine: rgb(167 139 250 / 0.28);
+}
+
+.arbix-rank-a7 {
+  --arbix-rank-bg: linear-gradient(135deg, rgb(244 114 182 / 0.18), rgb(168 85 247 / 0.12), rgb(56 189 248 / 0.12));
+  --arbix-rank-border: rgb(244 114 182 / 0.26);
+  --arbix-rank-glow: rgb(244 114 182 / 0.32);
+  --arbix-rank-shine: rgb(56 189 248 / 0.30);
+}
+
+/* Upgrade modal sparkles */
+.arbix-rank-spark {
+  position: absolute;
+  top: 100%;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, rgb(var(--t-white) / 0.85), rgb(var(--t-white) / 0.05));
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  animation: arbixRankSpark 900ms ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes arbixRankSpark {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.7);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--spark-drift, 0px), -240px, 0) scale(1.15);
+  }
+}
+
 .arbix-page-enter {
   animation: arbixPageEnter 360ms ease both;
 }
@@ -945,6 +1094,13 @@ html[data-theme="light"] .arbix-dashboard-bg::after {
   }
   .arbix-shine-active::after {
     animation: none;
+  }
+  .arbix-rank-badge.arbix-shine-active {
+    animation: none;
+  }
+  .arbix-rank-spark {
+    animation: none;
+    opacity: 0;
   }
   .arbix-page-enter {
     animation: none;

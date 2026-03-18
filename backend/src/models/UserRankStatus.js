@@ -31,6 +31,16 @@ const UserRankStatus = db.define(
       allowNull: false,
       field: 'calculated_at',
     },
+    last_seen_rank: {
+      type: DataTypes.STRING(4),
+      allowNull: true,
+      field: 'last_seen_rank',
+    },
+    last_seen_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'last_seen_at',
+    },
   },
   {
     tableName: 'user_rank_status',

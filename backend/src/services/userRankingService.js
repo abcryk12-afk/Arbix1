@@ -120,9 +120,12 @@ exports.computeUserTeamActiveBalance = async ({ userId }) => {
 exports.getOrComputeUserRank = async ({ userId, maxAgeMs = 10 * 60_000 }) => {
   const now = new Date();
 
+  let lastSeenRank = null;
+
   try {
     const cached = await UserRankStatus.findOne({ where: { user_id: userId }, raw: true });
     if (cached?.calculated_at) {
+      lastSeenRank = cached?.last_seen_rank ? String(cached.last_seen_rank) : null;
       const age = now.getTime() - new Date(cached.calculated_at).getTime();
       if (age >= 0 && age <= maxAgeMs) {
         return {
@@ -130,6 +133,7 @@ exports.getOrComputeUserRank = async ({ userId, maxAgeMs = 10 * 60_000 }) => {
           rankName: String(cached.rank_name || 'A1'),
           totalTeamActiveBalance: numberOrZero(cached.total_team_active_balance),
           calculatedAt: new Date(cached.calculated_at).toISOString(),
+          lastSeenRank,
         };
       }
     }
@@ -164,7 +168,27 @@ exports.getOrComputeUserRank = async ({ userId, maxAgeMs = 10 * 60_000 }) => {
     rankName,
     totalTeamActiveBalance: computed.totalTeamActiveBalance,
     calculatedAt: now.toISOString(),
+    lastSeenRank,
   };
+};
+
+exports.markUserRankSeen = async ({ userId, rankName }) => {
+  const safe = normalizeRankName(rankName) || 'A1';
+  const now = new Date();
+
+  try {
+    await sequelize.query(
+      `INSERT INTO user_rank_status (user_id, rank_name, total_team_active_balance, calculated_at, last_seen_rank, last_seen_at)
+       VALUES (:userId, :rankName, 0, :at, :rankName, :at)
+       ON DUPLICATE KEY UPDATE
+         last_seen_rank = :rankName,
+         last_seen_at = :at`,
+      { replacements: { userId, rankName: safe, at: now } }
+    );
+    return true;
+  } catch (e) {
+    return false;
+  }
 };
 
 exports.recomputeUserRankNonBlocking = ({ userId }) => {
