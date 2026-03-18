@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const { User, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { notifyNewUserRegistration } = require('../services/adminNotificationEmailService');
+const { createLoginActivity } = require('../services/userActivityLogService');
 
 // @desc    Register a new user (OTP-based email verification)
 // @route   POST /api/auth/register
@@ -276,6 +277,8 @@ exports.login = async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
+    const sessionId = await createLoginActivity({ req, userId: user.id });
+
     // Remove sensitive data before sending response
     const userData = user.get();
     delete userData.password_hash;
@@ -286,6 +289,7 @@ exports.login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
+      sessionId,
       user: userData,
     });
   } catch (error) {

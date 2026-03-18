@@ -8,6 +8,7 @@ const emailRoutes = require('./src/routes/email.routes');
 const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const adminLoginRoutes = require('./src/routes/adminLogin.routes');
+const adminAnalyticsRoutes = require('./src/routes/adminAnalytics.routes');
 const userRoutes = require('./src/routes/user.routes');
 const publicRoutes = require('./src/routes/public.routes');
 const moralisRoutes = require('./src/routes/moralis.routes');
@@ -63,6 +64,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminLoginRoutes); // Register login routes first
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/moralis', moralisRoutes);
@@ -193,6 +195,38 @@ const ensureSchema = async () => {
       const enumSql = merged.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');
       await sequelize.query(`ALTER TABLE withdrawal_requests MODIFY COLUMN status ENUM(${enumSql}) NOT NULL DEFAULT 'pending'`);
     }
+  } catch (e) {}
+
+  try {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS user_activity_logs (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        session_id VARCHAR(64) NOT NULL,
+        login_time DATETIME NOT NULL,
+        logout_time DATETIME NULL,
+        ip_address VARCHAR(45) NULL,
+        device_info VARCHAR(255) NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await sequelize.query('CREATE INDEX idx_user_activity_user_time ON user_activity_logs (user_id, login_time)');
+  } catch (e) {
+    // ignore (likely index exists)
+  }
+
+  try {
+    await sequelize.query('CREATE INDEX idx_user_activity_session ON user_activity_logs (session_id)');
+  } catch (e) {}
+
+  try {
+    await sequelize.query('CREATE INDEX idx_user_activity_login_time ON user_activity_logs (login_time)');
+  } catch (e) {}
+
+  try {
+    await sequelize.query('CREATE INDEX idx_user_activity_logout_time ON user_activity_logs (logout_time)');
   } catch (e) {}
 
   startDailyProfitScheduler({

@@ -13,6 +13,7 @@ const DepositScanLog = require('./DepositScanLog');
 const DailyCheckin = require('./DailyCheckin');
 const CmsPage = require('./CmsPage');
 const CmsPageSlug = require('./CmsPageSlug');
+const UserActivityLog = require('./UserActivityLog');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -44,6 +45,9 @@ DailyCheckin.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 CmsPage.hasMany(CmsPageSlug, { foreignKey: 'page_id', as: 'slugs' });
 CmsPageSlug.belongsTo(CmsPage, { foreignKey: 'page_id', as: 'page' });
 
+User.hasMany(UserActivityLog, { foreignKey: 'user_id', as: 'activityLogs' });
+UserActivityLog.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 module.exports = {
   sequelize,
   User,
@@ -60,4 +64,5 @@ module.exports = {
   DailyCheckin,
   CmsPage,
   CmsPageSlug,
+  UserActivityLog,
 };

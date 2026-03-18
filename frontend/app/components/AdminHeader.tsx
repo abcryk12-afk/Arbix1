@@ -243,6 +243,7 @@ export default function AdminHeader() {
   const navItems = [
     { label: "Overview", href: "/admin" },
     { label: "Users", href: "/admin/users" },
+    { label: "Analytics", href: "/admin/analytics" },
     { label: "Wallets", href: "/admin/user-wallets" },
     { label: "KYC", href: "/admin/kyc" },
     { label: "Withdrawals", href: "/admin/withdrawals" },
