@@ -7,6 +7,7 @@ const { User, sequelize } = require('../models');
 const { ensureWalletForUser } = require('../services/walletService');
 const { notifyNewUserRegistration } = require('../services/adminNotificationEmailService');
 const { createLoginActivity } = require('../services/userActivityLogService');
+const { recomputeUserRankNonBlocking } = require('../services/userRankingService');
 
 // @desc    Register a new user (OTP-based email verification)
 // @route   POST /api/auth/register
@@ -278,6 +279,8 @@ exports.login = async (req, res) => {
     );
 
     const sessionId = await createLoginActivity({ req, userId: user.id });
+
+    recomputeUserRankNonBlocking({ userId: user.id });
 
     // Remove sensitive data before sending response
     const userData = user.get();

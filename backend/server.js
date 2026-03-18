@@ -9,7 +9,9 @@ const authRoutes = require('./src/routes/auth.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const adminLoginRoutes = require('./src/routes/adminLogin.routes');
 const adminAnalyticsRoutes = require('./src/routes/adminAnalytics.routes');
+const adminRankingRoutes = require('./src/routes/adminRanking.routes');
 const userRoutes = require('./src/routes/user.routes');
+const userRankingRoutes = require('./src/routes/userRanking.routes');
 const publicRoutes = require('./src/routes/public.routes');
 const moralisRoutes = require('./src/routes/moralis.routes');
 const db = require('./src/config/db');
@@ -65,7 +67,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminLoginRoutes); // Register login routes first
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/analytics', adminAnalyticsRoutes);
+app.use('/api/admin/ranking', adminRankingRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/user', userRankingRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/moralis', moralisRoutes);
 
@@ -227,6 +231,57 @@ const ensureSchema = async () => {
 
   try {
     await sequelize.query('CREATE INDEX idx_user_activity_logout_time ON user_activity_logs (logout_time)');
+  } catch (e) {}
+
+  try {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS user_ranks_config (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        rank_name VARCHAR(4) NOT NULL,
+        min_balance DECIMAL(18, 8) NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_user_ranks_config_rank_name (rank_name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+  } catch (e) {}
+
+  try {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS user_rank_status (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        rank_name VARCHAR(4) NOT NULL,
+        total_team_active_balance DECIMAL(18, 8) NOT NULL DEFAULT 0,
+        calculated_at DATETIME NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_user_rank_status_user_id (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+  } catch (e) {}
+
+  try {
+    await sequelize.query('CREATE INDEX idx_user_rank_status_rank_name ON user_rank_status (rank_name)');
+  } catch (e) {}
+
+  try {
+    await sequelize.query('CREATE INDEX idx_user_rank_status_calculated_at ON user_rank_status (calculated_at)');
+  } catch (e) {}
+
+  try {
+    const [rows] = await sequelize.query('SELECT rank_name FROM user_ranks_config');
+    const existing = new Set((Array.isArray(rows) ? rows : []).map((r) => String(r.rank_name || '').trim()).filter(Boolean));
+    const desired = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'];
+    for (const name of desired) {
+      if (existing.has(name)) continue;
+      try {
+        await sequelize.query(
+          'INSERT INTO user_ranks_config (rank_name, min_balance) VALUES (:name, 0)',
+          { replacements: { name } }
+        );
+      } catch (e) {}
+    }
   } catch (e) {}
 
   startDailyProfitScheduler({

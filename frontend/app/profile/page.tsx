@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import RankBadge from '../components/RankBadge';
 
 type KycStatus = 'pending' | 'approved' | 'rejected';
 
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formName, setFormName] = useState('');
   const [formPhone, setFormPhone] = useState('');
+  const [rankName, setRankName] = useState<string>('A1');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [saveMessageType, setSaveMessageType] = useState<'success' | 'error' | ''>('');
@@ -65,6 +67,38 @@ export default function ProfilePage() {
     run();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/user/rank', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => null);
+        const next = String(data?.rank?.rankName || data?.rankName || 'A1').toUpperCase();
+        if (!cancelled) setRankName(/^A[1-7]$/.test(next) ? next : 'A1');
+      } catch {
+        if (!cancelled) setRankName('A1');
+      }
+    };
+
+    run();
+    const onUpdate = () => run();
+    window.addEventListener('arbix-user-updated', onUpdate);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('arbix-user-updated', onUpdate);
     };
   }, []);
 
@@ -380,6 +414,10 @@ export default function ProfilePage() {
               Account Details
             </h2>
             <div className="mt-3 space-y-2 text-[11px] md:text-xs">
+              <p className="flex items-center justify-between gap-3">
+                <span className="text-muted">User Rank:</span>
+                <span className="shrink-0"><RankBadge rankName={rankName} size="sm" /></span>
+              </p>
               <p>
                 <span className="text-muted">User ID:</span>{' '}
                 <span className="font-semibold text-heading">{userId}</span>

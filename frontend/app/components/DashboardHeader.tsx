@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import RankBadge from './RankBadge';
 
 type NavItem = {
   label: string;
@@ -18,6 +19,7 @@ type NavItem = {
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasRewardReady, setHasRewardReady] = useState(false);
+  const [rankName, setRankName] = useState<string>('A1');
   const [theme, setTheme] = useState<'light' | 'dark' | 'colorful' | 'aurora'>('dark');
   const [themeLoading, setThemeLoading] = useState(false);
 
@@ -55,6 +57,38 @@ type NavItem = {
       window.removeEventListener('arbix-user-updated', onUserUpdated);
       window.removeEventListener('focus', onFocus);
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchRank = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setRankName('A1');
+          return;
+        }
+
+        const res = await fetch('/api/user/rank', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json().catch(() => null);
+        const next = String(data?.rank?.rankName || data?.rankName || 'A1').toUpperCase();
+        setRankName(/^A[1-7]$/.test(next) ? next : 'A1');
+      } catch {
+        setRankName('A1');
+      }
+    };
+
+    fetchRank();
+
+    const onUserUpdated = () => fetchRank();
+    window.addEventListener('arbix-user-updated', onUserUpdated);
+    return () => window.removeEventListener('arbix-user-updated', onUserUpdated);
   }, []);
 
   useEffect(() => {
@@ -279,6 +313,9 @@ type NavItem = {
         </nav>
 
         <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <RankBadge rankName={rankName} size="sm" />
+          </div>
           <button
             type="button"
             onClick={handleToggleTheme}
@@ -423,6 +460,7 @@ type NavItem = {
             <div className="mb-3 flex items-center justify-between">
               <div className="text-xs text-muted">{displayName || 'Account'}</div>
               <div className="flex items-center gap-2">
+                <RankBadge rankName={rankName} size="sm" />
                 <button
                   type="button"
                   onClick={handleToggleTheme}

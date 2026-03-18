@@ -847,6 +847,32 @@ html[data-theme="light"] .arbix-dashboard-bg::after {
   --arbix-shine-accent: rgb(var(--t-danger-soft) / 0.26);
 }
 
+.arbix-rank-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.arbix-rank-badge::before {
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  background: radial-gradient(circle at 30% 30%, rgb(var(--t-white) / 0.22), transparent 55%);
+  opacity: 0.7;
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+
+.arbix-rank-gem {
+  width: 10px;
+  height: 10px;
+  border-radius: 4px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, rgb(var(--t-white) / 0.35), rgb(var(--t-white) / 0.05));
+  box-shadow:
+    0 0 0 1px rgb(var(--t-white) / 0.14),
+    0 6px 18px rgb(var(--t-shadow-rgb) / 0.22);
+}
+
 .arbix-page-enter {
   animation: arbixPageEnter 360ms ease both;
 }

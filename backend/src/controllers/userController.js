@@ -6,6 +6,7 @@ const { notifyDepositRequest, notifyWithdrawRequest } = require('../services/adm
 const { getInvestmentPackagesConfig } = require('../services/investmentPackageConfigService');
 const { getFooterStatsOverrides } = require('../services/footerStatsOverrideService');
 const { _internal: packageDeactivationSettingsInternal } = require('./packageDeactivationSettingsController');
+const { recomputeUserRankNonBlocking, recomputeUplineRanksNonBlocking } = require('../services/userRankingService');
 
 const CHECKIN_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -151,6 +152,9 @@ exports.deactivatePackage = async (req, res) => {
     if (!result.ok) {
       return res.status(result.status || 400).json({ success: false, message: result.message });
     }
+
+    recomputeUserRankNonBlocking({ userId });
+    recomputeUplineRanksNonBlocking({ userId });
 
     return res.status(200).json({
       success: true,
@@ -1438,6 +1442,9 @@ exports.activatePackage = async (req, res) => {
         status: result.pkg.status,
       },
     });
+
+    recomputeUserRankNonBlocking({ userId });
+    recomputeUplineRanksNonBlocking({ userId });
   } catch (error) {
     console.error('Activate package error:', error);
     res.status(500).json({
