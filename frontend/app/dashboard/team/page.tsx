@@ -26,6 +26,9 @@ export default function TeamEarningsPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [counts, setCounts] = useState({ l1: 0, l2: 0, l3: 0, total: 0 });
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
+  const [teamActiveCapital, setTeamActiveCapital] = useState(0);
+  const [rankBonusRows, setRankBonusRows] = useState<{ rank: string; bonus: number; bonusEarned: number; status: string; awarded?: boolean }[]>([]);
+  const [currentRank, setCurrentRank] = useState('A1');
   const [earnings, setEarnings] = useState({
     today: 0,
     allTime: 0,
@@ -48,6 +51,55 @@ export default function TeamEarningsPage() {
         if (storedUser && !cancelled) {
           const u = JSON.parse(storedUser);
           setReferralCode(u?.referral_code || '');
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const res = await fetch('/api/user/team-active-capital', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await res.json().catch(() => null);
+          if (!cancelled && data?.success) {
+            setTeamActiveCapital(Number(data?.teamActiveCapital || 0));
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const res = await fetch('/api/user/rank-bonus', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const data = await res.json().catch(() => null);
+          if (!cancelled && data?.success) {
+            setCurrentRank(String(data?.currentRank || 'A1').toUpperCase());
+            if (Array.isArray(data?.rows)) {
+              setRankBonusRows(
+                data.rows.map((r: any) => ({
+                  rank: String(r?.rank || 'A1').toUpperCase(),
+                  bonus: Number(r?.bonus || 0),
+                  bonusEarned: Number(r?.bonusEarned || 0),
+                  status: String(r?.status || 'Locked'),
+                  awarded: Boolean(r?.awarded),
+                }))
+              );
+            }
+          }
         }
       } catch {
         // ignore
@@ -270,6 +322,17 @@ export default function TeamEarningsPage() {
                 ${earnings.withdrawable.toFixed(2)}
               </p>
             </div>
+            <div className="arbix-card arbix-3d rounded-2xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-muted">Team Active Capital</p>
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl border border-border bg-surface/30 text-[12px] text-info">
+                  ⇄
+                </span>
+              </div>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-info">
+                ${teamActiveCapital.toFixed(2)}
+              </p>
+            </div>
           </div>
 
           <div className="mt-4 overflow-x-auto arbix-card arbix-3d rounded-2xl">
@@ -346,6 +409,62 @@ export default function TeamEarningsPage() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold tracking-tight text-heading md:text-base">
+              Rank Bonus
+            </h3>
+            <p className="mt-2 text-[11px] text-muted">
+              Your current rank is <span className="font-semibold text-heading">{currentRank}</span>. Achieved ranks are highlighted.
+            </p>
+            <div className="mt-4 overflow-x-auto arbix-card arbix-3d rounded-2xl">
+              <table className="min-w-full divide-y divide-border/60 text-[11px]">
+                <thead className="bg-surface/30 text-muted">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Rank</th>
+                    <th className="px-3 py-2 text-right">Bonus</th>
+                    <th className="px-3 py-2 text-right">Bonus Earned</th>
+                    <th className="px-3 py-2 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60 text-fg">
+                  {rankBonusRows.map((row) => {
+                    const achieved = String(row.status).toLowerCase() === 'achieved';
+                    return (
+                      <tr
+                        key={row.rank}
+                        className={
+                          'transition-colors ' +
+                          (achieved ? 'bg-success/5 hover:bg-success/10' : 'hover:bg-surface/30')
+                        }
+                      >
+                        <td className={"px-3 py-2 font-semibold " + (achieved ? 'text-success' : 'text-fg')}>
+                          {row.rank}
+                        </td>
+                        <td className={"px-3 py-2 text-right tabular-nums " + (achieved ? 'text-fg' : 'text-muted')}>
+                          ${Number(row.bonus || 0).toFixed(2)}
+                        </td>
+                        <td className={"px-3 py-2 text-right tabular-nums " + (achieved ? 'text-success' : 'text-muted')}>
+                          ${Number(row.bonusEarned || 0).toFixed(2)}
+                        </td>
+                        <td className={"px-3 py-2 text-right " + (achieved ? 'text-success' : 'text-muted')}>
+                          {row.status}
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {rankBonusRows.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-3 text-muted">
+                        Loading rank bonuses...
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>

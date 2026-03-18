@@ -1,4 +1,4 @@
-const { getOrComputeUserRank, markUserRankSeen } = require('../services/userRankingService');
+const { getOrComputeUserRank, markUserRankSeen, awardRankBonusesNonBlocking } = require('../services/userRankingService');
 
 const rankToNumber = (rankName) => {
   const s = String(rankName || '').trim().toUpperCase();
@@ -14,6 +14,8 @@ exports.getMyRank = async (req, res) => {
     const current = String(result.rankName || 'A1').toUpperCase();
     const prev = result.lastSeenRank ? String(result.lastSeenRank).toUpperCase() : null;
     const upgraded = prev ? rankToNumber(current) > rankToNumber(prev) : false;
+
+    awardRankBonusesNonBlocking({ userId, achievedRankName: current });
 
     return res.status(200).json({
       success: true,

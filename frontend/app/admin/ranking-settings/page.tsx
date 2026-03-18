@@ -5,12 +5,13 @@ import { useEffect, useMemo, useState } from 'react';
 type RankRow = {
   rank_name: string;
   min_balance: number;
+  rank_bonus: number;
 };
 
 const desiredRanks = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'];
 
 export default function AdminRankingSettingsPage() {
-  const [rows, setRows] = useState<RankRow[]>(desiredRanks.map((r) => ({ rank_name: r, min_balance: 0 })));
+  const [rows, setRows] = useState<RankRow[]>(desiredRanks.map((r) => ({ rank_name: r, min_balance: 0, rank_bonus: 0 })));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string>('');
@@ -23,6 +24,7 @@ export default function AdminRankingSettingsPage() {
       return {
         rank_name: name,
         min_balance: Number(found?.min_balance || 0),
+        rank_bonus: Number(found?.rank_bonus || 0),
       };
     });
   }, [rows]);
@@ -60,6 +62,7 @@ export default function AdminRankingSettingsPage() {
               return {
                 rank_name: name,
                 min_balance: Number(match?.min_balance ?? match?.minBalance ?? 0),
+                rank_bonus: Number(match?.rank_bonus ?? match?.rankBonus ?? match?.bonus ?? 0),
               };
             })
           );
@@ -82,6 +85,12 @@ export default function AdminRankingSettingsPage() {
     setRows((prev) => prev.map((r) => (r.rank_name === rank ? { ...r, min_balance: v } : r)));
   };
 
+  const updateBonus = (rank: string, value: string) => {
+    const n = Number(value);
+    const v = Number.isFinite(n) ? Math.max(0, n) : 0;
+    setRows((prev) => prev.map((r) => (r.rank_name === rank ? { ...r, rank_bonus: v } : r)));
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -96,7 +105,11 @@ export default function AdminRankingSettingsPage() {
       }
 
       const payload = {
-        ranks: normalizedRows.map((r) => ({ rank_name: r.rank_name, min_balance: Number(r.min_balance || 0) })),
+        ranks: normalizedRows.map((r) => ({
+          rank_name: r.rank_name,
+          min_balance: Number(r.min_balance || 0),
+          rank_bonus: Number(r.rank_bonus || 0),
+        })),
       };
 
       const res = await fetch('/api/admin/ranking/config', {
@@ -171,6 +184,7 @@ export default function AdminRankingSettingsPage() {
                 <tr className="border-b border-border/60">
                   <th className="px-4 py-3">Rank</th>
                   <th className="px-4 py-3">Min Balance</th>
+                  <th className="px-4 py-3">Rank Bonus</th>
                 </tr>
               </thead>
               <tbody>
@@ -188,12 +202,23 @@ export default function AdminRankingSettingsPage() {
                         className="h-9 w-56 rounded-lg border border-border bg-surface/40 px-3 text-[12px] outline-none focus:border-primary"
                       />
                     </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={Number(r.rank_bonus || 0)}
+                        onChange={(e) => updateBonus(r.rank_name, e.target.value)}
+                        disabled={loading}
+                        className="h-9 w-56 rounded-lg border border-border bg-surface/40 px-3 text-[12px] outline-none focus:border-primary"
+                      />
+                    </td>
                   </tr>
                 ))}
 
                 {loading && (
                   <tr>
-                    <td colSpan={2} className="px-4 py-4 text-[12px] text-muted">
+                    <td colSpan={3} className="px-4 py-4 text-[12px] text-muted">
                       Loading…
                     </td>
                   </tr>

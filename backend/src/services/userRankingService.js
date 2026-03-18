@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { User, UserPackage, UserRankConfig, UserRankStatus, sequelize } = require('../models');
+const { User, UserPackage, UserRankConfig, UserRankStatus, RankSetting, UserRankBonusLedger, Wallet, Transaction, sequelize } = require('../models');
 
 const configCache = {
   at: 0,
@@ -24,23 +24,97 @@ const getRankConfig = async () => {
     return configCache.ranks;
   }
 
-  const rows = await UserRankConfig.findAll({ raw: true, attributes: ['rank_name', 'min_balance'] });
-  const normalized = (rows || [])
-    .map((r) => ({
-      rankName: normalizeRankName(r.rank_name),
-      minBalance: numberOrZero(r.min_balance),
-    }))
-    .filter((r) => r.rankName);
+  let normalized = [];
+  try {
+    const rows = await RankSetting.findAll({ raw: true, attributes: ['rank_name', 'min_team_business', 'rank_bonus'] });
+    normalized = (rows || [])
+      .map((r) => ({
+        rankName: normalizeRankName(r.rank_name),
+        minBalance: numberOrZero(r.min_team_business),
+        rankBonus: numberOrZero(r.rank_bonus),
+      }))
+      .filter((r) => r.rankName);
+  } catch (e) {
+    normalized = [];
+  }
+
+  if (!normalized.length) {
+    const rows = await UserRankConfig.findAll({ raw: true, attributes: ['rank_name', 'min_balance'] });
+    normalized = (rows || [])
+      .map((r) => ({
+        rankName: normalizeRankName(r.rank_name),
+        minBalance: numberOrZero(r.min_balance),
+        rankBonus: 0,
+      }))
+      .filter((r) => r.rankName);
+  }
 
   const byName = new Map(normalized.map((r) => [r.rankName, r]));
   for (const name of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7']) {
-    if (!byName.has(name)) byName.set(name, { rankName: name, minBalance: 0 });
+    if (!byName.has(name)) byName.set(name, { rankName: name, minBalance: 0, rankBonus: 0 });
   }
 
   const ranks = Array.from(byName.values()).sort((a, b) => b.minBalance - a.minBalance);
   configCache.ranks = ranks;
   configCache.at = now;
   return ranks;
+};
+
+const rankToNumber = (rankName) => {
+  const s = String(rankName || '').trim().toUpperCase();
+  const m = s.match(/^A([1-7])$/);
+  if (!m) return 0;
+  return Number(m[1] || 0);
+};
+
+const awardRankBonuses = async ({ userId, achievedRankName }) => {
+  const target = String(achievedRankName || 'A1').toUpperCase();
+  const targetN = rankToNumber(target);
+  if (!targetN) return;
+
+  const ranks = await getRankConfig();
+  const inOrder = [...ranks]
+    .map((r) => ({ rankName: String(r.rankName || '').toUpperCase(), rankBonus: numberOrZero(r.rankBonus) }))
+    .filter((r) => /^A[1-7]$/.test(r.rankName))
+    .sort((a, b) => rankToNumber(a.rankName) - rankToNumber(b.rankName));
+
+  const eligible = inOrder.filter((r) => rankToNumber(r.rankName) > 0 && rankToNumber(r.rankName) <= targetN);
+  if (!eligible.length) return;
+
+  await sequelize.transaction(async (t) => {
+    const already = await UserRankBonusLedger.findAll({ where: { user_id: userId }, raw: true, transaction: t });
+    const have = new Set((already || []).map((x) => String(x.rank_name || '').toUpperCase()).filter(Boolean));
+
+    const toAward = eligible.filter((r) => !have.has(r.rankName) && numberOrZero(r.rankBonus) > 0);
+    if (!toAward.length) return;
+
+    const totalAward = toAward.reduce((acc, r) => acc + numberOrZero(r.rankBonus), 0);
+
+    await Wallet.findOrCreate({ where: { user_id: userId }, defaults: { user_id: userId, balance: 0, reward_balance: 0 }, transaction: t });
+    await Wallet.increment(
+      { reward_balance: totalAward },
+      { where: { user_id: userId }, transaction: t }
+    );
+
+    const now = new Date();
+    for (const r of toAward) {
+      await UserRankBonusLedger.create(
+        { user_id: userId, rank_name: r.rankName, bonus_amount: numberOrZero(r.rankBonus), awarded_at: now },
+        { transaction: t }
+      );
+
+      await Transaction.create(
+        {
+          user_id: userId,
+          type: 'daily_bonus',
+          amount: numberOrZero(r.rankBonus),
+          created_by: 'system',
+          note: `Rank bonus ${r.rankName}`,
+        },
+        { transaction: t }
+      );
+    }
+  });
 };
 
 exports.invalidateRankConfigCache = () => {
@@ -170,6 +244,14 @@ exports.getOrComputeUserRank = async ({ userId, maxAgeMs = 10 * 60_000 }) => {
     calculatedAt: now.toISOString(),
     lastSeenRank,
   };
+};
+
+exports.awardRankBonusesNonBlocking = ({ userId, achievedRankName }) => {
+  const id = Number(userId);
+  if (!Number.isFinite(id) || id <= 0) return;
+  Promise.resolve()
+    .then(() => awardRankBonuses({ userId: id, achievedRankName }))
+    .catch(() => null);
 };
 
 exports.markUserRankSeen = async ({ userId, rankName }) => {

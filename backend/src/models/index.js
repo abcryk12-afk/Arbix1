@@ -16,6 +16,8 @@ const CmsPageSlug = require('./CmsPageSlug');
 const UserActivityLog = require('./UserActivityLog');
 const UserRankConfig = require('./UserRankConfig');
 const UserRankStatus = require('./UserRankStatus');
+const RankSetting = require('./RankSetting');
+const UserRankBonusLedger = require('./UserRankBonusLedger');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -72,4 +74,6 @@ module.exports = {
   UserActivityLog,
   UserRankConfig,
   UserRankStatus,
+  RankSetting,
+  UserRankBonusLedger,
 };

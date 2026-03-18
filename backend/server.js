@@ -249,6 +249,21 @@ const ensureSchema = async () => {
 
   try {
     await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS rank_settings (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        rank_name VARCHAR(4) NOT NULL,
+        min_team_business DECIMAL(18, 8) NOT NULL DEFAULT 0,
+        rank_bonus DECIMAL(18, 8) NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_rank_settings_rank_name (rank_name)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+  } catch (e) {}
+
+  try {
+    await sequelize.query(`
       CREATE TABLE IF NOT EXISTS user_rank_status (
         id BIGINT NOT NULL AUTO_INCREMENT,
         user_id INT NOT NULL,
@@ -257,6 +272,24 @@ const ensureSchema = async () => {
         calculated_at DATETIME NOT NULL,
         PRIMARY KEY (id),
         UNIQUE KEY uk_user_rank_status_user_id (user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+  } catch (e) {}
+
+  try {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS user_rank_bonus_ledger (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        rank_name VARCHAR(4) NOT NULL,
+        bonus_amount DECIMAL(18, 8) NOT NULL DEFAULT 0,
+        awarded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_user_rank_bonus_ledger_user_rank (user_id, rank_name),
+        KEY idx_user_rank_bonus_ledger_user_id (user_id),
+        KEY idx_user_rank_bonus_ledger_rank_name (rank_name)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
   } catch (e) {}
@@ -292,6 +325,22 @@ const ensureSchema = async () => {
         await sequelize.query(
           'INSERT INTO user_ranks_config (rank_name, min_balance) VALUES (:name, 0)',
           { replacements: { name } }
+        );
+      } catch (e) {}
+    }
+  } catch (e) {}
+
+  try {
+    const [rows] = await sequelize.query('SELECT rank_name FROM rank_settings');
+    const existing = new Set((Array.isArray(rows) ? rows : []).map((r) => String(r.rank_name || '').trim()).filter(Boolean));
+    const desired = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7'];
+    const defaultBonuses = { A1: 10, A2: 50, A3: 100, A4: 200, A5: 500, A6: 1000, A7: 2000 };
+    for (const name of desired) {
+      if (existing.has(name)) continue;
+      try {
+        await sequelize.query(
+          'INSERT INTO rank_settings (rank_name, min_team_business, rank_bonus) VALUES (:name, 0, :bonus)',
+          { replacements: { name, bonus: Number(defaultBonuses[name] || 0) } }
         );
       } catch (e) {}
     }
