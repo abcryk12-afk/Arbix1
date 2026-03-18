@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const { User, UserPackage, RankSetting, UserRankBonusLedger } = require('../models');
-const { getOrComputeUserRank, awardRankBonusesNonBlocking } = require('../services/userRankingService');
+const { getOrComputeUserRank } = require('../services/userRankingService');
 
 const cache = new Map();
 
@@ -110,8 +110,6 @@ exports.getRankBonus = async (req, res) => {
     const r = await getOrComputeUserRank({ userId });
     const currentRank = String(r.rankName || 'A1').toUpperCase();
     const currentNum = rankToNumber(currentRank);
-
-    awardRankBonusesNonBlocking({ userId, achievedRankName: currentRank });
 
     const settings = await RankSetting.findAll({ raw: true, attributes: ['rank_name', 'rank_bonus'] });
     const bonusByRank = new Map(

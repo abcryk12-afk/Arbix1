@@ -153,7 +153,7 @@ exports.deactivatePackage = async (req, res) => {
       return res.status(result.status || 400).json({ success: false, message: result.message });
     }
 
-    recomputeUserRankNonBlocking({ userId });
+    recomputeUserRankNonBlocking({ userId, reason: 'team_update' });
     recomputeUplineRanksNonBlocking({ userId });
 
     return res.status(200).json({
@@ -1443,7 +1443,7 @@ exports.activatePackage = async (req, res) => {
       },
     });
 
-    recomputeUserRankNonBlocking({ userId });
+    recomputeUserRankNonBlocking({ userId, reason: 'team_update' });
     recomputeUplineRanksNonBlocking({ userId });
   } catch (error) {
     console.error('Activate package error:', error);

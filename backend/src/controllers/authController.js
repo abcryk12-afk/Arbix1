@@ -280,7 +280,7 @@ exports.login = async (req, res) => {
 
     const sessionId = await createLoginActivity({ req, userId: user.id });
 
-    recomputeUserRankNonBlocking({ userId: user.id });
+    recomputeUserRankNonBlocking({ userId: user.id, reason: 'login' });
 
     // Remove sensitive data before sending response
     const userData = user.get();

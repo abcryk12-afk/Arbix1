@@ -77,7 +77,7 @@ exports.updateRankingConfig = async (req, res) => {
 
     const sampleUserId = req.body?.recomputeUserId ? Number(req.body.recomputeUserId) : null;
     if (Number.isFinite(sampleUserId) && sampleUserId > 0) {
-      recomputeUserRankNonBlocking({ userId: sampleUserId });
+      recomputeUserRankNonBlocking({ userId: sampleUserId, reason: 'config_change' });
     }
 
     return res.status(200).json({ success: true, message: 'Ranking config updated' });

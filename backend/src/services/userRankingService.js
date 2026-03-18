@@ -26,7 +26,11 @@ const getRankConfig = async () => {
 
   let normalized = [];
   try {
-    const rows = await RankSetting.findAll({ raw: true, attributes: ['rank_name', 'min_team_business', 'rank_bonus'] });
+    const rows = await RankSetting.findAll({
+      raw: true,
+      attributes: ['rank_name', 'min_team_business', 'rank_bonus'],
+      order: [['rank_name', 'ASC']],
+    });
     normalized = (rows || [])
       .map((r) => ({
         rankName: normalizeRankName(r.rank_name),
@@ -54,7 +58,12 @@ const getRankConfig = async () => {
     if (!byName.has(name)) byName.set(name, { rankName: name, minBalance: 0, rankBonus: 0 });
   }
 
-  const ranks = Array.from(byName.values()).sort((a, b) => b.minBalance - a.minBalance);
+  const ranks = Array.from(byName.values()).sort((a, b) => {
+    const diff = numberOrZero(b.minBalance) - numberOrZero(a.minBalance);
+    if (diff !== 0) return diff;
+    // Critical safety: if thresholds are equal (often 0), prefer LOWER rank (A1) first.
+    return rankToNumber(String(a.rankName || '')) - rankToNumber(String(b.rankName || ''));
+  });
   configCache.ranks = ranks;
   configCache.at = now;
   return ranks;
@@ -67,26 +76,50 @@ const rankToNumber = (rankName) => {
   return Number(m[1] || 0);
 };
 
-const awardRankBonuses = async ({ userId, achievedRankName }) => {
-  const target = String(achievedRankName || 'A1').toUpperCase();
-  const targetN = rankToNumber(target);
-  if (!targetN) return;
+const awardRankBonuses = async ({ userId, achievedRankName, teamBusiness }) => {
+  const business = numberOrZero(teamBusiness);
+
+  const achieved = String(achievedRankName || '').trim().toUpperCase();
+  const achievedN = rankToNumber(achieved);
+  if (!achievedN) {
+    console.info('[rank-bonus] skip: invalid achieved rank', { userId, achievedRankName });
+    return;
+  }
+
+  // Safeguard: no business => no rank bonus.
+  if (!(business > 0)) {
+    console.info('[rank-bonus] skip: team business is 0', { userId, teamBusiness: business });
+    return;
+  }
 
   const ranks = await getRankConfig();
   const inOrder = [...ranks]
-    .map((r) => ({ rankName: String(r.rankName || '').toUpperCase(), rankBonus: numberOrZero(r.rankBonus) }))
+    .map((r) => ({
+      rankName: String(r.rankName || '').toUpperCase(),
+      minBalance: numberOrZero(r.minBalance),
+      rankBonus: numberOrZero(r.rankBonus),
+    }))
     .filter((r) => /^A[1-7]$/.test(r.rankName))
     .sort((a, b) => rankToNumber(a.rankName) - rankToNumber(b.rankName));
 
-  const eligible = inOrder.filter((r) => rankToNumber(r.rankName) > 0 && rankToNumber(r.rankName) <= targetN);
-  if (!eligible.length) return;
+  // Only ranks up to achieved rank, and whose threshold is met.
+  const eligible = inOrder.filter(
+    (r) => rankToNumber(r.rankName) <= achievedN && business >= numberOrZero(r.minBalance)
+  );
+  if (!eligible.length) {
+    console.info('[rank-bonus] skip: no eligible ranks by threshold', { userId, teamBusiness: business });
+    return;
+  }
 
   await sequelize.transaction(async (t) => {
     const already = await UserRankBonusLedger.findAll({ where: { user_id: userId }, raw: true, transaction: t });
     const have = new Set((already || []).map((x) => String(x.rank_name || '').toUpperCase()).filter(Boolean));
 
     const toAward = eligible.filter((r) => !have.has(r.rankName) && numberOrZero(r.rankBonus) > 0);
-    if (!toAward.length) return;
+    if (!toAward.length) {
+      console.info('[rank-bonus] skip: already awarded or zero bonus', { userId, eligibleCount: eligible.length });
+      return;
+    }
 
     const totalAward = toAward.reduce((acc, r) => acc + numberOrZero(r.rankBonus), 0);
 
@@ -113,6 +146,8 @@ const awardRankBonuses = async ({ userId, achievedRankName }) => {
         },
         { transaction: t }
       );
+
+      console.info('[rank-bonus] awarded', { userId, rank: r.rankName, amount: numberOrZero(r.rankBonus), teamBusiness: business });
     }
   });
 };
@@ -246,11 +281,11 @@ exports.getOrComputeUserRank = async ({ userId, maxAgeMs = 10 * 60_000 }) => {
   };
 };
 
-exports.awardRankBonusesNonBlocking = ({ userId, achievedRankName }) => {
+exports.awardRankBonusesNonBlocking = ({ userId, achievedRankName, teamBusiness }) => {
   const id = Number(userId);
   if (!Number.isFinite(id) || id <= 0) return;
   Promise.resolve()
-    .then(() => awardRankBonuses({ userId: id, achievedRankName }))
+    .then(() => awardRankBonuses({ userId: id, achievedRankName, teamBusiness }))
     .catch(() => null);
 };
 
@@ -276,7 +311,15 @@ exports.markUserRankSeen = async ({ userId, rankName }) => {
 exports.recomputeUserRankNonBlocking = ({ userId }) => {
   if (!userId) return;
   Promise.resolve()
-    .then(() => exports.getOrComputeUserRank({ userId, maxAgeMs: 0 }))
+    .then(async () => {
+      const result = await exports.getOrComputeUserRank({ userId, maxAgeMs: 0 });
+      exports.awardRankBonusesNonBlocking({
+        userId,
+        achievedRankName: result?.rankName,
+        teamBusiness: result?.totalTeamActiveBalance,
+      });
+      return result;
+    })
     .catch(() => null);
 };
 
@@ -292,7 +335,6 @@ exports.recomputeUplineRanksNonBlocking = ({ userId, maxDepth = 100 }) => {
 
       while (depth < maxDepth) {
         depth += 1;
-
         let row;
         try {
           row = await User.findByPk(currentId, { raw: true, attributes: ['id', 'referred_by_id'] });
@@ -305,7 +347,15 @@ exports.recomputeUplineRanksNonBlocking = ({ userId, maxDepth = 100 }) => {
         if (visited.has(parentId)) return;
         visited.add(parentId);
 
-        await exports.getOrComputeUserRank({ userId: parentId, maxAgeMs: 0 }).catch(() => null);
+        const result = await exports.getOrComputeUserRank({ userId: parentId, maxAgeMs: 0 }).catch(() => null);
+        if (result) {
+          // Upline recompute happens because team business changed.
+          exports.awardRankBonusesNonBlocking({
+            userId: parentId,
+            achievedRankName: result?.rankName,
+            teamBusiness: result?.totalTeamActiveBalance,
+          });
+        }
         currentId = parentId;
       }
     })
