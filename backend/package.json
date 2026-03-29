@@ -1,7 +1,7 @@
 {
   "name": "arbix-backend",
   "version": "1.0.0",
-  "description": "ArbiPro/Arbix Backend - Automated Arbitrage Trading + MLM Investment Platform",
+  "description": "Arbix Cloud/Arbix Backend - Automated Arbitrage Trading + MLM Investment Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

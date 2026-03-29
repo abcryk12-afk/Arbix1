@@ -19,18 +19,15 @@ export default function HomePage() {
             
             {/* Main Heading */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
-              <span className="block">Earn</span>
+              <span className="block">Arbix Cloud</span>
               <span className="block text-transparent bg-clip-text bg-theme-text-brand">
-                Passive Income
-              </span>
-              <span className="block text-2xl md:text-3xl lg:text-4xl mt-2 text-muted">
-                Through Smart Trading
+                Automated Arbitrage Platform
               </span>
             </h1>
             
             {/* Subheading */}
             <p className="text-lg md:text-xl text-muted mb-8 max-w-2xl mx-auto">
-              Invest wisely with our automated arbitrage system. No trading experience needed - just watch your profits grow daily.
+              Arbix Cloud is a smart arbitrage and automated trading platform designed to help users explore systematic strategies for passive income with clear dashboards, risk-aware tools, and performance tracking. <a href="/about" className="underline underline-offset-2 hover:opacity-95">About Arbix Cloud</a> · <a href="/plans" className="underline underline-offset-2 hover:opacity-95">View Plans</a> · <a href="/faq" className="underline underline-offset-2 hover:opacity-95">Read FAQ</a> · <a href="/auth/login" className="underline underline-offset-2 hover:opacity-95">Login</a>
             </p>
             
             {/* CTA Buttons */}

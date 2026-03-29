@@ -45,8 +45,8 @@ async function safeFetchJson<T>(url: string): Promise<T | null> {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const fallbackTitle = "ArbiPro / Arbix";
-  const fallbackDescription = "Automated Arbitrage Trading + MLM Investment Platform";
+  const fallbackTitle = "Arbix Cloud – Smart Arbitrage Trading Platform";
+  const fallbackDescription = "Arbix Cloud is a smart arbitrage and automated trading platform designed to help users explore systematic strategies for passive income with clear dashboards, risk-aware tools, and performance tracking.";
 
   const backendBase = process.env.BACKEND_URL || 'http://localhost:5000';
 
@@ -94,16 +94,16 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     manifest: '/manifest.webmanifest',
     keywords: keywords ? keywords.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
-    icons: faviconUrl
-      ? {
-          icon: [
-            { url: faviconUrl },
-          ],
-          apple: [
-            { url: '/icon-maskable.svg' },
-          ],
-        }
-      : undefined,
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/pwa-icon.png', type: 'image/png', sizes: 'any' },
+        ...(faviconUrl ? [{ url: faviconUrl, sizes: 'any' as const }] : []),
+      ],
+      apple: [
+        { url: '/pwa-icon-maskable.png' },
+      ],
+    },
     robots: robotsIndex ? { index: true, follow: true } : { index: false, follow: false },
     verification: googleVerification ? { google: googleVerification } : undefined,
     openGraph: {

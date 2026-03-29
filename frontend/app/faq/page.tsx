@@ -150,7 +150,7 @@ export default function FaqPage() {
           <p className="mt-3 text-sm text-muted md:text-base">
             Clear answers to the most common questions about Arbix. Transparency and
             clarity are our first priorities. If your question is not listed here,
-            our Support team is always available to help.
+            our Support team is always available to help. <a href="/plans" className="underline underline-offset-2 hover:opacity-95">View Plans</a> · <a href="/about" className="underline underline-offset-2 hover:opacity-95">About Arbix Cloud</a> · <a href="/auth/login" className="underline underline-offset-2 hover:opacity-95">Login</a>
           </p>
         </div>
       </section>

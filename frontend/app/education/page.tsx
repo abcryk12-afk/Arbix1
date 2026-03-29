@@ -138,13 +138,13 @@ export default function EducationPage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/30 px-3 py-1 text-[11px] text-muted">
                 <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                Arbix Education
+                Arbix Cloud Education
               </div>
               <h1 className="mt-3 text-2xl font-semibold tracking-tight text-heading md:text-3xl">
-                Learn, grow, and invest smarter.
+                Learn, grow, and make clearer decisions.
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-muted">
-                A professional learning hub for Arbix users: guides, videos, and premium modules for logged-in members.
+                A learning hub for Arbix Cloud users: short guides, videos, and premium modules for logged-in members.
               </p>
             </div>
 
@@ -161,7 +161,7 @@ export default function EducationPage() {
                   href="/auth/login"
                   className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
                 >
-                  Login to Unlock Premium
+                  Login to view premium modules
                 </Link>
               )}
 
@@ -170,7 +170,7 @@ export default function EducationPage() {
                   href="/dashboard/packages"
                   className="rounded-xl border border-border bg-surface/40 px-4 py-2 text-xs text-fg transition hover:opacity-95"
                 >
-                  Activate a Package
+                  Activate a package
                 </Link>
               ) : null}
               <Link
@@ -206,7 +206,7 @@ export default function EducationPage() {
                 <div className="rounded-2xl border border-border bg-surface/40 p-4">
                   <div className="text-[11px] text-muted">02</div>
                   <div className="mt-1 font-medium text-heading">Security discipline</div>
-                  <div className="mt-1 text-[11px] text-muted">Avoid scams, protect credentials, reduce risk mistakes.</div>
+                  <div className="mt-1 text-[11px] text-muted">Avoid scams, protect your account, and reduce common mistakes.</div>
                 </div>
                 <div className="rounded-2xl border border-border bg-surface/40 p-4">
                   <div className="text-[11px] text-muted">03</div>
@@ -225,7 +225,7 @@ export default function EducationPage() {
                   className="rounded-2xl border border-border bg-surface/40 p-4 text-left text-sm text-fg transition hover:opacity-95"
                 >
                   <div className="font-medium text-heading">Read guides</div>
-                  <div className="mt-1 text-[11px] text-muted">Start with simple explanations and important warnings.</div>
+                  <div className="mt-1 text-[11px] text-muted">Start with clear explanations and important reminders.</div>
                 </button>
                 <button
                   type="button"
@@ -233,7 +233,7 @@ export default function EducationPage() {
                   className="rounded-2xl border border-border bg-surface/40 p-4 text-left text-sm text-fg transition hover:opacity-95"
                 >
                   <div className="font-medium text-heading">Watch videos</div>
-                  <div className="mt-1 text-[11px] text-muted">Short walkthroughs to minimize mistakes.</div>
+                  <div className="mt-1 text-[11px] text-muted">Short walkthroughs to help you avoid common mistakes.</div>
                 </button>
                 <button
                   type="button"
@@ -241,7 +241,7 @@ export default function EducationPage() {
                   className="rounded-2xl border border-border bg-surface/40 p-4 text-left text-sm text-fg transition hover:opacity-95"
                 >
                   <div className="font-medium text-heading">Explore premium</div>
-                  <div className="mt-1 text-[11px] text-muted">Login required to view full premium modules.</div>
+                  <div className="mt-1 text-[11px] text-muted">Login required to view premium modules.</div>
                 </button>
               </div>
             </div>
@@ -380,7 +380,7 @@ export default function EducationPage() {
                           {!isLoggedIn ? (
                             <>
                               <div className="text-xs font-semibold text-heading">Login required</div>
-                              <div className="mt-1 text-[11px] text-muted">Unlock premium modules</div>
+                              <div className="mt-1 text-[11px] text-muted">Login to access premium modules</div>
                               <Link
                                 href="/auth/login"
                                 className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
@@ -391,7 +391,7 @@ export default function EducationPage() {
                           ) : (
                             <>
                               <div className="text-xs font-semibold text-heading">Active package required</div>
-                              <div className="mt-1 text-[11px] text-muted">Activate any package to unlock</div>
+                              <div className="mt-1 text-[11px] text-muted">Activate a package to unlock premium modules</div>
                               <Link
                                 href="/dashboard/packages"
                                 className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
@@ -409,7 +409,7 @@ export default function EducationPage() {
             </div>
 
             <div className="mt-4 rounded-3xl border border-border bg-surface/30 p-5 text-sm text-muted">
-              Want us to add specific lessons (Urdu/Hindi/English), PDFs, or a structured course plan? Share your topics list and I will organize it as modules.
+              Want us to add specific lessons (Urdu/Hindi/English), PDFs, or a structured course plan? Share your topics and we can organize them into modules.
             </div>
           </div>
         )}

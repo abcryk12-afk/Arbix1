@@ -57,6 +57,7 @@ export default function Header() {
     { name: "Testimonials", href: "/testimonials" },
     { name: "FAQ", href: "/faq" },
     { name: "Contact", href: "/contact" },
+    { name: "Blog", href: "/blog" },
     { name: "Login", href: "/auth/login" },
     { name: "Join Now", href: "/auth/signup" },
   ];
@@ -108,13 +109,13 @@ export default function Header() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-fg overflow-hidden shadow-theme-sm">
               {logoDataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoDataUrl} alt="Arbix" className="h-9 w-9 object-contain" />
+                <img src={logoDataUrl} alt="Arbix Cloud logo" className="h-9 w-9 object-contain" />
               ) : (
                 'AX'
               )}
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-tight text-heading">Arbix</div>
+              <div className="text-sm font-semibold tracking-tight text-heading">Arbix Cloud</div>
               <div className="text-[11px] text-muted">
                 Automated Arbitrage &amp; Passive Income Platform
               </div>
@@ -130,6 +131,7 @@ export default function Header() {
             <a href="/education" className="hover:text-heading">Education</a>
             <a href="/testimonials" className="hover:text-heading">Testimonials</a>
             <a href="/faq" className="hover:text-heading">FAQ</a>
+            <a href="/blog" className="hover:text-heading">Blog</a>
           </nav>
 
           {/* Desktop CTAs */}

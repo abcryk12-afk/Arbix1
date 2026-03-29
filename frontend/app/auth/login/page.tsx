@@ -101,6 +101,11 @@ export default function LoginPage() {
         if (data?.token) localStorage.setItem('token', data.token);
         if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
         try {
+          localStorage.setItem('arbix_install_prompt_dashboard_once_v1', '1');
+        } catch {
+          // ignore
+        }
+        try {
           window.dispatchEvent(new Event('arbix-user-updated'));
         } catch {
           // ignore
@@ -266,6 +271,18 @@ export default function LoginPage() {
             New here?{' '}
             <a href="/auth/signup" className="text-primary hover:text-heading font-semibold transition-colors">
               Create an account
+            </a>
+            {' '}·{' '}
+            <a href="/about" className="text-primary hover:text-heading font-semibold transition-colors">
+              About Arbix Cloud
+            </a>
+            {' '}·{' '}
+            <a href="/faq" className="text-primary hover:text-heading font-semibold transition-colors">
+              Read FAQ
+            </a>
+            {' '}·{' '}
+            <a href="/plans" className="text-primary hover:text-heading font-semibold transition-colors">
+              View Plans
             </a>
           </div>
 

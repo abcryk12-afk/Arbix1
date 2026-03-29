@@ -119,6 +119,10 @@ export default function AdminUsersPage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [query, setQuery] = useState('');
 
+  const [page, setPage] = useState(0);
+  const usersLimit = 100;
+  const [hasNextPage, setHasNextPage] = useState(false);
+
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetailsResponse['user'] | null>(null);
   const [walletDetails, setWalletDetails] = useState<UserDetailsResponse['wallet'] | null>(null);
@@ -336,7 +340,7 @@ export default function AdminUsersPage() {
     [activePackages],
   );
 
-  const fetchUsers = useCallback(async (q: string) => {
+  const fetchUsers = useCallback(async (q: string, nextPage: number) => {
     try {
       setIsLoadingUsers(true);
       const token = localStorage.getItem('adminToken');
@@ -346,7 +350,8 @@ export default function AdminUsersPage() {
       }
 
       const qs = new URLSearchParams();
-      qs.set('limit', '100');
+      qs.set('limit', String(usersLimit));
+      qs.set('offset', String(Math.max(0, nextPage) * usersLimit));
       if (q.trim()) qs.set('q', q.trim());
 
       const res = await fetch(`/api/admin/users?${qs.toString()}`, {
@@ -358,6 +363,7 @@ export default function AdminUsersPage() {
       const data = await res.json();
 
       if (data?.success && Array.isArray(data?.users)) {
+        setHasNextPage(data.users.length >= usersLimit);
         setUsers(
           data.users.map((u: any) => ({
             id: String(u.id),
@@ -369,14 +375,16 @@ export default function AdminUsersPage() {
           })),
         );
       } else {
+        setHasNextPage(false);
         setUsers([]);
       }
     } catch {
+      setHasNextPage(false);
       setUsers([]);
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [router]);
+  }, [router, usersLimit]);
 
   const fetchUserDetails = async (id: string) => {
     try {
@@ -451,7 +459,8 @@ export default function AdminUsersPage() {
         }
 
         if (!cancelled) {
-          await fetchUsers('');
+          setPage(0);
+          await fetchUsers('', 0);
         }
       } catch {
         localStorage.removeItem('adminToken');
@@ -468,11 +477,17 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      fetchUsers(query);
+      setPage(0);
+      fetchUsers(query, 0);
     }, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, fetchUsers]);
+
+  useEffect(() => {
+    fetchUsers(query, page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   useEffect(() => {
     if (selectedUserId) {
@@ -711,10 +726,30 @@ export default function AdminUsersPage() {
               </div>
               <button
                 type="button"
-                onClick={() => fetchUsers(query)}
+                onClick={() => fetchUsers(query, page)}
                 className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95"
               >
                 Refresh
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2 text-[11px] text-muted">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={isLoadingUsers || page === 0}
+                className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <div className="text-[11px] text-muted">Page {page + 1}</div>
+              <button
+                type="button"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={isLoadingUsers || !hasNextPage}
+                className="rounded-lg border border-border px-3 py-1 text-[11px] text-fg shadow-theme-sm transition hover:shadow-theme-md hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
               </button>
             </div>
 
@@ -725,7 +760,7 @@ export default function AdminUsersPage() {
                 <div className="px-2 py-8 text-center text-[11px] text-muted">No users found.</div>
               ) : (
                 <div className="space-y-2">
-                  {visibleUsers.slice(0, 200).map((u) => {
+                  {visibleUsers.map((u) => {
                     const isSelected = selectedUserId === u.id;
                     const st = statusLabel(u.accountStatus);
                     return (

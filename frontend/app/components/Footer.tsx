@@ -19,7 +19,7 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-8 text-xs text-muted">
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <div className="col-span-2 space-y-2 md:col-span-1">
-            <div className="text-sm font-semibold text-heading">Arbix</div>
+            <div className="text-sm font-semibold text-heading">Arbix Cloud</div>
             <p className="text-[11px] leading-relaxed">
               Automated arbitrage &amp; managed passive income platform with a
               structured referral model.
@@ -152,7 +152,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 border-t border-border pt-6">
           <div className="flex flex-col items-center justify-between gap-4 text-center text-xs text-subtle sm:flex-row sm:text-left">
-            <p>© 2026 Arbix. All rights reserved.</p>
+            <p>© 2026 Arbix Cloud. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <a href="/terms" className="hover:text-muted hover:underline">
                 Terms

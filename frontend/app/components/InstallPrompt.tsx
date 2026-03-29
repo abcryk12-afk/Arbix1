@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -15,10 +16,31 @@ function isStandalone() {
 }
 
 export default function InstallPrompt() {
+  const pathname = usePathname();
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [hidden, setHidden] = useState(true);
 
   const dismissedKey = useMemo(() => 'arbix_install_prompt_dismissed_v1', []);
+  const dashboardGateKey = useMemo(() => 'arbix_install_prompt_dashboard_once_v1', []);
+
+  const isDashboard = Boolean(pathname?.startsWith('/dashboard'));
+
+  const canShowOnThisRoute = useCallback(() => {
+    if (!isDashboard) return true;
+    try {
+      return localStorage.getItem(dashboardGateKey) === '1';
+    } catch {
+      return false;
+    }
+  }, [dashboardGateKey, isDashboard]);
+
+  const clearDashboardGate = useCallback(() => {
+    try {
+      localStorage.removeItem(dashboardGateKey);
+    } catch {
+      // ignore
+    }
+  }, [dashboardGateKey]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -34,12 +56,13 @@ export default function InstallPrompt() {
     const onBip = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
-      setHidden(false);
+      setHidden(!canShowOnThisRoute());
     };
 
     const onInstalled = () => {
       setHidden(true);
       setDeferred(null);
+      clearDashboardGate();
     };
 
     window.addEventListener('beforeinstallprompt', onBip);
@@ -48,10 +71,19 @@ export default function InstallPrompt() {
       window.removeEventListener('beforeinstallprompt', onBip);
       window.removeEventListener('appinstalled', onInstalled);
     };
-  }, [dismissedKey]);
+  }, [dismissedKey, canShowOnThisRoute, clearDashboardGate]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!deferred) return;
+    if (hidden && canShowOnThisRoute()) {
+      setHidden(false);
+    }
+  }, [pathname, deferred, hidden, canShowOnThisRoute]);
 
   const dismiss = () => {
     setHidden(true);
+    clearDashboardGate();
     try {
       localStorage.setItem(dismissedKey, '1');
     } catch {
@@ -67,6 +99,7 @@ export default function InstallPrompt() {
     } finally {
       setDeferred(null);
       setHidden(true);
+      clearDashboardGate();
     }
   };
 

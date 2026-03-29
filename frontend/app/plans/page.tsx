@@ -12,7 +12,7 @@ export default function PlansPage() {
             Choose a Plan
           </h1>
           <p className="mt-3 text-sm text-muted md:text-base">
-            Select a plan based on your goals. For exact returns and terms, please refer to the dashboard and official announcements.
+            Select a plan based on your goals. For exact returns and terms, please refer to the dashboard and official announcements. <a href="/faq" className="underline underline-offset-2 hover:opacity-95">Read FAQ</a> · <a href="/about" className="underline underline-offset-2 hover:opacity-95">About Arbix Cloud</a> · <a href="/auth/login" className="underline underline-offset-2 hover:opacity-95">Login</a>
           </p>
         </div>
       </section>

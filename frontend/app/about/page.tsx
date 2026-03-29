@@ -5,15 +5,16 @@ export default function AboutPage() {
       <section className="border-b border-border bg-surface/30 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
-            ABOUT ARBIX
+            ABOUT ARBIX CLOUD
           </p>
           <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl md:text-4xl">
-            About Arbix — Smart, Secure &amp; Automated Investment Platform
+            About Arbix Cloud — Smart Arbitrage &amp; Performance Tracking Platform
           </h1>
           <p className="mt-3 text-sm text-muted md:text-base">
-            Arbix is an automated arbitrage trading platform designed to give every
-            everyday investor access to a simple, low-risk and transparent way to
-            earn passive income — without needing any technical trading skills.
+            Arbix Cloud is an automated arbitrage trading platform designed to help
+            everyday users explore systematic strategies for passive income with
+            clear reporting, security-focused practices, and transparent performance
+            tracking. <a href="/plans" className="underline underline-offset-2 hover:opacity-95">View Plans</a> · <a href="/faq" className="underline underline-offset-2 hover:opacity-95">Read FAQ</a> · <a href="/auth/login" className="underline underline-offset-2 hover:opacity-95">Login</a>
           </p>
         </div>
       </section>
@@ -25,17 +26,17 @@ export default function AboutPage() {
             <div>
               <h2 className="text-lg font-semibold text-heading md:text-xl">Our Mission</h2>
               <p className="mt-2 text-sm text-muted">
-                To give every person access to an automated, data-driven arbitrage
-                system — so that passive income is no longer limited to professional
-                traders only, but becomes available to everyone.
+                To provide access to automated, data-driven arbitrage tools with
+                clear tracking and responsible communication — so users can learn
+                and participate with realistic expectations.
               </p>
             </div>
             <div>
               <h2 className="text-lg font-semibold text-heading md:text-xl">Our Vision</h2>
               <p className="mt-2 text-sm text-muted">
-                To build a global, transparent and community-driven investment
-                ecosystem where investors receive real daily trading performance,
-                detailed reporting and a strong focus on long-term safety.
+                To build a transparent and community-driven ecosystem where users
+                receive consistent reporting, detailed records, and a strong focus
+                on long-term safety and risk awareness.
               </p>
             </div>
           </div>
@@ -46,7 +47,7 @@ export default function AboutPage() {
       <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
           <h2 className="text-lg font-semibold text-heading md:text-xl">
-            The Technology Behind Arbix
+            The Technology Behind Arbix Cloud
           </h2>
           <p className="mt-2 text-sm text-muted">
             Technology is at the core of everything we do — from trade execution to
@@ -60,8 +61,8 @@ export default function AboutPage() {
               </h3>
               <p className="mt-2 text-muted">
                 The Arbix algorithm detects price gaps between different crypto
-                exchanges and executes automated buy/sell orders. No manual trading
-                is required from the user.
+                exchanges and executes automated buy/sell orders. The platform is
+                designed to reduce manual steps and improve consistency.
               </p>
             </div>
 
@@ -70,8 +71,8 @@ export default function AboutPage() {
                 Real-Time Market Scanning
               </h3>
               <p className="mt-2 text-muted">
-                The system watches the market 24/7, something a manual trader could
-                never match in speed, discipline or consistency.
+                The system monitors markets continuously and reacts based on rules.
+                Actual results depend on market conditions, liquidity, and fees.
               </p>
             </div>
 
@@ -87,8 +88,8 @@ export default function AboutPage() {
           </div>
 
           <p className="mt-4 text-[11px] text-muted">
-            Trading decisions are based purely on data — emotions are kept at zero,
-            while consistency stays at one hundred percent.
+            Trading decisions are based on data and rules. As with any market
+            strategy, outcomes can vary and risk management matters.
           </p>
         </div>
       </section>
@@ -97,7 +98,7 @@ export default function AboutPage() {
       <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
           <h2 className="text-lg font-semibold text-heading md:text-xl">
-            Why Investors Trust Arbix
+            Why Users Trust Arbix Cloud
           </h2>
           <p className="mt-2 text-sm text-muted">
             A balanced set of reasons that combine technology, transparency and
@@ -108,13 +109,13 @@ export default function AboutPage() {
             <div className="rounded-2xl border border-border bg-surface/40 p-4">
               <p className="font-semibold text-heading">Automated Arbitrage Trading</p>
               <p className="mt-2 text-muted">
-                Zero skill needed — the system does the heavy lifting and works for
-                you in the background.
+                Designed to be beginner-friendly — automation supports the workflow
+                while you track performance through your dashboard.
               </p>
             </div>
 
             <div className="rounded-2xl border border-border bg-surface/40 p-4">
-              <p className="font-semibold text-heading">Low-Risk Strategy</p>
+              <p className="font-semibold text-heading">Risk-Aware Approach</p>
               <p className="mt-2 text-muted">
                 Focused on price-difference based trading rather than pure market
                 speculation.
@@ -124,8 +125,7 @@ export default function AboutPage() {
             <div className="rounded-2xl border border-border bg-surface/40 p-4">
               <p className="font-semibold text-heading">Transparent Reporting</p>
               <p className="mt-2 text-muted">
-                Live profit statistics, daily trade logs and clear, exportable
-                records.
+                Clear performance statistics, trade logs and exportable records.
               </p>
             </div>
 
@@ -140,8 +140,8 @@ export default function AboutPage() {
             <div className="rounded-2xl border border-border bg-surface/40 p-4">
               <p className="font-semibold text-heading">Global Investor Community</p>
               <p className="mt-2 text-muted">
-                Hundreds of active investors and a growing community help validate
-                and stabilise the platform.
+                A growing community and support resources help users learn and stay
+                aligned with responsible practices.
               </p>
             </div>
 
@@ -160,7 +160,7 @@ export default function AboutPage() {
       <section className="border-b border-border bg-page">
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
           <h2 className="text-lg font-semibold text-heading md:text-xl">
-            The People Behind Arbix
+            The People Behind Arbix Cloud
           </h2>
           <p className="mt-2 text-sm text-muted">
             The Arbix core team is made up of financial analysts, software
@@ -232,9 +232,9 @@ export default function AboutPage() {
         <div className="mx-auto max-w-3xl px-4 py-10 md:py-14">
           <h2 className="text-lg font-semibold text-heading md:text-xl">Our Commitment</h2>
           <p className="mt-2 text-sm text-muted">
-            Arbix never makes unrealistic promises. Our focus is on long-term,
-            consistent and sustainable earnings. We operate on the principles of
-            transparency, security and responsible investing.
+            Arbix Cloud does not make unrealistic promises. Our focus is on
+            transparency, security and responsible participation, with clear
+            reporting and risk-aware communication.
           </p>
           <p className="mt-3 text-sm font-semibold text-heading">
             Simple. Safe. Transparent.
@@ -269,8 +269,8 @@ export default function AboutPage() {
             Ready to Start Your Passive Income Journey?
           </h2>
           <p className="mt-3 text-sm text-muted">
-            No experience needed — enjoy automated arbitrage and transparent
-            results with Arbix.
+            Explore automated arbitrage with clear reporting and a structured
+            platform experience with Arbix Cloud.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 text-sm sm:flex-row">

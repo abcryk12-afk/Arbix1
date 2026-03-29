@@ -74,7 +74,7 @@ export default function EducationLessonPage({ params }: Props) {
         <div className="mx-auto max-w-4xl px-4 py-10">
           <div className="arbix-card rounded-3xl p-6">
             <div className="text-lg font-semibold text-heading">Lesson not found</div>
-            <div className="mt-2 text-sm text-muted">This lesson does not exist.</div>
+            <div className="mt-2 text-sm text-muted">We couldn’t find this lesson.</div>
             <Link
               href="/education"
               className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
@@ -123,7 +123,7 @@ export default function EducationLessonPage({ params }: Props) {
                 {!isLoggedIn ? (
                   <>
                     <div className="text-sm font-semibold text-heading">Login required</div>
-                    <div className="mt-1 text-[11px] text-muted">Login to view premium lessons.</div>
+                    <div className="mt-1 text-[11px] text-muted">Login to view this premium lesson.</div>
                     <Link
                       href="/auth/login"
                       className="mt-3 inline-flex rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-fg transition hover:opacity-95"
@@ -135,7 +135,7 @@ export default function EducationLessonPage({ params }: Props) {
                   <>
                     <div className="text-sm font-semibold text-heading">Active package required</div>
                     <div className="mt-1 text-[11px] text-muted">
-                      {isCheckingEligibility ? 'Checking eligibility…' : 'Activate any package to unlock premium.'}
+                      {isCheckingEligibility ? 'Checking eligibility…' : 'Activate a package to unlock this lesson.'}
                     </div>
                     <Link
                       href="/dashboard/packages"
@@ -171,7 +171,7 @@ export default function EducationLessonPage({ params }: Props) {
                   >
                     <div className="text-sm font-semibold text-heading">Open video on YouTube</div>
                     <div className="mt-1 text-sm text-muted">
-                      Temporary link (search). You can replace it with your official playlist later.
+                      This is a temporary search link. You can replace it with your official playlist later.
                     </div>
                     <div className="mt-3 text-[11px] text-muted">Open</div>
                   </a>
