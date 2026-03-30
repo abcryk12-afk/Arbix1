@@ -35,10 +35,31 @@ router.post('/login', async (req, res) => {
       return trimmed.replace(/^['"]|['"]$/g, '');
     };
 
+    const getSafeStringDiagnostics = (value) => {
+      const str = String(value ?? '');
+      const len = str.length;
+      const codes = Array.from(str).map((ch) => ch.charCodeAt(0));
+      const sample = {
+        start: codes.slice(0, 4),
+        end: codes.slice(Math.max(0, codes.length - 4)),
+      };
+      const hasControlChars = codes.some((c) => c < 32 || c === 127);
+      return { len, sample, hasControlChars };
+    };
+
     const normalizedSecretCode = normalizeSecret(secretCode);
     const normalizedAdminLoginCode = normalizeSecret(ADMIN_LOGIN_CODE);
 
     if (!normalizedSecretCode || normalizedSecretCode !== normalizedAdminLoginCode) {
+      try {
+        console.warn('[admin-login] invalid secret code', {
+          email: normalizedEmail,
+          secretCode: getSafeStringDiagnostics(secretCode),
+          adminLoginCode: getSafeStringDiagnostics(ADMIN_LOGIN_CODE),
+          normalizedSecretCode: getSafeStringDiagnostics(normalizedSecretCode),
+          normalizedAdminLoginCode: getSafeStringDiagnostics(normalizedAdminLoginCode),
+        });
+      } catch {}
       return res.status(401).json({
         success: false,
         message: 'Invalid secret code'
