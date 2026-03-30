@@ -30,8 +30,13 @@ router.post('/login', async (req, res) => {
     }
 
     // Check if secret code is correct
-    const normalizedSecretCode = String(secretCode || '').trim();
-    const normalizedAdminLoginCode = String(ADMIN_LOGIN_CODE || '').trim();
+    const normalizeSecret = (value) => {
+      const trimmed = String(value || '').trim();
+      return trimmed.replace(/^['"]|['"]$/g, '');
+    };
+
+    const normalizedSecretCode = normalizeSecret(secretCode);
+    const normalizedAdminLoginCode = normalizeSecret(ADMIN_LOGIN_CODE);
 
     if (!normalizedSecretCode || normalizedSecretCode !== normalizedAdminLoginCode) {
       return res.status(401).json({
