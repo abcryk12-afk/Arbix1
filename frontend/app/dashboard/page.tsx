@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import PwaInstallButton from '../components/PwaInstallButton';
 
 type Activity = {
   id: string;
@@ -1073,7 +1074,9 @@ export default function DashboardPage() {
           >
             Risk Disclosure
           </a>
-          .
+          <span className="ml-3 inline-flex align-middle">
+            <PwaInstallButton />
+          </span>
         </div>
       </section>
     </div>
