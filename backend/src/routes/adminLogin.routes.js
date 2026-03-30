@@ -50,7 +50,12 @@ router.post('/login', async (req, res) => {
     const normalizedSecretCode = normalizeSecret(secretCode);
     const normalizedAdminLoginCode = normalizeSecret(ADMIN_LOGIN_CODE);
 
-    if (!normalizedSecretCode || normalizedSecretCode !== normalizedAdminLoginCode) {
+    const allowedAdminCodes = String(normalizedAdminLoginCode || '')
+      .split(/[\s,]+/g)
+      .map((s) => normalizeSecret(s))
+      .filter(Boolean);
+
+    if (!normalizedSecretCode || !allowedAdminCodes.includes(normalizedSecretCode)) {
       try {
         console.warn('[admin-login] invalid secret code', {
           email: normalizedEmail,
