@@ -30,7 +30,10 @@ router.post('/login', async (req, res) => {
     }
 
     // Check if secret code is correct
-    if (secretCode !== ADMIN_LOGIN_CODE) {
+    const normalizedSecretCode = String(secretCode || '').trim();
+    const normalizedAdminLoginCode = String(ADMIN_LOGIN_CODE || '').trim();
+
+    if (!normalizedSecretCode || normalizedSecretCode !== normalizedAdminLoginCode) {
       return res.status(401).json({
         success: false,
         message: 'Invalid secret code'
