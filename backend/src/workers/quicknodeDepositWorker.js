@@ -1,6 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env'), override: true });
 
+const https = require('https');
 const { ethers } = require('ethers');
 const { Op } = require('sequelize');
 
@@ -10,6 +11,7 @@ const {
   sequelize,
   User,
   Wallet,
+  WalletKey,
   Transaction,
   DepositRequest,
   ChainDepositEvent,
@@ -604,6 +606,10 @@ async function scanPendingDepositAddresses({ provider }) {
 }
 
 async function creditDepositEvent(eventId) {
+  let didCredit = false;
+  let creditedUserId = null;
+  let creditedWalletAddress = null;
+
   await sequelize.transaction(async (t) => {
     const event = await ChainDepositEvent.findByPk(eventId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!event || event.credited) return;
@@ -726,7 +732,87 @@ async function creditDepositEvent(eventId) {
     event.credited = true;
     event.credited_at = new Date();
     await event.save({ transaction: t });
+
+    didCredit = true;
+    creditedUserId = userId;
+    creditedWalletAddress = String(event.address || '').trim();
   });
+
+  if (!didCredit || !creditedUserId || !creditedWalletAddress) return;
+
+  const workerBase = String(process.env.AUTO_SWEEP_WORKER_URL || '').trim().replace(/\/+$/, '');
+  if (!workerBase) return;
+
+  (async () => {
+    try {
+      const walletKey = await WalletKey.findOne({
+        where: { user_id: creditedUserId },
+        raw: true,
+        attributes: ['pathIndex'],
+      });
+
+      const index = walletKey?.pathIndex;
+      if (!Number.isFinite(Number(index))) return;
+
+      const payload = { wallet: creditedWalletAddress, index: Number(index) };
+      const url = `${workerBase}/sweep`;
+
+      const postJson = async () => {
+        if (typeof fetch === 'function') {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 4000);
+          try {
+            await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+            }).catch(() => null);
+          } finally {
+            clearTimeout(timeout);
+          }
+          return;
+        }
+
+        await new Promise((resolve) => {
+          try {
+            const u = new URL(url);
+            const req = https.request(
+              {
+                method: 'POST',
+                hostname: u.hostname,
+                port: u.port || (u.protocol === 'https:' ? 443 : 80),
+                path: `${u.pathname}${u.search}`,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                timeout: 4000,
+              },
+              (res) => {
+                res.resume();
+                resolve();
+              },
+            );
+            req.on('timeout', () => {
+              try {
+                req.destroy();
+              } catch {}
+              resolve();
+            });
+            req.on('error', () => resolve());
+            req.write(JSON.stringify(payload));
+            req.end();
+          } catch {
+            resolve();
+          }
+        });
+      };
+
+      await postJson();
+    } catch {
+      // ignore
+    }
+  })();
 }
 
 async function processPendingCredits({ provider }) {
