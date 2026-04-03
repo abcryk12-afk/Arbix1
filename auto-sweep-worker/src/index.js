@@ -22,6 +22,12 @@ function toNumberEnv(name, fallback) {
   return Number.isFinite(n) ? n : Number(fallback);
 }
 
+function isTruthyEnv(name, fallback = false) {
+  const v = String(process.env[name] ?? '').trim().toLowerCase();
+  if (!v) return Boolean(fallback);
+  return ['1', 'true', 'yes', 'on'].includes(v);
+}
+
 function normalizeSeed(raw) {
   const s = String(raw || '').trim().replace(/\s+/g, ' ');
   if (!s) return '';
@@ -54,6 +60,30 @@ function nowIso() {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableError(e) {
+  const code = String(e?.code || '').toUpperCase();
+  const msg = String(e?.message || '');
+  if (code === 'UNPREDICTABLE_GAS_LIMIT') return true;
+  if (code === 'INSUFFICIENT_FUNDS') return true;
+  if (code === 'SERVER_ERROR' && /cannot estimate gas/i.test(msg)) return true;
+  if (/insufficient funds for transfer/i.test(msg)) return true;
+  if (/gas required exceeds allowance/i.test(msg)) return true;
+  return false;
+}
+
+async function withOptionalRetryOnce(fn) {
+  const enabled = isTruthyEnv('AUTO_SWEEP_RETRY_ONCE', false);
+  if (!enabled) return fn();
+
+  try {
+    return await fn();
+  } catch (e) {
+    if (!isRetryableError(e)) throw e;
+    await sleep(3000);
+    return fn();
+  }
 }
 
 async function emitLog({ wallet, index, action, status, details }) {
@@ -221,10 +251,12 @@ async function sweep({ wallet, index }) {
       amount: fixedGasAmountBnb,
     });
 
-    const tx = await gasSigner.sendTransaction({
-      to: derivedAddress,
-      value: minGasWei,
-    });
+    const tx = await withOptionalRetryOnce(() =>
+      gasSigner.sendTransaction({
+        to: derivedAddress,
+        value: minGasWei,
+      })
+    );
 
     await emitLog({ wallet: derivedAddress, index, action: 'gas_sent', status: 'success', details: { amountBnb: fixedGasAmountBnb, txHash: tx?.hash || null } });
 
@@ -255,7 +287,9 @@ async function sweep({ wallet, index }) {
     units: usdtBalanceUnits.toString(),
   });
 
-  const tx = await tokenWithSigner.transfer(ethers.utils.getAddress(mainWalletAddress), usdtBalanceUnits);
+  const tx = await withOptionalRetryOnce(() =>
+    tokenWithSigner.transfer(ethers.utils.getAddress(mainWalletAddress), usdtBalanceUnits)
+  );
   const receipt = await tx.wait(1);
   const transferTxHash = receipt?.transactionHash || tx?.hash || null;
 
