@@ -89,6 +89,32 @@ async function emitLog({ wallet, index, action, status, details }) {
   }
 }
 
+async function triggerSplitWorker({ amountHuman, txHash }) {
+  try {
+    const enabledRaw = String(process.env.SPLIT_WORKER_ENABLED ?? '').trim().toLowerCase();
+    const enabled = enabledRaw ? ['1', 'true', 'yes', 'on'].includes(enabledRaw) : false;
+    if (!enabled) return;
+
+    const base = String(process.env.SPLIT_WORKER_URL || '').trim().replace(/\/+$/, '');
+    if (!base) return;
+    if (typeof fetch !== 'function') return;
+
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timeout = controller ? setTimeout(() => controller.abort(), 2500) : null;
+    try {
+      await fetch(`${base}/split`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: String(amountHuman), txHash: String(txHash) }),
+        signal: controller?.signal,
+      }).catch(() => null);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
+  } catch {
+  }
+}
+
 function keyFor({ wallet, index }) {
   return `${String(wallet || '').toLowerCase()}:${String(index)}`;
 }
@@ -231,14 +257,28 @@ async function sweep({ wallet, index }) {
 
   const tx = await tokenWithSigner.transfer(ethers.utils.getAddress(mainWalletAddress), usdtBalanceUnits);
   const receipt = await tx.wait(1);
+  const transferTxHash = receipt?.transactionHash || tx?.hash || null;
 
   await emitLog({
     wallet: derivedAddress,
     index,
     action: 'usdt_transferred',
     status: 'success',
-    details: { units: usdtBalanceUnits.toString(), txHash: receipt?.transactionHash || tx?.hash || null },
+    details: { units: usdtBalanceUnits.toString(), txHash: transferTxHash },
   });
+
+  if (transferTxHash) {
+    const amountHuman = (() => {
+      try {
+        return ethers.utils.formatUnits(usdtBalanceUnits, decimals);
+      } catch {
+        return null;
+      }
+    })();
+    if (amountHuman) {
+      await triggerSplitWorker({ amountHuman, txHash: transferTxHash });
+    }
+  }
 
   await emitLog({ wallet: derivedAddress, index, action: 'sweep_success', status: 'success', details: null });
 
