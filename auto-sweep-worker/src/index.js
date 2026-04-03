@@ -56,6 +56,39 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function emitLog({ wallet, index, action, status, details }) {
+  try {
+    const base = String(process.env.AUTO_SWEEP_LOG_URL || '').trim().replace(/\/+$/, '');
+    const key = String(process.env.AUTO_SWEEP_LOG_KEY || '').trim();
+    if (!base || !key) return;
+    if (typeof fetch !== 'function') return;
+
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timeout = controller ? setTimeout(() => controller.abort(), 2500) : null;
+    try {
+      await fetch(`${base}/api/auto-sweep/logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auto-Sweep-Key': key,
+        },
+        body: JSON.stringify({
+          wallet,
+          index,
+          action,
+          status,
+          details,
+          source: 'worker',
+        }),
+        signal: controller?.signal,
+      }).catch(() => null);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
+  } catch {
+  }
+}
+
 function keyFor({ wallet, index }) {
   return `${String(wallet || '').toLowerCase()}:${String(index)}`;
 }
@@ -63,6 +96,7 @@ function keyFor({ wallet, index }) {
 const inFlight = new Map();
 
 async function sweep({ wallet, index }) {
+  await emitLog({ wallet, index, action: 'worker_received_request', status: 'pending', details: null });
   const rpcUrl = requireEnv('RPC_URL');
   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
@@ -95,7 +129,10 @@ async function sweep({ wallet, index }) {
   const derived = deriveWallet({ mnemonic: requireEnv('MASTER_SEED'), index, provider });
   const derivedAddress = derived.address;
 
+  await emitLog({ wallet: derivedAddress, index, action: 'wallet_derived', status: 'success', details: { derivedAddress } });
+
   if (ethers.utils.getAddress(wallet) !== ethers.utils.getAddress(derivedAddress)) {
+    await emitLog({ wallet: derivedAddress, index, action: 'wallet_index_mismatch', status: 'failed', details: { wallet, derivedAddress } });
     const err = new Error('Wallet does not match derived address for index');
     err.code = 'WALLET_INDEX_MISMATCH';
     throw err;
@@ -120,6 +157,17 @@ async function sweep({ wallet, index }) {
   const tokenBalance = ethers.BigNumber.from(tokenBalanceRaw);
   const tokenHuman = Number(ethers.utils.formatUnits(tokenBalance, decimals));
 
+  await emitLog({
+    wallet: derivedAddress,
+    index,
+    action: 'balances_checked',
+    status: 'success',
+    details: {
+      bnb: ethers.utils.formatEther(bnbBalanceWei),
+      usdt: Number.isFinite(tokenHuman) ? tokenHuman : null,
+    },
+  });
+
   console.log('[sweep]', nowIso(), 'balances', {
     wallet: derivedAddress,
     index,
@@ -128,6 +176,7 @@ async function sweep({ wallet, index }) {
   });
 
   if (!Number.isFinite(tokenHuman) || tokenHuman < minUsdtThreshold) {
+    await emitLog({ wallet: derivedAddress, index, action: 'usdt_below_threshold', status: 'success', details: { tokenHuman, minUsdtThreshold } });
     return { ok: true, skipped: true, reason: 'below_threshold', tokenHuman };
   }
 
@@ -140,6 +189,7 @@ async function sweep({ wallet, index }) {
   })();
 
   if (bnbBalanceWei.lt(minGasWei)) {
+    await emitLog({ wallet: derivedAddress, index, action: 'gas_topup_started', status: 'pending', details: { amountBnb: fixedGasAmountBnb } });
     console.log('[sweep]', nowIso(), 'topping up gas', {
       to: derivedAddress,
       amount: fixedGasAmountBnb,
@@ -150,6 +200,8 @@ async function sweep({ wallet, index }) {
       value: minGasWei,
     });
 
+    await emitLog({ wallet: derivedAddress, index, action: 'gas_sent', status: 'success', details: { amountBnb: fixedGasAmountBnb, txHash: tx?.hash || null } });
+
     try {
       await tx.wait(1);
     } catch {
@@ -159,12 +211,17 @@ async function sweep({ wallet, index }) {
 
   await sleep(12000);
 
+  await emitLog({ wallet: derivedAddress, index, action: 'waiting_for_confirmation', status: 'pending', details: null });
+
   const tokenWithSigner = token.connect(derived);
 
   const usdtBalanceUnits = await tokenWithSigner.balanceOf(derivedAddress);
   if (usdtBalanceUnits.isZero()) {
+    await emitLog({ wallet: derivedAddress, index, action: 'usdt_balance_checked', status: 'success', details: { units: '0' } });
     return { ok: true, skipped: true, reason: 'no_balance_after_wait' };
   }
+
+  await emitLog({ wallet: derivedAddress, index, action: 'sweep_started', status: 'pending', details: { units: usdtBalanceUnits.toString() } });
 
   console.log('[sweep]', nowIso(), 'sending usdt', {
     from: derivedAddress,
@@ -174,6 +231,16 @@ async function sweep({ wallet, index }) {
 
   const tx = await tokenWithSigner.transfer(ethers.utils.getAddress(mainWalletAddress), usdtBalanceUnits);
   const receipt = await tx.wait(1);
+
+  await emitLog({
+    wallet: derivedAddress,
+    index,
+    action: 'usdt_transferred',
+    status: 'success',
+    details: { units: usdtBalanceUnits.toString(), txHash: receipt?.transactionHash || tx?.hash || null },
+  });
+
+  await emitLog({ wallet: derivedAddress, index, action: 'sweep_success', status: 'success', details: null });
 
   return {
     ok: true,
@@ -217,6 +284,7 @@ app.post('/sweep', async (req, res) => {
     const result = await job;
     return res.status(200).json(result);
   } catch (e) {
+    await emitLog({ wallet, index: Number.isFinite(index) ? Math.floor(index) : null, action: 'sweep_failed', status: 'failed', details: { code: e?.code || null, message: e?.message || String(e) } });
     console.error('[sweep]', nowIso(), 'failed', {
       wallet,
       index,

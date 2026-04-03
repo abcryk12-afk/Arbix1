@@ -18,6 +18,7 @@ const UserRankConfig = require('./UserRankConfig');
 const UserRankStatus = require('./UserRankStatus');
 const RankSetting = require('./RankSetting');
 const UserRankBonusLedger = require('./UserRankBonusLedger');
+const AutoSweepLog = require('./AutoSweepLog');
 
 User.hasOne(Wallet, { foreignKey: 'user_id', as: 'wallet' });
 Wallet.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
@@ -76,4 +77,5 @@ module.exports = {
   UserRankStatus,
   RankSetting,
   UserRankBonusLedger,
+  AutoSweepLog,
 };

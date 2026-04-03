@@ -740,6 +740,39 @@ async function creditDepositEvent(eventId) {
 
   if (!didCredit || !creditedUserId || !creditedWalletAddress) return;
 
+  const logBase = String(process.env.AUTO_SWEEP_LOG_URL || '').trim().replace(/\/+$/, '');
+  const logKey = String(process.env.AUTO_SWEEP_LOG_KEY || '').trim();
+  if (logBase && logKey) {
+    (async () => {
+      try {
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        const timeout = controller ? setTimeout(() => controller.abort(), 2500) : null;
+        try {
+          if (typeof fetch === 'function') {
+            await fetch(`${logBase}/api/auto-sweep/logs`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Auto-Sweep-Key': logKey,
+              },
+              body: JSON.stringify({
+                wallet: creditedWalletAddress,
+                index: null,
+                action: 'deposit_credited',
+                status: 'success',
+                details: { userId: creditedUserId, eventId },
+                source: 'backend',
+              }),
+              signal: controller?.signal,
+            }).catch(() => null);
+          }
+        } finally {
+          if (timeout) clearTimeout(timeout);
+        }
+      } catch {}
+    })();
+  }
+
   const workerBase = String(process.env.AUTO_SWEEP_WORKER_URL || '').trim().replace(/\/+$/, '');
   if (!workerBase) return;
 
@@ -756,6 +789,35 @@ async function creditDepositEvent(eventId) {
 
       const payload = { wallet: creditedWalletAddress, index: Number(index) };
       const url = `${workerBase}/sweep`;
+
+      if (logBase && logKey) {
+        try {
+          if (typeof fetch === 'function') {
+            const controller = typeof AbortController === 'function' ? new AbortController() : null;
+            const timeout = controller ? setTimeout(() => controller.abort(), 2500) : null;
+            try {
+              await fetch(`${logBase}/api/auto-sweep/logs`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Auto-Sweep-Key': logKey,
+                },
+                body: JSON.stringify({
+                  wallet: creditedWalletAddress,
+                  index: Number(index),
+                  action: 'worker_request_sent',
+                  status: 'pending',
+                  details: payload,
+                  source: 'backend',
+                }),
+                signal: controller?.signal,
+              }).catch(() => null);
+            } finally {
+              if (timeout) clearTimeout(timeout);
+            }
+          }
+        } catch {}
+      }
 
       const postJson = async () => {
         if (typeof fetch === 'function') {

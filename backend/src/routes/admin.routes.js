@@ -6,6 +6,7 @@ const { requireAdminUser } = require('../middleware/adminUserMiddleware');
 const { requireAdminKey } = require('../middleware/adminKeyMiddleware');
 const { auditAdminAction } = require('../middleware/adminAuditMiddleware');
 const { listLogs } = require('../controllers/adminLogsController');
+const { listAutoSweepLogs } = require('../controllers/autoSweepLogsController');
 const {
   checkAccess,
   createUser,
@@ -104,6 +105,7 @@ router.use(requireAdminKey);
 
 router.get('/check', protect, requireAdminUser, checkAccess);
 router.get('/logs', protect, requireAdminUser, listLogs);
+router.get('/auto-sweep-logs', protect, requireAdminUser, listAutoSweepLogs);
 router.get('/notification-emails', protect, requireAdminUser, getAdminNotificationEmails);
 router.put('/notification-emails', protect, requireAdminUser, auditAdminAction('admin_notification_emails.update', { entity: 'site_setting' }), setAdminNotificationEmails);
 router.get('/investment-packages', protect, requireAdminUser, getInvestmentPackagesSetting);

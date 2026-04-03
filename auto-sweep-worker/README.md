@@ -11,6 +11,8 @@ cp .env.example .env
 npm start
 ```
 
+Optional (logs): set `AUTO_SWEEP_LOG_URL` and `AUTO_SWEEP_LOG_KEY` to push step logs into the main backend.
+
 ## API
 
 - POST `/sweep`
@@ -25,3 +27,7 @@ Body:
 ```
 
 - GET `/health`
+
+## Logging
+
+When `AUTO_SWEEP_LOG_URL` and `AUTO_SWEEP_LOG_KEY` are configured, the worker will emit step-by-step logs using `POST {AUTO_SWEEP_LOG_URL}/api/auto-sweep/logs`.

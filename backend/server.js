@@ -14,6 +14,7 @@ const userRoutes = require('./src/routes/user.routes');
 const userRankingRoutes = require('./src/routes/userRanking.routes');
 const publicRoutes = require('./src/routes/public.routes');
 const moralisRoutes = require('./src/routes/moralis.routes');
+const autoSweepRoutes = require('./src/routes/autoSweep.routes');
 const db = require('./src/config/db');
 const { startDailyProfitScheduler } = require('./src/services/dailyProfitService');
 
@@ -72,6 +73,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/user', userRankingRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/moralis', moralisRoutes);
+app.use('/api/auto-sweep', autoSweepRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
